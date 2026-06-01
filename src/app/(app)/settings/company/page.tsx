@@ -20,6 +20,12 @@ export default function CompanySettingPage() {
   // Add branch form state
   const [newBranchName, setNewBranchName] = useState("");
   const [newBranchAddress, setNewBranchAddress] = useState("");
+  const [newBranchCity, setNewBranchCity] = useState("");
+  const [newBranchState, setNewBranchState] = useState("");
+  const [newBranchPincode, setNewBranchPincode] = useState("");
+
+  const [toasts, setToasts] = useState<Array<{ id: string; type: "success" | "error"; title: string; message: string }>>([]);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [branchLoading, setBranchLoading] = useState(false);
@@ -27,6 +33,14 @@ export default function CompanySettingPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin";
+
+  const showToast = (type: "success" | "error", title: string, message: string) => {
+    const id = `toast-${Date.now()}`;
+    setToasts((prev) => [...prev, { id, type, title, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -69,20 +83,23 @@ export default function CompanySettingPage() {
 
     if (!isAuthorized) {
       setErrorMsg("You do not have permission to edit company settings.");
+      showToast("error", "Access Denied", "You do not have permission to edit company settings.");
       return;
     }
 
     if (!companyName.trim()) {
       setErrorMsg("Company Name is required.");
+      showToast("error", "Validation Error", "Company Name is required.");
       return;
     }
 
     if (!companyAddress.trim()) {
       setErrorMsg("Company Address is required.");
+      showToast("error", "Validation Error", "Company Address is required.");
       return;
     }
 
-    setLoading(true);
+    loading || setLoading(true);
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
@@ -108,10 +125,12 @@ export default function CompanySettingPage() {
 
       await initialize();
       setSuccessMsg("Company settings updated successfully!");
+      showToast("success", "Settings Saved", "Company details saved successfully.");
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error(err);
       setErrorMsg("An error occurred while saving company settings.");
+      showToast("error", "Error Saving", "Failed to save company settings.");
     } finally {
       setLoading(false);
     }
@@ -148,6 +167,7 @@ export default function CompanySettingPage() {
     } catch (err) {
       console.error(err);
       setErrorMsg("Failed to synchronize branch data.");
+      showToast("error", "Sync Failure", "Failed to sync branch registry changes.");
     } finally {
       setBranchLoading(false);
     }
@@ -155,36 +175,58 @@ export default function CompanySettingPage() {
 
   const handleAddBranch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBranchName.trim() || !newBranchAddress.trim()) return;
+    if (!newBranchName.trim() || !newBranchAddress.trim()) {
+      showToast("error", "Validation Error", "Branch name and address location are required.");
+      return;
+    }
 
     if (!isAuthorized) {
       setErrorMsg("You do not have permission to modify branches.");
+      showToast("error", "Access Denied", "You do not have permission to modify branches.");
       return;
     }
 
     const newBranch: Branch = {
       id: `branch-${Date.now()}`,
       name: newBranchName.trim(),
-      address: newBranchAddress.trim()
+      address: newBranchAddress.trim(),
+      city: newBranchCity.trim() || undefined,
+      state: newBranchState.trim() || undefined,
+      pincode: newBranchPincode.trim() || undefined,
     };
 
     const updated = [...branches, newBranch];
     setBranches(updated);
     handleSaveBranches(updated);
+    showToast("success", "Branch Added", `Branch "${newBranchName}" added successfully.`);
     
     setNewBranchName("");
     setNewBranchAddress("");
+    setNewBranchCity("");
+    setNewBranchState("");
+    setNewBranchPincode("");
   };
 
   const handleDeleteBranch = (id: string) => {
     if (!isAuthorized) {
       setErrorMsg("You do not have permission to modify branches.");
+      showToast("error", "Access Denied", "You do not have permission to delete branches.");
       return;
     }
 
-    const updated = branches.filter(b => b.id !== id);
+    const target = branches.find(b => b.id === id);
+    if (target) {
+      setBranchToDelete(target);
+    }
+  };
+
+  const confirmDeleteBranch = () => {
+    if (!branchToDelete) return;
+    const updated = branches.filter(b => b.id !== branchToDelete.id);
     setBranches(updated);
     handleSaveBranches(updated);
+    showToast("success", "Branch Deleted", `Branch "${branchToDelete.name}" has been deleted.`);
+    setBranchToDelete(null);
   };
 
   const getBranchHeadcount = (branchName: string) => {
@@ -353,8 +395,13 @@ export default function CompanySettingPage() {
                             {count} Employee{count !== 1 && "s"}
                           </span>
                         </div>
-                        <span className="block text-[10px] text-slate-400 truncate leading-relaxed text-left">
+                        <span className="block text-[10px] text-slate-400 leading-relaxed text-left">
                           {branch.address}
+                          {(branch.city || branch.state || branch.pincode) && (
+                            <span className="block mt-0.5 text-slate-500 text-[9px] font-medium">
+                              {[branch.city, branch.state, branch.pincode].filter(Boolean).join(", ")}
+                            </span>
+                          )}
                         </span>
                       </div>
                       
@@ -405,9 +452,51 @@ export default function CompanySettingPage() {
                     required
                     value={newBranchAddress}
                     onChange={(e) => setNewBranchAddress(e.target.value)}
-                    placeholder="e.g. Floor 12, Maker Chambers, Nariman Point, Mumbai"
+                    placeholder="e.g. Floor 12, Maker Chambers, Nariman Point"
                     className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
                   />
+                </div>
+
+                {/* City, State, Pin Code grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={newBranchCity}
+                      onChange={(e) => setNewBranchCity(e.target.value)}
+                      placeholder="Mumbai"
+                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      value={newBranchState}
+                      onChange={(e) => setNewBranchState(e.target.value)}
+                      placeholder="MH"
+                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      Pin Code
+                    </label>
+                    <input
+                      type="text"
+                      value={newBranchPincode}
+                      onChange={(e) => setNewBranchPincode(e.target.value)}
+                      placeholder="400021"
+                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
+                    />
+                  </div>
                 </div>
 
                 <Button
@@ -421,6 +510,67 @@ export default function CompanySettingPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {branchToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-background border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="p-3 rounded-full bg-rose-500/10 text-rose-500 ring-4 ring-rose-500/5">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
+                  Delete Office Branch?
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Are you sure you want to remove the <strong className="text-foreground">"{branchToDelete.name}"</strong> branch? This action will remove the branch registry and cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3 w-full pt-2">
+                <button
+                  type="button"
+                  onClick={() => setBranchToDelete(null)}
+                  className="flex-1 py-3 px-4 rounded-2xl border border-border text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteBranch}
+                  className="flex-1 py-3 px-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Container */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-xl shadow-lg animate-in slide-in-from-right duration-300 ${
+              toast.type === "success"
+                ? "border-emerald-500/20 bg-emerald-950/70 text-emerald-300"
+                : "border-rose-500/20 bg-rose-950/70 text-rose-300"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+            ) : (
+              <ShieldAlert className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+            )}
+            <div className="space-y-0.5 text-left">
+              <h5 className="text-xs font-black uppercase tracking-wider">{toast.title}</h5>
+              <p className="text-[11px] text-slate-200 leading-normal">{toast.message}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

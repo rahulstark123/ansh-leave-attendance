@@ -32,6 +32,9 @@ export interface Branch {
   id: string;
   name: string;
   address: string;
+  pincode?: string;
+  city?: string;
+  state?: string;
 }
 
 export interface SystemSettings {
