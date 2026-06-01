@@ -1,0 +1,75 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Employee {
+  id             String         @id // Matches Supabase Auth ID
+  name           String
+  email          String         @unique
+  role           String         // "Admin" | "HR Manager" | "Employee"
+  department     String
+  avatarInitials String
+  status         String         // "Active" | "On Leave" | "Half-day" | "Off"
+  annualBalance  Float          @default(15)
+  sickBalance    Float          @default(8)
+  casualBalance  Float          @default(6)
+  currentPunchIn String?        // Active punch-in timestamp
+  companyName    String?        // Company Name for Admins/HR Managers
+  companyAddress String?        // Company Address for Admins/HR Managers
+  employeeCount  String?        // Employee Count range for Admins/HR Managers
+  wid            Int?           // Workspace ID
+  employeeCode          String?        // Unique Employee Code e.g. ANSH-001
+  phoneNumber           String?        // Phone Number
+  joiningDate           String?        // Date of Joining
+  designation           String?        // Job Title e.g. Senior Software Engineer
+  employmentType        String?        // e.g. Full-time, Part-time, Contract, Intern
+  reportingManager      String?        // Name of Reporting Manager
+  workLocation          String?        // e.g. Remote, On-site, Hybrid
+  branch                String?        // Assigned branch/office name (e.g. Main HQ, Bengaluru Tech Hub)
+  personalEmail         String?        // Personal Email Address
+  dateOfBirth           String?        // Date of Birth (YYYY-MM-DD)
+  emergencyContactName  String?        // Emergency Contact Name
+  emergencyContactPhone String?        // Emergency Contact Phone Number
+  createdAt             DateTime       @default(now())
+  leaves                LeaveRequest[]
+  punches               PunchRecord[]
+}
+
+model LeaveRequest {
+  id             String   @id @default(cuid())
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type           String   // "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity"
+  startDate      String   // Date string "YYYY-MM-DD"
+  endDate        String   // Date string "YYYY-MM-DD"
+  totalDays      Float
+  halfDay        Boolean
+  reason         String
+  status         String   // "Pending" | "Approved" | "Rejected"
+  wid            Int?     // Workspace ID
+  appliedAt      DateTime @default(now())
+}
+
+model PunchRecord {
+  id         String    @id @default(cuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       String    // Date string "YYYY-MM-DD"
+  punchIn    String    // Time string e.g. "09:05 AM"
+  punchOut   String?   // Time string e.g. "06:12 PM"
+  duration   String?   // e.g. "9h 07m"
+  status     String    // "On-time" | "Late" | "Half-day" | "Absent"
+  wid        Int?      // Workspace ID
+}
+
+model Workspace {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  createdAt DateTime @default(now())
+}

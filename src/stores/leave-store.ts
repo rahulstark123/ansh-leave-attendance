@@ -1,0 +1,471 @@
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { queuedLocalStorage } from "@/lib/safe-storage";
+
+export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity";
+export type LeaveStatus = "Approved" | "Pending" | "Rejected";
+export type EmployeeStatus = "Active" | "On Leave" | "Half-day" | "Off";
+export type EmployeeRole = "Admin" | "HR Manager" | "Employee";
+
+export interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeRole: string;
+  avatarInitials: string;
+  type: LeaveType;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  halfDay: boolean;
+  reason: string;
+  status: LeaveStatus;
+  appliedAt: string;
+}
+
+export interface PunchRecord {
+  id: string;
+  date: string;
+  punchIn: string;
+  punchOut: string | null;
+  duration: string | null; // e.g. "8h 15m"
+  status: "On-time" | "Late" | "Half-day" | "Absent";
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  role: EmployeeRole;
+  department: string;
+  avatarInitials: string;
+  status: EmployeeStatus;
+  leaveBalance: {
+    Annual: number;
+    Sick: number;
+    Casual: number;
+  };
+}
+
+interface LeaveState {
+  employees: Employee[];
+  leaves: LeaveRequest[];
+  punchHistory: PunchRecord[];
+  currentPunchIn: string | null; // ISO String of when user punched in
+  currentUser: Employee;
+  initialize: () => Promise<void>;
+  applyLeave: (request: Omit<LeaveRequest, "id" | "employeeId" | "employeeName" | "employeeRole" | "avatarInitials" | "appliedAt" | "status">) => Promise<void>;
+  approveLeave: (id: string) => Promise<void>;
+  rejectLeave: (id: string) => Promise<void>;
+  punchIn: () => Promise<void>;
+  punchOut: () => Promise<void>;
+  switchUser: (id: string) => void;
+}
+
+const initialEmployees: Employee[] = [
+  {
+    id: "emp-1",
+    name: "Rahul Raj",
+    email: "rahul.raj@ansh.com",
+    role: "HR Manager",
+    department: "Human Resources",
+    avatarInitials: "RR",
+    status: "Active",
+    leaveBalance: { Annual: 14, Sick: 7, Casual: 6 },
+  },
+  {
+    id: "emp-2",
+    name: "Priya Sharma",
+    email: "priya.sharma@ansh.com",
+    role: "Employee",
+    department: "Engineering",
+    avatarInitials: "PS",
+    status: "Active",
+    leaveBalance: { Annual: 12, Sick: 5, Casual: 4 },
+  },
+  {
+    id: "emp-3",
+    name: "Amit Patel",
+    email: "amit.patel@ansh.com",
+    role: "Employee",
+    department: "Product Design",
+    avatarInitials: "AP",
+    status: "On Leave",
+    leaveBalance: { Annual: 8, Sick: 6, Casual: 3 },
+  },
+  {
+    id: "emp-4",
+    name: "Sneha Reddy",
+    email: "sneha.reddy@ansh.com",
+    role: "Employee",
+    department: "Data Analytics",
+    avatarInitials: "SR",
+    status: "Half-day",
+    leaveBalance: { Annual: 16, Sick: 8, Casual: 5 },
+  },
+  {
+    id: "emp-5",
+    name: "Rohan Gupta",
+    email: "rohan.gupta@ansh.com",
+    role: "Employee",
+    department: "Engineering (QA)",
+    avatarInitials: "RG",
+    status: "Active",
+    leaveBalance: { Annual: 10, Sick: 6, Casual: 4 },
+  },
+  {
+    id: "emp-6",
+    name: "Vikram Malhotra",
+    email: "vikram.m@ansh.com",
+    role: "Admin",
+    department: "Executive",
+    avatarInitials: "VM",
+    status: "Active",
+    leaveBalance: { Annual: 20, Sick: 10, Casual: 8 },
+  },
+];
+
+const initialLeaves: LeaveRequest[] = [
+  {
+    id: "req-1",
+    employeeId: "emp-2",
+    employeeName: "Priya Sharma",
+    employeeRole: "Software Engineer",
+    avatarInitials: "PS",
+    type: "Annual",
+    startDate: "2026-06-10",
+    endDate: "2026-06-13",
+    totalDays: 3,
+    halfDay: false,
+    reason: "Going on a family trip to Himachal",
+    status: "Pending",
+    appliedAt: "2026-05-28T09:15:00.000Z",
+  },
+  {
+    id: "req-2",
+    employeeId: "emp-3",
+    employeeName: "Amit Patel",
+    employeeRole: "Senior Product Designer",
+    avatarInitials: "AP",
+    type: "Sick",
+    startDate: "2026-05-29",
+    endDate: "2026-05-29",
+    totalDays: 1,
+    halfDay: false,
+    reason: "Severe dental checkup and surgery",
+    status: "Pending",
+    appliedAt: "2026-05-29T07:30:00.000Z",
+  },
+  {
+    id: "req-3",
+    employeeId: "emp-4",
+    employeeName: "Sneha Reddy",
+    employeeRole: "Data Analyst",
+    avatarInitials: "SR",
+    type: "Casual",
+    startDate: "2026-05-29",
+    endDate: "2026-05-29",
+    totalDays: 0.5,
+    halfDay: true,
+    reason: "Urgent personal work at the bank in the afternoon",
+    status: "Approved",
+    appliedAt: "2026-05-27T14:22:00.000Z",
+  },
+  {
+    id: "req-4",
+    employeeId: "emp-1",
+    employeeName: "Rahul Raj",
+    employeeRole: "HR Manager",
+    avatarInitials: "RR",
+    type: "Annual",
+    startDate: "2026-05-15",
+    endDate: "2026-05-18",
+    totalDays: 3,
+    halfDay: false,
+    reason: "Extended weekend trip",
+    status: "Approved",
+    appliedAt: "2026-05-10T10:00:00.000Z",
+  },
+  {
+    id: "req-5",
+    employeeId: "emp-5",
+    employeeName: "Rohan Gupta",
+    employeeRole: "QA Analyst",
+    avatarInitials: "RG",
+    type: "Casual",
+    startDate: "2026-05-05",
+    endDate: "2026-05-05",
+    totalDays: 1,
+    halfDay: false,
+    reason: "Sister's graduation ceremony",
+    status: "Rejected",
+    appliedAt: "2026-05-02T11:45:00.000Z",
+  },
+];
+
+const initialPunchHistory: PunchRecord[] = [
+  {
+    id: "p-1",
+    date: "2026-05-28",
+    punchIn: "09:05 AM",
+    punchOut: "06:12 PM",
+    duration: "9h 07m",
+    status: "On-time",
+  },
+  {
+    id: "p-2",
+    date: "2026-05-27",
+    punchIn: "09:45 AM",
+    punchOut: "06:05 PM",
+    duration: "8h 20m",
+    status: "Late",
+  },
+  {
+    id: "p-3",
+    date: "2026-05-26",
+    punchIn: "08:58 AM",
+    punchOut: "05:30 PM",
+    duration: "8h 32m",
+    status: "On-time",
+  },
+  {
+    id: "p-4",
+    date: "2026-05-25",
+    punchIn: "09:02 AM",
+    punchOut: "06:00 PM",
+    duration: "8h 58m",
+    status: "On-time",
+  },
+  {
+    id: "p-5",
+    date: "2026-05-22",
+    punchIn: "01:00 PM",
+    punchOut: "06:00 PM",
+    duration: "5h 00m",
+    status: "Half-day",
+  },
+];
+
+const mapDbEmployee = (dbEmp: any): Employee => {
+  return {
+    id: dbEmp.id,
+    name: dbEmp.name,
+    email: dbEmp.email,
+    role: dbEmp.role as EmployeeRole,
+    department: dbEmp.department,
+    avatarInitials: dbEmp.avatarInitials,
+    status: dbEmp.status as EmployeeStatus,
+    leaveBalance: {
+      Annual: dbEmp.annualBalance,
+      Sick: dbEmp.sickBalance,
+      Casual: dbEmp.casualBalance,
+    },
+  };
+};
+
+const getHeaders = () => {
+  const token = typeof window !== "undefined" ? sessionStorage.getItem("ansh_auth_token") : null;
+  const state = useLeaveStore.getState();
+  const impersonate = state?.currentUser?.id;
+  
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(impersonate ? { "X-Impersonate-User": impersonate } : {}),
+  };
+};
+
+export const useLeaveStore = create<LeaveState>()(
+  persist(
+    (set) => ({
+      employees: initialEmployees,
+      leaves: initialLeaves,
+      punchHistory: initialPunchHistory,
+      currentPunchIn: null,
+      currentUser: initialEmployees[0],
+
+      initialize: async () => {
+        try {
+          const headers = getHeaders();
+          
+          // 1. Fetch profile
+          const meRes = await fetch("/api/auth/me", { headers });
+          if (!meRes.ok) return;
+          const meData = await meRes.json();
+          if (meData.onboardingRequired || !meData.employee) return;
+          const currentUser = mapDbEmployee(meData.employee);
+
+          // 2. Fetch employees
+          const empRes = await fetch("/api/employees", { headers });
+          const empData = await empRes.json();
+          const employees = (empData.employees || []).map(mapDbEmployee);
+
+          // 3. Fetch leaves
+          const leavesRes = await fetch("/api/leaves", { headers });
+          const leavesData = await leavesRes.json();
+          const leaves = leavesData.leaves || [];
+
+          // 4. Fetch punches
+          const punchRes = await fetch("/api/attendance/punch", { headers });
+          const punchData = await punchRes.json();
+          const punchHistory = punchData.punchHistory || [];
+          const currentPunchIn = punchData.currentPunchIn || null;
+
+          set({
+            currentUser,
+            employees: employees.length ? employees : [currentUser],
+            leaves,
+            punchHistory,
+            currentPunchIn,
+          });
+        } catch (error) {
+          console.error("Store initialization failed:", error);
+        }
+      },
+
+      applyLeave: async (req) => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/leaves", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(req),
+          });
+          if (!res.ok) throw new Error("Failed to apply for leave");
+          const data = await res.json();
+          if (data.leave) {
+            set((state) => ({
+              leaves: [data.leave, ...state.leaves],
+            }));
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      approveLeave: async (id) => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/leaves/status", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ id, status: "Approved" }),
+          });
+          if (!res.ok) throw new Error("Failed to approve leave");
+          
+          set((state) => {
+            const updatedLeaves = state.leaves.map((l) => {
+              if (l.id === id) {
+                const days = l.totalDays;
+                const type = l.type as "Annual" | "Sick" | "Casual";
+                
+                state.employees = state.employees.map((e) => {
+                  if (e.id === l.employeeId && e.leaveBalance[type] !== undefined) {
+                    return {
+                      ...e,
+                      leaveBalance: {
+                        ...e.leaveBalance,
+                        [type]: Math.max(0, e.leaveBalance[type] - days),
+                      },
+                    };
+                  }
+                  return e;
+                });
+
+                return { ...l, status: "Approved" as LeaveStatus };
+              }
+              return l;
+            });
+
+            const activeUser = state.currentUser;
+            const updatedCurrentUser = state.employees.find((e) => e.id === activeUser.id) || activeUser;
+
+            return {
+              leaves: updatedLeaves,
+              employees: [...state.employees],
+              currentUser: updatedCurrentUser,
+            };
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      rejectLeave: async (id) => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/leaves/status", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ id, status: "Rejected" }),
+          });
+          if (!res.ok) throw new Error("Failed to reject leave");
+          
+          set((state) => ({
+            leaves: state.leaves.map((l) =>
+              l.id === id ? { ...l, status: "Rejected" as LeaveStatus } : l
+            ),
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      punchIn: async () => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/attendance/punch", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ action: "punch-in" }),
+          });
+          if (!res.ok) throw new Error("Failed to punch in");
+          const data = await res.json();
+          
+          set({
+            currentPunchIn: data.currentPunchIn,
+          });
+          set((state) => ({
+            currentUser: { ...state.currentUser, status: "Active" },
+            employees: state.employees.map((e) =>
+              e.id === state.currentUser.id ? { ...e, status: "Active" } : e
+            ),
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      punchOut: async () => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/attendance/punch", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ action: "punch-out" }),
+          });
+          if (!res.ok) throw new Error("Failed to punch out");
+          const data = await res.json();
+          
+          set((state) => ({
+            currentPunchIn: null,
+            punchHistory: [data.punchRecord, ...state.punchHistory],
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      switchUser: (id) =>
+        set((state) => {
+          const user = state.employees.find((e) => e.id === id) || state.currentUser;
+          return { currentUser: user };
+        }),
+    }),
+    {
+      name: "ansh-leave-database",
+      version: 1,
+      storage: createJSONStorage(() => queuedLocalStorage),
+    }
+  )
+);
