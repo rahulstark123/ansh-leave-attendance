@@ -37,6 +37,18 @@ export interface Branch {
   state?: string;
 }
 
+export interface CompanyProfile {
+  name: string;
+  address: string;
+  employeeCount: string;
+  industry?: string;
+  foundYear?: string;
+  registrationNumber?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  websiteUrl?: string;
+}
+
 export interface SystemSettings {
   leaveSettings: {
     annualLimit: number;
@@ -58,6 +70,7 @@ export interface SystemSettings {
     currency: string;
   };
   branches?: Branch[];
+  companyProfile?: CompanyProfile;
 }
 
 const SETTINGS_FILE = path.join(process.cwd(), "src/config/system-settings.json");
@@ -142,6 +155,17 @@ const defaultSettings: SystemSettings = {
     { id: "branch-hq", name: "Main HQ", address: "123 Corporate Tower, New Delhi, India" },
     { id: "branch-bengaluru", name: "Bengaluru Tech Park", address: "45 Technology Blvd, Outer Ring Road, Bengaluru, India" }
   ],
+  companyProfile: {
+    name: "ANSH Solutions",
+    address: "123 Business Park, Mumbai, India",
+    employeeCount: "11-50",
+    industry: "Software & Technology",
+    foundYear: "2021",
+    registrationNumber: "CIN-U72900MH2021PTC361284",
+    contactEmail: "contact@ansh.com",
+    contactPhone: "+91 22 4567 8901",
+    websiteUrl: "https://ansh.com"
+  }
 };
 
 export function getSystemSettings(): SystemSettings {
@@ -164,7 +188,8 @@ export function getSystemSettings(): SystemSettings {
           ...defaultSettings.billingSettings,
           ...parsed.billingSettings
         },
-        branches: parsed.branches !== undefined ? parsed.branches : defaultSettings.branches
+        branches: parsed.branches !== undefined ? parsed.branches : defaultSettings.branches,
+        companyProfile: parsed.companyProfile !== undefined ? { ...defaultSettings.companyProfile, ...parsed.companyProfile } : defaultSettings.companyProfile
       };
     }
   } catch (error) {
@@ -182,7 +207,8 @@ export function saveSystemSettings(settings: Partial<SystemSettings>): SystemSet
       leaveSettings: { ...current.leaveSettings, ...settings.leaveSettings },
       attendanceSettings: { ...current.attendanceSettings, ...settings.attendanceSettings },
       billingSettings: { ...current.billingSettings, ...settings.billingSettings },
-      branches: settings.branches !== undefined ? settings.branches : current.branches
+      branches: settings.branches !== undefined ? settings.branches : current.branches,
+      companyProfile: settings.companyProfile !== undefined ? { ...current.companyProfile, ...settings.companyProfile } : current.companyProfile
     };
     
     const dir = path.dirname(SETTINGS_FILE);

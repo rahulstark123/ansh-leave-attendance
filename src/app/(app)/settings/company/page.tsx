@@ -17,6 +17,14 @@ export default function CompanySettingPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
 
+  // Expanded Company Profile states
+  const [industry, setIndustry] = useState("");
+  const [foundYear, setFoundYear] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+
   // Add branch form state
   const [newBranchName, setNewBranchName] = useState("");
   const [newBranchAddress, setNewBranchAddress] = useState("");
@@ -42,6 +50,31 @@ export default function CompanySettingPage() {
     }, 4000);
   };
 
+  // Pincode lookup auto-fill
+  useEffect(() => {
+    if (newBranchPincode.length === 6 && /^\d+$/.test(newBranchPincode)) {
+      const fetchLocation = async () => {
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${newBranchPincode}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data[0] && data[0].Status === "Success" && data[0].PostOffice?.[0]) {
+              const po = data[0].PostOffice[0];
+              setNewBranchCity(po.District || po.Division || "");
+              setNewBranchState(po.State || "");
+              showToast("success", "Pincode Auto-filled", `Location set to ${po.District}, ${po.State}`);
+            } else {
+              showToast("error", "Invalid Pincode", "No postal records found for this pincode.");
+            }
+          }
+        } catch (err) {
+          console.error("Pincode lookup error:", err);
+        }
+      };
+      fetchLocation();
+    }
+  }, [newBranchPincode]);
+
   useEffect(() => {
     if (currentUser) {
       const emp = currentUser as any;
@@ -63,6 +96,18 @@ export default function CompanySettingPage() {
           const data = await settingsRes.json();
           if (data.settings?.branches) {
             setBranches(data.settings.branches);
+          }
+          if (data.settings?.companyProfile) {
+            const profile = data.settings.companyProfile;
+            setCompanyName(profile.name || "");
+            setCompanyAddress(profile.address || "");
+            setEmployeeCount(profile.employeeCount || "1-10");
+            setIndustry(profile.industry || "");
+            setFoundYear(profile.foundYear || "");
+            setRegistrationNumber(profile.registrationNumber || "");
+            setContactEmail(profile.contactEmail || "");
+            setContactPhone(profile.contactPhone || "");
+            setWebsiteUrl(profile.websiteUrl || "");
           }
         }
         if (employeesRes.ok) {
@@ -103,7 +148,8 @@ export default function CompanySettingPage() {
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
-      const res = await fetch("/api/auth/onboard", {
+      
+      const onboardPromise = fetch("/api/auth/onboard", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,13 +165,36 @@ export default function CompanySettingPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to save company settings");
+      const settingsPromise = fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          companyProfile: {
+            name: companyName.trim(),
+            address: companyAddress.trim(),
+            employeeCount,
+            industry: industry.trim(),
+            foundYear: foundYear.trim(),
+            registrationNumber: registrationNumber.trim(),
+            contactEmail: contactEmail.trim(),
+            contactPhone: contactPhone.trim(),
+            websiteUrl: websiteUrl.trim(),
+          }
+        }),
+      });
+
+      const [onboardRes, settingsRes] = await Promise.all([onboardPromise, settingsPromise]);
+
+      if (!onboardRes.ok || !settingsRes.ok) {
+        throw new Error("Failed to save full company settings profile");
       }
 
       await initialize();
-      setSuccessMsg("Company settings updated successfully!");
-      showToast("success", "Settings Saved", "Company details saved successfully.");
+      setSuccessMsg("Company settings profile updated successfully!");
+      showToast("success", "Settings Saved", "Full company settings profile successfully updated.");
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error(err);
@@ -336,6 +405,99 @@ export default function CompanySettingPage() {
                 </div>
               </div>
 
+              {/* Additional Company Fields Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/40 pt-4">
+                {/* INDUSTRY */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Industry Type
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isAuthorized}
+                    value={industry}
+                    onChange={(e) => setIndustry(e.target.value)}
+                    placeholder="e.g. Software & Technology"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* FOUND YEAR */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Found Year
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isAuthorized}
+                    value={foundYear}
+                    onChange={(e) => setFoundYear(e.target.value)}
+                    placeholder="e.g. 2021"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* REGISTRATION ID / TAX NUMBER */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Registration Number (CIN/GST)
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isAuthorized}
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    placeholder="e.g. CIN-U72900MH2021PTC361284"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* WEBSITE URL */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Website URL
+                  </label>
+                  <input
+                    type="url"
+                    disabled={!isAuthorized}
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="e.g. https://ansh.com"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* CONTACT EMAIL */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Corporate Email Address
+                  </label>
+                  <input
+                    type="email"
+                    disabled={!isAuthorized}
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="e.g. info@company.com"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* CONTACT PHONE */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Corporate Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    disabled={!isAuthorized}
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="e.g. +91 22 4567 8901"
+                    className="mt-2 block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
               {isAuthorized && (
                 <div className="pt-2">
                   <Button
@@ -428,7 +590,55 @@ export default function CompanySettingPage() {
                   <Plus className="h-3.5 w-3.5 text-primary" />
                   Add Office Branch
                 </h4>
-                
+
+                {/* PIN CODE (Comes first for lookup auto-fill) */}
+                <div>
+                  <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 flex items-center gap-1">
+                    Pin Code (Auto-fills City & State)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newBranchPincode}
+                    onChange={(e) => setNewBranchPincode(e.target.value)}
+                    placeholder="e.g. 400021"
+                    maxLength={6}
+                    className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                  />
+                </div>
+
+                {/* City and State row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newBranchCity}
+                      onChange={(e) => setNewBranchCity(e.target.value)}
+                      placeholder="e.g. Mumbai"
+                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newBranchState}
+                      onChange={(e) => setNewBranchState(e.target.value)}
+                      placeholder="e.g. Maharashtra"
+                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
+                    />
+                  </div>
+                </div>
+
+                {/* Branch Name */}
                 <div>
                   <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
                     Branch Name
@@ -443,6 +653,7 @@ export default function CompanySettingPage() {
                   />
                 </div>
 
+                {/* Branch Location Address */}
                 <div>
                   <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
                     Branch Location Address
@@ -455,48 +666,6 @@ export default function CompanySettingPage() {
                     placeholder="e.g. Floor 12, Maker Chambers, Nariman Point"
                     className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
                   />
-                </div>
-
-                {/* City, State, Pin Code grid */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={newBranchCity}
-                      onChange={(e) => setNewBranchCity(e.target.value)}
-                      placeholder="Mumbai"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      value={newBranchState}
-                      onChange={(e) => setNewBranchState(e.target.value)}
-                      placeholder="MH"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-                      Pin Code
-                    </label>
-                    <input
-                      type="text"
-                      value={newBranchPincode}
-                      onChange={(e) => setNewBranchPincode(e.target.value)}
-                      placeholder="400021"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-3 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
                 </div>
 
                 <Button
