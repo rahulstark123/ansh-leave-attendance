@@ -29,13 +29,17 @@ export async function getAuthEmployee(req: Request) {
 
     if (!loggedInEmployee) return null;
 
-    // Impersonate check for Admin/HR Manager
+    // Impersonate check: allow Admin/HR Manager for any request, or standard employees for GET requests only
     const impersonateHeader = req.headers.get("X-Impersonate-User");
-    if (impersonateHeader && impersonateHeader !== loggedInEmployee.id && (loggedInEmployee.role === "Admin" || loggedInEmployee.role === "HR Manager")) {
-      const impersonated = await prisma.employee.findUnique({
-        where: { id: impersonateHeader },
-      });
-      if (impersonated) return impersonated;
+    if (impersonateHeader && impersonateHeader !== loggedInEmployee.id) {
+      const isGetRequest = req.method === "GET";
+      const isManagement = loggedInEmployee.role === "Admin" || loggedInEmployee.role === "HR Manager";
+      if (isGetRequest || isManagement) {
+        const impersonated = await prisma.employee.findUnique({
+          where: { id: impersonateHeader },
+        });
+        if (impersonated) return impersonated;
+      }
     }
 
     return loggedInEmployee;

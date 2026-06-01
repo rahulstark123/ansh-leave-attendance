@@ -113,6 +113,61 @@ export default function TeamPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // Sidebar Detail Drawer States
+  const [selectedMemberForDetail, setSelectedMemberForDetail] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"profile" | "leaves" | "attendance">("profile");
+  const [detailLeaves, setDetailLeaves] = useState<any[]>([]);
+  const [detailPunches, setDetailPunches] = useState<any[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const loadMemberDetails = async (emp: any) => {
+    setSelectedMemberForDetail(emp);
+    setActiveTab("profile");
+    setLoadingDetails(true);
+    setDetailLeaves([]);
+    setDetailPunches([]);
+    
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      
+      // Fetch leaves for the member
+      const leavesPromise = fetch("/api/leaves", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Impersonate-User": emp.id,
+        },
+      }).then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          return data.leaves || [];
+        }
+        return [];
+      });
+
+      // Fetch punches for the member
+      const punchesPromise = fetch("/api/attendance/punch", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Impersonate-User": emp.id,
+        },
+      }).then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          return data.punchHistory || [];
+        }
+        return [];
+      });
+
+      const [leaves, punches] = await Promise.all([leavesPromise, punchesPromise]);
+      setDetailLeaves(leaves);
+      setDetailPunches(punches);
+    } catch (err) {
+      console.error("Failed to load employee details for drawer:", err);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const resetForm = () => {
     setName("");
     setEmail("");
@@ -356,7 +411,8 @@ export default function TeamPage() {
           {filteredTeam.map((emp: any) => (
             <Card
               key={emp.id}
-              className="crm-card group flex flex-col overflow-hidden border border-slate-200/50 hover:border-slate-300 dark:border-slate-800 relative"
+              className="crm-card group flex flex-col overflow-hidden border border-slate-200/50 hover:border-slate-300 dark:border-slate-800 relative cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+              onClick={() => loadMemberDetails(emp)}
             >
               {/* TOP STRIP / ACTIONS BUTTONS FOR ADMIN */}
               <div className="h-10 w-full bg-slate-50 dark:bg-slate-900/60 border-b border-border/20 flex justify-between items-center px-4">
@@ -367,7 +423,8 @@ export default function TeamPage() {
                 {isAuthorized && emp.id !== currentUser?.id && (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedEmp(emp);
                         setName(emp.name);
                         setEmail(emp.email);
@@ -397,7 +454,8 @@ export default function TeamPage() {
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setDeletingEmpId(emp.id);
                         setIsDeleteConfirmOpen(true);
                       }}
@@ -499,75 +557,12 @@ export default function TeamPage() {
                   </div>
                 </div>
 
-                {/* EXPANDABLE MORE INFO */}
+                {/* VIEW DETAILS ACTION FOOTER */}
                 <div className="mt-4 pt-4 border-t border-border/30">
-                  <button
-                    onClick={() => setExpandedEmpId(expandedEmpId === emp.id ? null : emp.id)}
-                    className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-primary transition-colors cursor-pointer py-1.5 bg-slate-50 hover:bg-slate-100/50 dark:bg-slate-900/30 dark:hover:bg-slate-900/50 rounded-xl"
-                  >
-                    {expandedEmpId === emp.id ? (
-                      <>
-                        Hide Profile Details
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      </>
-                    ) : (
-                      <>
-                        View Profile Details
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      </>
-                    )}
-                  </button>
-
-                  {expandedEmpId === emp.id && (
-                    <div className="mt-4 space-y-3.5 border-t border-border/20 pt-4 text-xs animate-in slide-in-from-top-2 duration-200">
-                      {emp.workLocation && (
-                        <div className="flex items-center gap-2.5 text-slate-500">
-                          <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span>Work Location: <span className="font-semibold text-slate-700 dark:text-slate-200">{emp.workLocation}</span></span>
-                        </div>
-                      )}
-                      {emp.branch && (
-                        <div className="flex items-center gap-2.5 text-slate-500">
-                          <Building className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span>Office Branch: <span className="font-semibold text-slate-700 dark:text-slate-200">{emp.branch}</span></span>
-                        </div>
-                      )}
-                      {emp.reportingManager && (
-                        <div className="flex items-center gap-2.5 text-slate-500">
-                          <UserRoundCheck className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span>Manager: <span className="font-semibold text-slate-700 dark:text-slate-200">{emp.reportingManager}</span></span>
-                        </div>
-                      )}
-                      {emp.personalEmail && (
-                        <div className="flex items-center gap-2.5 text-slate-500">
-                          <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">Personal Email: <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{emp.personalEmail}</span></span>
-                        </div>
-                      )}
-                      {emp.dateOfBirth && (
-                        <div className="flex items-center gap-2.5 text-slate-500">
-                          <Cake className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span>Birthday: <span className="font-semibold text-slate-700 dark:text-slate-200">{emp.dateOfBirth}</span></span>
-                        </div>
-                      )}
-                      {(emp.emergencyContactName || emp.emergencyContactPhone) && (
-                        <div className="rounded-xl bg-rose-500/5 border border-rose-500/10 p-3 space-y-2">
-                          <span className="block text-[9px] font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
-                            <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
-                            Emergency Contact
-                          </span>
-                          <div className="text-[11px] text-slate-500 space-y-0.5">
-                            {emp.emergencyContactName && (
-                              <p>Name: <span className="font-bold text-slate-700 dark:text-slate-200">{emp.emergencyContactName}</span></p>
-                            )}
-                            {emp.emergencyContactPhone && (
-                              <p>Phone: <span className="font-bold text-slate-700 dark:text-slate-200">{emp.emergencyContactPhone}</span></p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-primary transition-colors py-1.5 bg-slate-50 group-hover:bg-slate-100/50 dark:bg-slate-900/30 dark:group-hover:bg-slate-900/50 rounded-xl">
+                    View Full Profile & Logs
+                    <ArrowRight className="h-3.5 w-3.5 animate-pulse" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1314,6 +1309,321 @@ export default function TeamPage() {
               </Button>
             </div>
           </Card>
+        </div>
+      )}
+
+      {/* Sliding Sidebar Drawer */}
+      {selectedMemberForDetail && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop Overlay with blur */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setSelectedMemberForDetail(null)}
+          />
+
+          {/* Drawer Panel */}
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10 animate-in slide-in-from-right duration-300">
+            <div className="w-screen max-w-md md:max-w-xl bg-card border-l border-border/80 shadow-2xl flex flex-col h-full text-foreground animate-in slide-in-from-right duration-300">
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-base font-extrabold text-primary">
+                    {selectedMemberForDetail.avatarInitials}
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-800 dark:text-white leading-none">
+                      {selectedMemberForDetail.name}
+                    </h3>
+                    <span className="text-[10px] uppercase font-bold text-primary tracking-wide mt-1 block">
+                      {selectedMemberForDetail.designation || selectedMemberForDetail.role}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedMemberForDetail(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Tabs Selector */}
+              <div className="flex border-b border-border/30 bg-slate-50/50 dark:bg-slate-900/20 px-6 py-1">
+                {[
+                  { id: "profile", label: "Profile" },
+                  { id: "leaves", label: "Leaves" },
+                  { id: "attendance", label: "Attendance" },
+                ].map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`px-4 py-3 text-xs font-bold transition-all relative border-b-2 -mb-px cursor-pointer ${
+                        active
+                          ? "border-primary text-primary"
+                          : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Body Content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {activeTab === "profile" && (
+                  <div className="space-y-6">
+                    {/* Professional Grid */}
+                    <div className="space-y-3">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Professional Info
+                      </span>
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-border/20">
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Employee Code</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.employeeCode || "N/A"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">System Role</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.role}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Department</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.department}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Employment Type</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.employmentType || "Full-time"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Office Branch</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.branch || "Unassigned"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Work Location</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.workLocation || "Remote"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Manager</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.reportingManager || "None"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Joining Date</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.joiningDate || "N/A"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact & Personal Grid */}
+                    <div className="space-y-3">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Personal & Contact Info
+                      </span>
+                      <div className="grid grid-cols-1 gap-3 bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-border/20 text-xs">
+                        <div className="flex justify-between items-center py-1 border-b border-border/10">
+                          <span className="text-slate-400 font-medium">Work Email</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.email}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-border/10">
+                          <span className="text-slate-400 font-medium">Personal Email</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.personalEmail || "N/A"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-border/10">
+                          <span className="text-slate-400 font-medium">Phone Number</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.phoneNumber || "N/A"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-slate-400 font-medium">Date of Birth</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.dateOfBirth || "N/A"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Emergency Contact */}
+                    {(selectedMemberForDetail.emergencyContactName || selectedMemberForDetail.emergencyContactPhone) && (
+                      <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-4 space-y-2">
+                        <span className="block text-[10px] font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                          <ShieldAlert className="h-4 w-4 shrink-0" />
+                          Emergency Contact
+                        </span>
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">Name</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.emergencyContactName || "N/A"}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">Phone</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.emergencyContactPhone || "N/A"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "leaves" && (
+                  <div className="space-y-6">
+                    {/* Allowances Summary */}
+                    <div className="space-y-3">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Remaining Leave Balances
+                      </span>
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="rounded-2xl bg-emerald-50/50 p-3.5 border border-emerald-500/10 dark:bg-emerald-950/20">
+                          <span className="block text-lg font-black text-emerald-600 dark:text-emerald-400">
+                            {selectedMemberForDetail.leaveBalance?.Annual ?? 0}
+                          </span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Annual</span>
+                        </div>
+                        <div className="rounded-2xl bg-sky-50/50 p-3.5 border border-sky-500/10 dark:bg-sky-950/20">
+                          <span className="block text-lg font-black text-sky-600 dark:text-sky-400">
+                            {selectedMemberForDetail.leaveBalance?.Sick ?? 0}
+                          </span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Sick</span>
+                        </div>
+                        <div className="rounded-2xl bg-purple-50/50 p-3.5 border border-purple-500/10 dark:bg-purple-950/20">
+                          <span className="block text-lg font-black text-purple-600 dark:text-purple-400">
+                            {selectedMemberForDetail.leaveBalance?.Casual ?? 0}
+                          </span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Casual</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Leave History List */}
+                    <div className="space-y-3">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Leave History
+                      </span>
+                      {loadingDetails ? (
+                        <div className="flex items-center justify-center p-12 text-slate-400 text-xs gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          Loading leave records...
+                        </div>
+                      ) : detailLeaves.length === 0 ? (
+                        <div className="text-center p-8 border border-dashed border-border/80 rounded-2xl text-slate-400 text-xs">
+                          No leave requests found for this member.
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {detailLeaves.map((leave) => (
+                            <div
+                              key={leave.id}
+                              className="border border-border/50 rounded-2xl p-4 space-y-2.5 bg-card"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                    {leave.type} Leave
+                                  </span>
+                                  <span className="block text-[10px] text-slate-400 mt-0.5">
+                                    {leave.startDate} to {leave.endDate} · {leave.totalDays} day{leave.totalDays > 1 ? "s" : ""}
+                                    {leave.halfDay && " (Half-day)"}
+                                  </span>
+                                </div>
+                                <Badge
+                                  className={
+                                    leave.status === "Approved"
+                                      ? "bg-emerald-500/10 text-emerald-600 border-0"
+                                      : leave.status === "Rejected"
+                                      ? "bg-rose-500/10 text-rose-600 border-0"
+                                      : "bg-amber-500/10 text-amber-600 border-0"
+                                  }
+                                >
+                                  {leave.status}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-slate-500 leading-relaxed bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-xl border border-border/10">
+                                <span className="font-semibold text-slate-400">Reason:</span> {leave.reason}
+                              </p>
+                              <span className="block text-[9px] text-slate-400 text-right">
+                                Applied: {new Date(leave.appliedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "attendance" && (
+                  <div className="space-y-4">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Attendance Logs
+                    </span>
+                    {loadingDetails ? (
+                      <div className="flex items-center justify-center p-12 text-slate-400 text-xs gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        Loading punch records...
+                      </div>
+                    ) : detailPunches.length === 0 ? (
+                      <div className="text-center p-8 border border-dashed border-border/80 rounded-2xl text-slate-400 text-xs">
+                        No attendance history found for this member.
+                      </div>
+                    ) : (
+                      <div className="relative border-l border-slate-200 dark:border-slate-800 ml-3 pl-5 space-y-6">
+                        {detailPunches.map((punch) => {
+                          const isLate = punch.status === "Late";
+                          const isAbsent = punch.status === "Absent";
+                          const isHalfDay = punch.status === "Half-day";
+                          
+                          let statusColor = "bg-emerald-500";
+                          let badgeStyle = "bg-emerald-500/10 text-emerald-600 border-0";
+                          if (isLate) {
+                            statusColor = "bg-amber-500";
+                            badgeStyle = "bg-amber-500/10 text-amber-600 border-0";
+                          } else if (isAbsent) {
+                            statusColor = "bg-rose-500";
+                            badgeStyle = "bg-rose-500/10 text-rose-600 border-0";
+                          } else if (isHalfDay) {
+                            statusColor = "bg-blue-500";
+                            badgeStyle = "bg-blue-500/10 text-blue-600 border-0";
+                          }
+
+                          return (
+                            <div key={punch.id} className="relative">
+                              {/* Dot on Timeline line */}
+                              <span className={`absolute -left-[26px] top-1.5 flex h-3 w-3 rounded-full ring-4 ring-card ${statusColor}`} />
+                              
+                              <div className="border border-border/40 rounded-2xl p-4 bg-card hover:border-border transition-colors">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                      {new Date(punch.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                                    </span>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                      <div>
+                                        <span className="block text-[9px] uppercase text-slate-400 font-bold">Punch In</span>
+                                        <span className="font-semibold">{punch.punchIn || "N/A"}</span>
+                                      </div>
+                                      <div>
+                                        <span className="block text-[9px] uppercase text-slate-400 font-bold">Punch Out</span>
+                                        <span className="font-semibold">{punch.punchOut || "Active"}</span>
+                                      </div>
+                                      {punch.duration && (
+                                        <div>
+                                          <span className="block text-[9px] uppercase text-slate-400 font-bold">Duration</span>
+                                          <span className="font-bold text-slate-600 dark:text-slate-300">{punch.duration}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Badge className={badgeStyle}>{punch.status}</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
