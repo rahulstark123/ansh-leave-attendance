@@ -5,19 +5,37 @@ import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLeaveStore } from "@/stores/leave-store";
-import { Loader2, User, Mail, Shield, Briefcase, CheckCircle } from "lucide-react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { 
+  Loader2, User, Mail, Shield, Briefcase, CheckCircle, 
+  Phone, Calendar, MapPin, Building, UserCheck, CreditCard, Clock, HeartHandshake
+} from "lucide-react";
 
 export default function ProfileSettingPage() {
   const { currentUser, initialize } = useLeaveStore();
+  const currentUserAny = currentUser as any;
 
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [personalEmail, setPersonalEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [emergencyContactName, setEmergencyContactName] = useState("");
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (currentUser) {
-      setName(currentUser.name);
+      const emp = currentUser as any;
+      setName(emp.name || "");
+      setPhoneNumber(emp.phoneNumber || "");
+      setPersonalEmail(emp.personalEmail || "");
+      setDateOfBirth(emp.dateOfBirth || "");
+      setEmergencyContactName(emp.emergencyContactName || "");
+      setEmergencyContactPhone(emp.emergencyContactPhone || "");
     }
   }, [currentUser]);
 
@@ -35,16 +53,19 @@ export default function ProfileSettingPage() {
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
-      const res = await fetch("/api/auth/onboard", {
-        method: "POST",
+      const res = await fetch(`/api/employees/${currentUser.id}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: name.trim(),
-          department: currentUser.department,
-          role: currentUser.role,
+          phoneNumber: phoneNumber || null,
+          personalEmail: personalEmail.trim() || null,
+          dateOfBirth: dateOfBirth || null,
+          emergencyContactName: emergencyContactName.trim() || null,
+          emergencyContactPhone: emergencyContactPhone || null,
         }),
       });
 
@@ -54,6 +75,7 @@ export default function ProfileSettingPage() {
 
       await initialize();
       setSuccessMsg("Profile updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error(err);
       setErrorMsg("Failed to update profile settings.");
@@ -67,29 +89,40 @@ export default function ProfileSettingPage() {
       <PageHeader
         eyebrow="Account Settings"
         title="Profile Setting"
-        description="Manage your account profile details, avatar representation, and workplace identifiers."
+        description="Manage your account profile details, contact info, emergency contacts, and view your professional workspace parameters."
       />
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Profile Card Summary */}
         <Card className="crm-card h-fit lg:col-span-1">
-          <CardContent className="pt-8 text-center space-y-4">
+          <CardContent className="pt-8 text-center space-y-5">
             <div className="flex justify-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-2xl shadow-xl shadow-primary/5">
+              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-3xl shadow-xl shadow-primary/5">
                 {currentUser?.avatarInitials}
               </div>
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                {currentUser?.name}
+                {currentUserAny?.name}
               </h3>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">
-                {currentUser?.role}
+              <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                {currentUserAny?.designation || currentUserAny?.role}
               </p>
             </div>
-            <div className="border-t border-border/40 pt-4 flex justify-between text-xs text-slate-500 font-medium">
-              <span>Department</span>
-              <span className="font-bold text-slate-700 dark:text-slate-350">{currentUser?.department}</span>
+            
+            <div className="border-t border-border/45 pt-4 space-y-3.5 text-xs text-slate-500 font-medium text-left">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5" /> Department</span>
+                <span className="font-bold text-slate-700 dark:text-slate-350">{currentUserAny?.department || "N/A"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1.5"><Building className="h-3.5 w-3.5" /> Office Branch</span>
+                <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.branch || "Main HQ"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" /> Employee Code</span>
+                <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.employeeCode || "N/A"}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -98,7 +131,7 @@ export default function ProfileSettingPage() {
         <Card className="crm-card lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400">
-              Personal Information
+              Personal & Contact Information
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -115,31 +148,150 @@ export default function ProfileSettingPage() {
             )}
 
             <form onSubmit={handleSave} className="space-y-6">
-              {/* Name */}
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Full Name
-                </label>
-                <div className="mt-2 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <User className="h-4 w-4" />
+              {/* Personal Section */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 border-b border-border/40 pb-2">
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  Identity Details
+                </h4>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      Full Name
+                    </label>
+                    <div className="mt-2 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Rahul Raj"
+                        className="block w-full rounded-2xl border border-border bg-transparent pl-11 pr-4 py-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40"
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full rounded-2xl border border-border bg-transparent pl-11 pr-4 py-3.5 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40"
-                  />
+
+                  {/* Date of birth */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      Date of Birth
+                    </label>
+                    <div className="mt-2 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <Calendar className="h-4 w-4" />
+                      </div>
+                      <input
+                        type="date"
+                        value={dateOfBirth}
+                        onChange={(e) => setDateOfBirth(e.target.value)}
+                        className="block w-full rounded-2xl border border-border bg-transparent pl-11 pr-4 py-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40 [color-scheme:light] dark:[color-scheme:dark]"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Email (Readonly) */}
-              <div>
+              {/* Contact Section */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 border-b border-border/40 pb-2">
+                  <Phone className="h-3.5 w-3.5 text-primary" />
+                  Contact Coordinates
+                </h4>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Phone Number */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                      Phone Number
+                    </label>
+                    <div className="phone-input-container">
+                      <PhoneInput
+                        international
+                        defaultCountry="IN"
+                        placeholder="Enter phone number"
+                        value={phoneNumber}
+                        onChange={(val) => setPhoneNumber(val || "")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Personal Email */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      Personal Email Address
+                    </label>
+                    <div className="mt-2 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <Mail className="h-4 w-4" />
+                      </div>
+                      <input
+                        type="email"
+                        value={personalEmail}
+                        onChange={(e) => setPersonalEmail(e.target.value)}
+                        placeholder="e.g. personal@email.com"
+                        className="block w-full rounded-2xl border border-border bg-transparent pl-11 pr-4 py-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Emergency Contact Section */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 border-b border-border/40 pb-2">
+                  <HeartHandshake className="h-3.5 w-3.5 text-primary" />
+                  Emergency Contact Details
+                </h4>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Contact Name */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      Contact Name
+                    </label>
+                    <div className="mt-2 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <input
+                        type="text"
+                        value={emergencyContactName}
+                        onChange={(e) => setEmergencyContactName(e.target.value)}
+                        placeholder="e.g. Spouse, Parent, Sibling name"
+                        className="block w-full rounded-2xl border border-border bg-transparent pl-11 pr-4 py-3 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Phone */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                      Contact Phone
+                    </label>
+                    <div className="phone-input-container">
+                      <PhoneInput
+                        international
+                        defaultCountry="IN"
+                        placeholder="Enter emergency contact number"
+                        value={emergencyContactPhone}
+                        onChange={(val) => setEmergencyContactPhone(val || "")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Secure Login Email (Read-only) */}
+              <div className="border-t border-border/40 pt-4 opacity-60">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Email Address
+                  Workspace Login Email
                 </label>
-                <div className="mt-2 relative opacity-60">
+                <div className="mt-2 relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                     <Mail className="h-4 w-4" />
                   </div>
@@ -149,46 +301,6 @@ export default function ProfileSettingPage() {
                     value={currentUser?.email}
                     className="block w-full rounded-2xl border border-border bg-slate-100/50 dark:bg-slate-900/40 pl-11 pr-4 py-3.5 text-sm text-foreground cursor-not-allowed"
                   />
-                </div>
-                <p className="mt-1.5 text-[10px] text-slate-400">
-                  Email addresses are secured and cannot be modified directly.
-                </p>
-              </div>
-
-              {/* Role and Department info (Readonly) */}
-              <div className="grid gap-6 md:grid-cols-2">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    Assigned Role
-                  </label>
-                  <div className="mt-2 relative opacity-60">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                      <Shield className="h-4 w-4" />
-                    </div>
-                    <input
-                      type="text"
-                      disabled
-                      value={currentUser?.role}
-                      className="block w-full rounded-2xl border border-border bg-slate-100/50 dark:bg-slate-900/40 pl-11 pr-4 py-3.5 text-sm text-foreground cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    Department
-                  </label>
-                  <div className="mt-2 relative opacity-60">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                      <Briefcase className="h-4 w-4" />
-                    </div>
-                    <input
-                      type="text"
-                      disabled
-                      value={currentUser?.department}
-                      className="block w-full rounded-2xl border border-border bg-slate-100/50 dark:bg-slate-900/40 pl-11 pr-4 py-3.5 text-sm text-foreground cursor-not-allowed"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -204,11 +316,88 @@ export default function ProfileSettingPage() {
                       Saving changes...
                     </>
                   ) : (
-                    "Save Changes"
+                    "Save Profile Details"
                   )}
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Readonly Professional Details Card */}
+        <Card className="crm-card lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <Building className="h-4.5 w-4.5 text-primary" />
+              Professional Details & Employment Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <CreditCard className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Employee Code</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block uppercase">{currentUserAny?.employeeCode || "N/A"}</span>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <Briefcase className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Designation</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.designation || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <Building className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Assigned Branch</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block uppercase">{currentUserAny?.branch || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <UserCheck className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Reporting Manager</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.reportingManager || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <Clock className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Employment Type</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.employmentType || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Work Location</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.workLocation || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Joining Date</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.joiningDate || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <Shield className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Security Access Role</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block uppercase tracking-wider">{currentUserAny?.role}</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
