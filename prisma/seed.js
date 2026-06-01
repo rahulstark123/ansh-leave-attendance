@@ -11,7 +11,6 @@ async function main() {
   console.log("Seeding workspace...");
   const workspace = await prisma.workspace.create({
     data: {
-      id: 1,
       name: "ANSH Solutions",
     },
   });
