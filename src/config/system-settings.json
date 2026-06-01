@@ -5,17 +5,6 @@
     "casualLimit": 6,
     "customLeaveTypes": [
       {
-        "id": "clt-maternity",
-        "name": "Maternity Leave",
-        "days": 90,
-        "color": "purple",
-        "allowRollover": false,
-        "description": "Paid time off for expecting mothers before and after childbirth.",
-        "applicableGender": "Female",
-        "accrualPolicy": "One-time",
-        "requiresProof": true
-      },
-      {
         "id": "clt-paternity",
         "name": "Paternity Leave",
         "days": 15,
@@ -132,5 +121,16 @@
       "name": "Main HQ",
       "address": "123 Corporate Tower, New Delhi, India"
     }
-  ]
+  ],
+  "companyProfile": {
+    "name": "ANSH Solutions",
+    "address": "123 Business Park, Mumbai, India",
+    "employeeCount": "11-50",
+    "industry": "Software & Technology",
+    "foundYear": "2021",
+    "registrationNumber": "CIN-U72900MH2021PTC361284",
+    "contactEmail": "contact@ansh.com",
+    "contactPhone": "+91 22 4567 8901",
+    "websiteUrl": "https://ansh.com"
+  }
 }
