@@ -366,6 +366,7 @@ export default function LeaveSettingPage() {
   const [uploading, setUploading] = useState(false);
   const [editPolicy, setEditPolicy] = useState<PolicyDocument | null>(null);
   const [editPolicyName, setEditPolicyName] = useState("");
+  const [policyToDelete, setPolicyToDelete] = useState<PolicyDocument | null>(null);
 
   // Form states - Holidays
   const [newHolidayName, setNewHolidayName] = useState("");
@@ -722,6 +723,7 @@ export default function LeaveSettingPage() {
   const handleDeletePolicy = async (id: string) => {
     setErrorMsg("");
     setSuccessMsg("");
+    setLoading(true);
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
@@ -740,11 +742,14 @@ export default function LeaveSettingPage() {
       if (resData.policyDocuments) {
         setPolicyDocuments(resData.policyDocuments);
         setSuccessMsg("Policy document deleted successfully!");
+        setPolicyToDelete(null);
         setTimeout(() => setSuccessMsg(""), 4000);
       }
     } catch (err) {
       console.error(err);
       setErrorMsg("An error occurred while deleting policy document.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1527,7 +1532,7 @@ export default function LeaveSettingPage() {
                             <Edit className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDeletePolicy(doc.id)}
+                            onClick={() => setPolicyToDelete(doc)}
                             className="h-8 w-8 rounded-lg bg-rose-50/10 hover:bg-rose-50/20 text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
                             title="Delete Document"
                           >
@@ -1604,6 +1609,65 @@ export default function LeaveSettingPage() {
                 </Button>
               </div>
             </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {policyToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-sm w-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between shrink-0">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-rose-500 flex items-center gap-2">
+                <Trash2 className="h-4.5 w-4.5" />
+                Delete Policy Document
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPolicyToDelete(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+                disabled={loading}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <CardContent className="p-6 flex-1 overflow-y-auto space-y-4 text-left">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Are you sure you want to permanently delete <strong className="text-slate-800 dark:text-white">{policyToDelete.name}</strong>?
+              </p>
+              <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500 flex items-start gap-2">
+                <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+                <span>This action cannot be undone. The document will be permanently removed from system database and S3 storage.</span>
+              </div>
+            </CardContent>
+
+            <div className="px-6 py-4 border-t border-border/40 flex justify-end gap-3 shrink-0 bg-slate-50/50 dark:bg-slate-900/20">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPolicyToDelete(null)}
+                disabled={loading}
+                className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleDeletePolicy(policyToDelete.id)}
+                disabled={loading}
+                className="bg-rose-600 hover:bg-rose-700 text-white border-0 text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Document"
+                )}
+              </Button>
+            </div>
           </Card>
         </div>
       )}
