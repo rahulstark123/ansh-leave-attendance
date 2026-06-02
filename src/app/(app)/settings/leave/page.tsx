@@ -351,6 +351,7 @@ export default function LeaveSettingPage() {
 
   // Form states - Policy Uploader
   const [uploadFileName, setUploadFileName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(-1);
   const [uploading, setUploading] = useState(false);
 
@@ -599,41 +600,97 @@ export default function LeaveSettingPage() {
 
   const handleUploadPolicy = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFileName.trim()) return;
+    if (!uploadFileName.trim() || !selectedFile) return;
     
     setUploading(true);
     setUploadProgress(0);
+    setErrorMsg("");
+    setSuccessMsg("");
 
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          
-          const newDoc: PolicyDocument = {
-            id: `doc-${Date.now()}`,
-            name: uploadFileName.endsWith(".pdf") ? uploadFileName.trim() : `${uploadFileName.trim()}.pdf`,
-            uploadedAt: new Date().toISOString().split("T")[0],
-            size: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`
-          };
+    const token = sessionStorage.getItem("ansh_auth_token");
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("documentName", uploadFileName.trim());
 
-          const updatedDocs = [...policyDocuments, newDoc];
-          setPolicyDocuments(updatedDocs);
-          handleSaveCustom({ policyDocuments: updatedDocs });
-          
-          setUploading(false);
-          setUploadProgress(-1);
-          setUploadFileName("");
-          return -1;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/settings/upload-policy", true);
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentage = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percentage);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const resData = JSON.parse(xhr.responseText);
+          if (resData.settings?.leaveSettings?.policyDocuments) {
+            setPolicyDocuments(resData.settings.leaveSettings.policyDocuments);
+            setSuccessMsg("Policy document uploaded successfully!");
+            setTimeout(() => setSuccessMsg(""), 4000);
+          }
+        } catch (err) {
+          console.error("Parse upload response failed:", err);
+          setErrorMsg("Upload succeeded but failed to parse response.");
         }
-        return prev + 10;
-      });
-    }, 120);
+      } else {
+        try {
+          const resData = JSON.parse(xhr.responseText);
+          setErrorMsg(resData.error || "Failed to upload document.");
+        } catch {
+          setErrorMsg("Failed to upload document.");
+        }
+      }
+      setUploading(false);
+      setUploadProgress(-1);
+      setUploadFileName("");
+      setSelectedFile(null);
+
+      const fileInput = document.getElementById("policy-file-input") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+    };
+
+    xhr.onerror = () => {
+      setErrorMsg("Network error during upload.");
+      setUploading(false);
+      setUploadProgress(-1);
+    };
+
+    xhr.send(formData);
   };
 
-  const handleDeletePolicy = (id: string) => {
-    const updatedDocs = policyDocuments.filter((d) => d.id !== id);
-    setPolicyDocuments(updatedDocs);
-    handleSaveCustom({ policyDocuments: updatedDocs });
+  const handleDeletePolicy = async (id: string) => {
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch(`/api/settings/delete-policy?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete policy document");
+      }
+
+      const resData = await res.json();
+      if (resData.settings?.leaveSettings?.policyDocuments) {
+        setPolicyDocuments(resData.settings.leaveSettings.policyDocuments);
+        setSuccessMsg("Policy document deleted successfully!");
+        setTimeout(() => setSuccessMsg(""), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while deleting policy document.");
+    }
   };
 
   const handleAddHoliday = async (e: React.FormEvent) => {
@@ -1375,7 +1432,14 @@ export default function LeaveSettingPage() {
 
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => alert(`Simulating download for: ${doc.name}`)}
+                          onClick={() => {
+                            if (doc.s3Key) {
+                              const token = sessionStorage.getItem("ansh_auth_token") || "";
+                              window.open(`/api/settings/download-policy?id=${doc.id}&token=${encodeURIComponent(token)}`, "_blank");
+                            } else {
+                              alert(`Simulating download for: ${doc.name}`);
+                            }
+                          }}
                           className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
                           title="Download PDF"
                         >
@@ -1425,7 +1489,29 @@ export default function LeaveSettingPage() {
                         value={uploadFileName}
                         onChange={(e) => setUploadFileName(e.target.value)}
                         placeholder="e.g. Parental_Leave_Guidelines_2026"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 disabled:opacity-60"
+                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 disabled:opacity-60 mb-4"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                        Select Document File
+                      </label>
+                      <input
+                        id="policy-file-input"
+                        type="file"
+                        required
+                        disabled={uploading}
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setSelectedFile(file);
+                          if (file && !uploadFileName) {
+                            const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                            setUploadFileName(nameWithoutExt);
+                          }
+                        }}
+                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 disabled:opacity-60 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:transition-all file:cursor-pointer"
                       />
                     </div>
 
@@ -1446,13 +1532,13 @@ export default function LeaveSettingPage() {
 
                     <Button
                       type="submit"
-                      disabled={uploading || !uploadFileName.trim()}
+                      disabled={uploading || !uploadFileName.trim() || !selectedFile}
                       className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-11 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {uploading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Simulating Upload...
+                          Uploading to Storage...
                         </>
                       ) : (
                         <>

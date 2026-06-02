@@ -18,6 +18,7 @@ export interface PolicyDocument {
   name: string;
   uploadedAt: string;
   size: string;
+  s3Key?: string;
 }
 
 export interface CompanyHoliday {

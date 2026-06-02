@@ -2,11 +2,26 @@ import { supabase } from "./supabase/client";
 import { prisma } from "./db";
 
 export async function getAuthUser(req: Request) {
+  let token = "";
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else {
+    try {
+      const { searchParams } = new URL(req.url);
+      const paramToken = searchParams.get("token");
+      if (paramToken) {
+        token = paramToken;
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }
+
+  if (!token) {
     return null;
   }
-  const token = authHeader.split(" ")[1];
   
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
