@@ -17,6 +17,7 @@ import {
   Trash2,
   UploadCloud,
   Download,
+  X,
   FileText,
   Check,
   Globe,
@@ -326,6 +327,7 @@ export default function LeaveSettingPage() {
   const [editLeaveType, setEditLeaveType] = useState<CustomLeaveType | null>(null);
   const [leaveCategoryToDelete, setLeaveCategoryToDelete] = useState<CustomLeaveType | null>(null);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [isAddPolicyModalOpen, setIsAddPolicyModalOpen] = useState(false);
   const [holidayToDelete, setHolidayToDelete] = useState<CompanyHoliday | null>(null);
   const [editHoliday, setEditHoliday] = useState<CompanyHoliday | null>(null);
 
@@ -632,6 +634,7 @@ export default function LeaveSettingPage() {
           if (resData.settings?.leaveSettings?.policyDocuments) {
             setPolicyDocuments(resData.settings.leaveSettings.policyDocuments);
             setSuccessMsg("Policy document uploaded successfully!");
+            setIsAddPolicyModalOpen(false);
             setTimeout(() => setSuccessMsg(""), 4000);
           }
         } catch (err) {
@@ -1396,88 +1399,113 @@ export default function LeaveSettingPage() {
 
       {/* 3. POLICY DOCUMENT HUB TAB */}
       {activeTab === "policies" && (
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="crm-card">
-              <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                  <FileText className="h-4.5 w-4.5 text-primary" />
-                  Leave Policies & Employee Handbooks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-xs text-slate-400">
-                  Below are the official company policy handbooks. Employees can download these files to understand terms, medical allowances, and guidelines.
-                </p>
+        <div className="space-y-6">
+          <Card className="crm-card">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <FileText className="h-4.5 w-4.5 text-primary" />
+                Leave Policies & Employee Handbooks
+              </CardTitle>
+              {isAuthorized && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadFileName("");
+                    setSelectedFile(null);
+                    setIsAddPolicyModalOpen(true);
+                  }}
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Policy
+                </button>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-slate-400">
+                Below are the official company policy handbooks. Employees can download these files to understand terms, medical allowances, and guidelines.
+              </p>
 
-                <div className="space-y-3.5">
-                  {policyDocuments.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-slate-50/50 dark:hover:bg-slate-800/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <FileText className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="block text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
-                            {doc.name}
-                          </span>
-                          <span className="block text-[10px] text-slate-400 mt-0.5">
-                            Uploaded on {doc.uploadedAt} · {doc.size}
-                          </span>
-                        </div>
+              <div className="space-y-3.5">
+                {policyDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-slate-50/50 dark:hover:bg-slate-800/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5" />
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            if (doc.s3Key) {
-                              const token = sessionStorage.getItem("ansh_auth_token") || "";
-                              window.open(`/api/settings/download-policy?id=${doc.id}&token=${encodeURIComponent(token)}`, "_blank");
-                            } else {
-                              alert(`Simulating download for: ${doc.name}`);
-                            }
-                          }}
-                          className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
-                          title="Download PDF"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                        </button>
-                        {isAuthorized && (
-                          <button
-                            onClick={() => handleDeletePolicy(doc.id)}
-                            className="h-8 w-8 rounded-lg bg-rose-50/10 hover:bg-rose-50/20 text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
-                            title="Delete Document"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
+                      <div className="min-w-0">
+                        <span className="block text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
+                          {doc.name}
+                        </span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5">
+                          Uploaded on {doc.uploadedAt} · {doc.size}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          <div className="lg:col-span-1">
-            <Card className="crm-card">
-              <CardHeader className="flex flex-row items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (doc.s3Key) {
+                            const token = sessionStorage.getItem("ansh_auth_token") || "";
+                            window.open(`/api/settings/download-policy?id=${doc.id}&token=${encodeURIComponent(token)}`, "_blank");
+                          } else {
+                            alert(`Simulating download for: ${doc.name}`);
+                          }
+                        }}
+                        className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                        title="Download PDF"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                      {isAuthorized && (
+                        <button
+                          onClick={() => handleDeletePolicy(doc.id)}
+                          className="h-8 w-8 rounded-lg bg-rose-50/10 hover:bg-rose-50/20 text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Add Policy Modal */}
+      {isAddPolicyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-md w-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between shrink-0">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <UploadCloud className="h-4.5 w-4.5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400">
-                  Upload Policy Handbook
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                Upload Policy Handbook
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddPolicyModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadPolicy} className="flex flex-col min-h-0 flex-1">
+              <CardContent className="p-6 flex-1 overflow-y-auto space-y-4 text-left">
                 {!isAuthorized ? (
                   <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4 text-xs font-bold text-amber-500 flex items-start gap-2">
                     <ShieldAlert className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
                     <span>Only HR managers can upload new policy guideline documents.</span>
                   </div>
                 ) : (
-                  <form onSubmit={handleUploadPolicy} className="space-y-4">
+                  <>
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
                         Document Name
@@ -1529,29 +1557,41 @@ export default function LeaveSettingPage() {
                         </div>
                       </div>
                     )}
-
-                    <Button
-                      type="submit"
-                      disabled={uploading || !uploadFileName.trim() || !selectedFile}
-                      className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-11 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Uploading to Storage...
-                        </>
-                      ) : (
-                        <>
-                          <UploadCloud className="h-4 w-4" />
-                          Upload Policy PDF
-                        </>
-                      )}
-                    </Button>
-                  </form>
+                  </>
                 )}
               </CardContent>
-            </Card>
-          </div>
+
+              {isAuthorized && (
+                <div className="px-6 py-4 border-t border-border/40 flex justify-end gap-3 shrink-0 bg-slate-50/50 dark:bg-slate-900/20">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddPolicyModalOpen(false)}
+                    className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={uploading || !uploadFileName.trim() || !selectedFile}
+                    className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-4 w-4" />
+                        Upload Policy PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </form>
+          </Card>
         </div>
       )}
 
