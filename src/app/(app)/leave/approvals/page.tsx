@@ -31,7 +31,7 @@ export default function ApprovalsPage() {
 
   // Access validation: Only HR Managers or Admins can access approvals
   const isAuthorized =
-    currentUser.role === "HR Manager" || currentUser.role === "Admin";
+    currentUser.role === "HR Manager" || currentUser.role === "Admin" || currentUser.role === "Owner";
 
   const filteredRequests = leaves.filter((r) => r.status === activeTab);
 
@@ -57,7 +57,7 @@ export default function ApprovalsPage() {
           </span>
           <div className="grid gap-3">
             {employees
-              .filter((e) => e.role === "HR Manager" || e.role === "Admin")
+              .filter((e) => e.role === "HR Manager" || e.role === "Admin" || e.role === "Owner")
               .map((manager) => (
                 <button
                   key={manager.id}

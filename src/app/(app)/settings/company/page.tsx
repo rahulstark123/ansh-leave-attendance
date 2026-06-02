@@ -56,7 +56,7 @@ export default function CompanySettingPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin";
+  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin" || currentUser?.role === "Owner";
 
   const showToast = (type: "success" | "error", title: string, message: string) => {
     const id = `toast-${Date.now()}`;

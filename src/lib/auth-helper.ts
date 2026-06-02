@@ -33,7 +33,7 @@ export async function getAuthEmployee(req: Request) {
     const impersonateHeader = req.headers.get("X-Impersonate-User");
     if (impersonateHeader && impersonateHeader !== loggedInEmployee.id) {
       const isGetRequest = req.method === "GET";
-      const isManagement = loggedInEmployee.role === "Admin" || loggedInEmployee.role === "HR Manager";
+      const isManagement = loggedInEmployee.role === "Admin" || loggedInEmployee.role === "HR Manager" || loggedInEmployee.role === "Owner";
       if (isGetRequest || isManagement) {
         const impersonated = await prisma.employee.findUnique({
           where: { id: impersonateHeader },

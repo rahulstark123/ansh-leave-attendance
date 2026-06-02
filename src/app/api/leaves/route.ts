@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const wid = employee.wid ?? 1;
 
     let leaves;
-    if (employee.role === "Admin" || employee.role === "HR Manager") {
+    if (employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner") {
       leaves = await prisma.leaveRequest.findMany({
         where: { wid },
         include: {

@@ -313,6 +313,7 @@ export default function TeamPage() {
     "Employee",
     "HR Manager",
     "Admin",
+    "Owner",
   ]);
   const [statusItems, setStatusItems] = useState<string[]>([
     "Active",
@@ -789,7 +790,7 @@ export default function TeamPage() {
                   <Tag className="h-3 w-3" />
                   {emp.employeeCode || "No ID Code"}
                 </span>
-                {isAuthorized && emp.id !== currentUser?.id && (
+                {isAuthorized && (
                   <div className="flex gap-2">
                     <button
                       onClick={(e) => {

@@ -318,7 +318,7 @@ const holidayTypeOptions = [
 
 export default function LeaveSettingPage() {
   const { currentUser, initialize } = useLeaveStore();
-  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin";
+  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin" || currentUser?.role === "Owner";
 
   const [activeTab, setActiveTab] = useState<"types" | "policies" | "holidays">("types");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

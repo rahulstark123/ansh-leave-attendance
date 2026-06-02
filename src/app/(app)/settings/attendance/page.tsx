@@ -283,7 +283,7 @@ const workingHoursOptions = [
 
 export default function AttendanceSettingPage() {
   const { currentUser, initialize, punchHistory, employees } = useLeaveStore();
-  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin";
+  const isAuthorized = currentUser?.role === "HR Manager" || currentUser?.role === "Admin" || currentUser?.role === "Owner";
 
   // List states
   const [branches, setBranches] = useState<any[]>([]);

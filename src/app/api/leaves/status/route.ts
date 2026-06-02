@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const manager = await getAuthEmployee(req);
-    if (!manager || (manager.role !== "Admin" && manager.role !== "HR Manager")) {
+    if (!manager || (manager.role !== "Admin" && manager.role !== "HR Manager" && manager.role !== "Owner")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

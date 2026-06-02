@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const isAuthorized = employee.role === "Admin" || employee.role === "HR Manager";
+    const isAuthorized = employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner";
     if (!isAuthorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

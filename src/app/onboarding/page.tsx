@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const isManagerOrAdmin = role === "Admin" || role === "HR Manager";
+  const isManagerOrAdmin = role === "Admin" || role === "HR Manager" || role === "Owner";
 
   useEffect(() => {
     // Confirm they are authenticated
@@ -290,11 +290,12 @@ export default function OnboardingPage() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
                 Account Permission Role
               </label>
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { value: "Employee", label: "Employee", desc: "View & log time" },
                   { value: "HR Manager", label: "HR Manager", desc: "Approve leaves" },
-                  { value: "Admin", label: "Admin", desc: "Full permissions" }
+                  { value: "Admin", label: "Admin", desc: "Full permissions" },
+                  { value: "Owner", label: "Owner", desc: "Full access & billing" }
                 ].map((item) => {
                   const active = role === item.value;
                   return (

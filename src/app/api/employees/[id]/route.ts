@@ -110,10 +110,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Prevent deleting oneself
-    if (employee.id === id) {
-      return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
-    }
 
     // Role check (relaxed for testing)
     const isAuthorized = true;

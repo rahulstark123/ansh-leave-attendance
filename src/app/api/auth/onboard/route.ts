@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const isManagerOrAdmin = role === "Admin" || role === "HR Manager";
+    const isManagerOrAdmin = role === "Admin" || role === "HR Manager" || role === "Owner";
 
     // Check if an employee record already exists for this email
     const existingEmployee = await prisma.employee.findUnique({

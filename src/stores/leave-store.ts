@@ -5,7 +5,7 @@ import { queuedLocalStorage } from "@/lib/safe-storage";
 export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity";
 export type LeaveStatus = "Approved" | "Pending" | "Rejected";
 export type EmployeeStatus = "Active" | "On Leave" | "Half-day" | "Off";
-export type EmployeeRole = "Admin" | "HR Manager" | "Employee";
+export type EmployeeRole = "Admin" | "HR Manager" | "Employee" | "Owner";
 
 export interface LeaveRequest {
   id: string;
