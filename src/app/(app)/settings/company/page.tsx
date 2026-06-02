@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLeaveStore } from "@/stores/leave-store";
-import { Loader2, Building, Building2, MapPin, Users, CheckCircle, ShieldAlert, Plus, Trash2 } from "lucide-react";
+import { Loader2, Building, Building2, MapPin, Users, CheckCircle, ShieldAlert, Plus, Trash2, X } from "lucide-react";
 import { Branch } from "@/lib/settings";
 
 interface MapLocationResult {
@@ -47,6 +47,152 @@ export default function CompanySettingPage() {
   const [mapLoading, setMapLoading] = useState(false);
   const [mapResults, setMapResults] = useState<MapLocationResult[]>([]);
   const [selectedMapLocation, setSelectedMapLocation] = useState<MapLocationResult | null>(null);
+
+  // Leaflet Map Modal states
+  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [modalSearchQuery, setModalSearchQuery] = useState("");
+  const [modalSearchLoading, setModalSearchLoading] = useState(false);
+  const [modalSearchResults, setModalSearchResults] = useState<any[]>([]);
+
+  const [tempLat, setTempLat] = useState<number>(19.0760);
+  const [tempLng, setTempLng] = useState<number>(72.8777);
+  const [tempAddress, setTempAddress] = useState("");
+  const [tempCity, setTempCity] = useState("");
+  const [tempState, setTempState] = useState("");
+  const [tempPincode, setTempPincode] = useState("");
+
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if ((window as any).L) {
+      setIsLeafletLoaded(true);
+      return;
+    }
+    const cssLink = document.createElement("link");
+    cssLink.rel = "stylesheet";
+    cssLink.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(cssLink);
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => {
+      setIsLeafletLoaded(true);
+    };
+    document.head.appendChild(script);
+  }, []);
+
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+      if (res.ok) {
+        const data = await res.json();
+        const address = data.address || {};
+        const city = address.city || address.town || address.village || address.county || "";
+        const state = address.state || "";
+        const pincode = address.postcode || "";
+        const displayName = data.display_name || "";
+        setTempAddress(displayName);
+        setTempCity(city);
+        setTempState(state);
+        setTempPincode(pincode);
+      }
+    } catch (err) {
+      console.error("Reverse geocode failed:", err);
+    }
+  };
+
+  const handleModalSearch = async () => {
+    if (!modalSearchQuery.trim()) return;
+    setModalSearchLoading(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=in&q=${encodeURIComponent(modalSearchQuery.trim())}`);
+      if (res.ok) {
+        const data = await res.json();
+        setModalSearchResults(data);
+      }
+    } catch (err) {
+      console.error("Search failed:", err);
+    } finally {
+      setModalSearchLoading(false);
+    }
+  };
+
+  const selectModalSearchResult = async (result: any) => {
+    const lat = Number(result.lat);
+    const lon = Number(result.lon);
+    setTempLat(lat);
+    setTempLng(lon);
+    if (mapRef.current && markerRef.current) {
+      mapRef.current.setView([lat, lon], 16);
+      markerRef.current.setLatLng([lat, lon]);
+    }
+    const address = result.address || {};
+    const city = address.city || address.town || address.village || address.county || "";
+    const state = address.state || "";
+    const pincode = address.postcode || "";
+    setTempAddress(result.display_name || "");
+    setTempCity(city);
+    setTempState(state);
+    setTempPincode(pincode);
+    setModalSearchResults([]);
+  };
+
+  const initLeafletMap = (containerId: string, initialLat: number, initialLng: number) => {
+    const L = (window as any).L;
+    if (!L) return;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    }
+    const map = L.map(containerId).setView([initialLat, initialLng], 13);
+    mapRef.current = map;
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "OpenStreetMap"
+    }).addTo(map);
+
+    const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+    markerRef.current = marker;
+
+    const DefaultIcon = L.icon({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    marker.setIcon(DefaultIcon);
+
+    marker.on("dragend", async () => {
+      const pos = marker.getLatLng();
+      setTempLat(pos.lat);
+      setTempLng(pos.lng);
+      await reverseGeocode(pos.lat, pos.lng);
+    });
+
+    map.on("click", async (e: any) => {
+      const { lat, lng } = e.latlng;
+      marker.setLatLng([lat, lng]);
+      setTempLat(lat);
+      setTempLng(lng);
+      await reverseGeocode(lat, lng);
+    });
+  };
+
+  useEffect(() => {
+    if (isMapModalOpen && isLeafletLoaded) {
+      const timer = setTimeout(() => {
+        const initialLat = tempLat || 19.0760;
+        const initialLng = tempLng || 72.8777;
+        initLeafletMap("leaflet-modal-map", initialLat, initialLng);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isMapModalOpen, isLeafletLoaded]);
 
   const [toasts, setToasts] = useState<Array<{ id: string; type: "success" | "error"; title: string; message: string }>>([]);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
@@ -299,72 +445,7 @@ export default function CompanySettingPage() {
     setSelectedMapLocation(null);
   };
 
-  const handleMapSearch = async () => {
-    if (!mapQuery.trim()) {
-      showToast("error", "Location Required", "Type office locality, area, or city to search on map.");
-      return;
-    }
-    setMapLoading(true);
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=in&q=${encodeURIComponent(mapQuery.trim())}`;
-      const res = await fetch(url, {
-        headers: {
-          Accept: "application/json",
-        }
-      });
-      if (!res.ok) {
-        throw new Error("Failed to search map locations");
-      }
-      const data = await res.json();
-      const parsed: MapLocationResult[] = (Array.isArray(data) ? data : []).map((item: any, index: number) => {
-        const cityName =
-          item.address?.city ||
-          item.address?.town ||
-          item.address?.village ||
-          item.address?.municipality ||
-          item.address?.county ||
-          "";
-        return {
-          id: item.place_id ? String(item.place_id) : `loc-${index}-${Date.now()}`,
-          label: item.display_name || "Unnamed location",
-          lat: Number(item.lat),
-          lon: Number(item.lon),
-          city: cityName || undefined,
-          state: item.address?.state || undefined,
-          pincode: item.address?.postcode || undefined,
-        };
-      }).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
-      setMapResults(parsed);
-      if (parsed.length === 0) {
-        showToast("error", "No Results", "No matching map locations found. Try a more specific search.");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("error", "Map Search Failed", "Unable to fetch map results right now.");
-    } finally {
-      setMapLoading(false);
-    }
-  };
 
-  const handleSelectMapLocation = (location: MapLocationResult) => {
-    setSelectedMapLocation(location);
-    setNewBranchAddress(location.label);
-    setNewBranchCity(location.city || "");
-    setNewBranchState(location.state || "");
-    setNewBranchPincode(location.pincode || "");
-    setNewBranchLatitude(location.lat);
-    setNewBranchLongitude(location.lon);
-    showToast("success", "Location Selected", "Branch location fields auto-filled from map selection.");
-  };
-
-  const getMapEmbedUrl = (lat: number, lon: number) => {
-    const delta = 0.01;
-    const left = lon - delta;
-    const right = lon + delta;
-    const top = lat + delta;
-    const bottom = lat - delta;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lon}`;
-  };
 
   const handleDeleteBranch = (id: string) => {
     if (!isAuthorized) {
@@ -681,56 +762,58 @@ export default function CompanySettingPage() {
                   Add Office Branch
                 </h4>
 
-                {/* PIN CODE (Comes first for lookup auto-fill) */}
-                <div className="space-y-2.5 rounded-2xl border border-border/60 p-3.5 bg-slate-50/40 dark:bg-slate-900/20">
-                  <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">
-                    Office Location Chooser (Map)
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Office Location
                   </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={mapQuery}
-                      onChange={(e) => setMapQuery(e.target.value)}
-                      placeholder="Search area, road, city, or landmark"
-                      className="block w-full rounded-xl border border-border bg-transparent px-3 py-2.5 text-xs outline-none focus:border-primary/45"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleMapSearch}
-                      disabled={mapLoading || !mapQuery.trim()}
-                      className="h-10 px-4 text-[10px] font-bold uppercase tracking-wider"
-                    >
-                      {mapLoading ? "Searching" : "Search"}
-                    </Button>
-                  </div>
-                  {mapResults.length > 0 && (
-                    <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
-                      {mapResults.map((location) => (
-                        <button
-                          key={location.id}
+                  {newBranchLatitude && newBranchLongitude ? (
+                    <div className="rounded-2xl border border-border p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-350 flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 text-primary animate-bounce" />
+                          Location pinned
+                        </span>
+                        <Button
                           type="button"
-                          onClick={() => handleSelectMapLocation(location)}
-                          className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-left text-[10px] hover:border-primary/45 hover:bg-primary/5 transition-colors"
+                          variant="outline"
+                          onClick={() => {
+                            setTempLat(newBranchLatitude);
+                            setTempLng(newBranchLongitude);
+                            setTempAddress(newBranchAddress);
+                            setTempCity(newBranchCity);
+                            setTempState(newBranchState);
+                            setTempPincode(newBranchPincode);
+                            setIsMapModalOpen(true);
+                          }}
+                          className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-xl"
                         >
-                          {location.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {selectedMapLocation && (
-                    <div className="space-y-2">
-                      <div className="rounded-xl overflow-hidden border border-border/70">
-                        <iframe
-                          title="Selected office location map preview"
-                          src={getMapEmbedUrl(selectedMapLocation.lat, selectedMapLocation.lon)}
-                          className="h-44 w-full"
-                          loading="lazy"
-                        />
+                          Change
+                        </Button>
                       </div>
-                      <p className="text-[9px] text-slate-500">
-                        Selected coordinates: {selectedMapLocation.lat.toFixed(6)}, {selectedMapLocation.lon.toFixed(6)}
+                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed text-left">
+                        {newBranchAddress}
                       </p>
+                      <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider text-left">
+                        Coordinates: {newBranchLatitude.toFixed(6)}, {newBranchLongitude.toFixed(6)}
+                      </div>
                     </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempLat(19.0760);
+                        setTempLng(72.8777);
+                        setTempAddress("");
+                        setTempCity("");
+                        setTempState("");
+                        setTempPincode("");
+                        setIsMapModalOpen(true);
+                      }}
+                      className="w-full h-24 rounded-2xl border-2 border-dashed border-border/70 bg-slate-50/20 dark:bg-slate-900/10 flex flex-col items-center justify-center gap-2 hover:border-primary/45 hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all cursor-pointer text-slate-500 hover:text-primary"
+                    >
+                      <MapPin className="h-6 w-6 text-slate-400 hover:text-primary transition-colors" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Choose Location on Map</span>
+                    </button>
                   )}
                 </div>
 
@@ -862,6 +945,142 @@ export default function CompanySettingPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Map Modal */}
+      {isMapModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-3xl w-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between shrink-0">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <MapPin className="h-4.5 w-4.5 text-primary" />
+                Pin exact office location
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsMapModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <CardContent className="p-6 flex-1 flex flex-col overflow-y-auto space-y-4 min-h-0">
+              {/* Search Bar inside Modal */}
+              <div className="relative z-50">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={modalSearchQuery}
+                    onChange={(e) => setModalSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleModalSearch())}
+                    placeholder="Search building, road, area, or landmark"
+                    className="block w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs outline-none focus:border-primary/45"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleModalSearch}
+                    disabled={modalSearchLoading || !modalSearchQuery.trim()}
+                    className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider shrink-0"
+                  >
+                    {modalSearchLoading ? "Searching" : "Search"}
+                  </Button>
+                </div>
+                
+                {modalSearchResults.length > 0 && (
+                  <div className="absolute left-0 right-0 mt-1.5 w-full rounded-xl border border-border bg-card shadow-xl backdrop-blur-md overflow-hidden max-h-48 overflow-y-auto p-1.5 space-y-0.5 z-[1001]">
+                    {modalSearchResults.map((result, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => selectModalSearchResult(result)}
+                        className="w-full text-left rounded-lg px-3 py-2 text-xs text-slate-600 dark:text-slate-350 hover:bg-slate-155 dark:hover:bg-slate-800 transition-colors font-medium truncate cursor-pointer"
+                      >
+                        {result.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Map Container */}
+              <div className="relative border border-border/85 rounded-2xl overflow-hidden h-[380px] bg-slate-100 dark:bg-slate-950 shrink-0">
+                <div id="leaflet-modal-map" className="h-full w-full z-0" />
+                <div className="absolute top-3 right-3 z-[1000] bg-background/95 backdrop-blur-sm border border-border px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider text-slate-500 shadow-md">
+                  Click map or drag marker to pin
+                </div>
+              </div>
+
+              {/* Location Details Preview */}
+              <div className="rounded-xl border border-border/50 bg-slate-50/50 dark:bg-slate-900/30 p-4 space-y-2 text-xs">
+                <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                  Address Details (Auto-filled)
+                </span>
+                {tempAddress ? (
+                  <p className="font-semibold text-slate-700 dark:text-slate-350 leading-relaxed text-left">
+                    {tempAddress}
+                  </p>
+                ) : (
+                  <p className="text-slate-405 italic text-left">No location pinned yet. Drag marker or search to select.</p>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-[10px] border-t border-border/10">
+                  <div className="text-left">
+                    <span className="block text-slate-400 uppercase font-medium">City</span>
+                    <span className="font-bold">{tempCity || "—"}</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-slate-400 uppercase font-medium">State</span>
+                    <span className="font-bold">{tempState || "—"}</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-slate-400 uppercase font-medium">Pin Code</span>
+                    <span className="font-bold">{tempPincode || "—"}</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-slate-400 uppercase font-medium">Coordinates</span>
+                    <span className="font-bold">{tempLat.toFixed(6)}, {tempLng.toFixed(6)}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+
+            <div className="px-6 py-4 border-t border-border/40 flex justify-end gap-3 shrink-0 bg-slate-50/50 dark:bg-slate-900/20">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsMapModalOpen(false)}
+                className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setNewBranchLatitude(tempLat);
+                  setNewBranchLongitude(tempLng);
+                  setNewBranchAddress(tempAddress);
+                  setNewBranchCity(tempCity);
+                  setNewBranchState(tempState);
+                  setNewBranchPincode(tempPincode);
+                  setSelectedMapLocation({
+                    id: `confirmed-${Date.now()}`,
+                    label: tempAddress,
+                    lat: tempLat,
+                    lon: tempLng,
+                    city: tempCity,
+                    state: tempState,
+                    pincode: tempPincode,
+                  });
+                  setIsMapModalOpen(false);
+                }}
+                disabled={!tempAddress}
+                className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+              >
+                Confirm Location
+              </Button>
+            </div>
+          </Card>
         </div>
       )}
 
