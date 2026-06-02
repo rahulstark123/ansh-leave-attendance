@@ -20,15 +20,27 @@ export default function SignupPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [showGoogleConnecting, setShowGoogleConnecting] = useState(false);
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setErrorMsg("");
     setShowGoogleConnecting(true);
-    
-    // Simulate standard OAuth redirect loading state for ANSH HR
-    setTimeout(() => {
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/dashboard",
+        },
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+        setShowGoogleConnecting(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred during Google Sign-up.");
       setShowGoogleConnecting(false);
-      setErrorMsg("Google Sign-In is not fully configured in this environment. Please use email & password.");
-    }, 1500);
+    }
   };
 
   const handleFormSignup = async (e: React.FormEvent) => {
