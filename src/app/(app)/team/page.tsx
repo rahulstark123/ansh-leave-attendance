@@ -863,6 +863,18 @@ export default function TeamPage() {
                     <FolderDot className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                     <span>{emp.department} · <span className="font-semibold text-slate-400">{emp.employmentType || "Full-time"}</span></span>
                   </div>
+                  {emp.designation && (
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <Briefcase className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <span>{emp.designation}</span>
+                    </div>
+                  )}
+                  {emp.branch && (
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <span>{emp.branch}</span>
+                    </div>
+                  )}
                   {emp.phoneNumber && (
                     <div className="flex items-center gap-2 text-slate-500">
                       <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
