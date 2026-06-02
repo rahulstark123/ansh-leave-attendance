@@ -178,23 +178,27 @@ function LeaveTypeActionsMenu({ type, onPreview, onEdit, onDelete }: LeaveTypeAc
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+          isOpen 
+            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white" 
+            : "text-slate-400 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+        }`}
         title="Actions"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-32 rounded-xl border border-border bg-card/95 dark:bg-slate-900/95 shadow-xl backdrop-blur-md overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1 space-y-0.5 select-none">
+        <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-border dark:border-slate-700/80 bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1 space-y-0.5 select-none ring-1 ring-black/5 dark:ring-white/5">
           <button
             type="button"
             onClick={() => {
               onPreview();
               setIsOpen(false);
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
           >
-            <Eye className="h-3.5 w-3.5 text-slate-400" />
+            <Eye className="h-3.5 w-3.5 text-slate-400 dark:text-slate-350" />
             <span>Preview</span>
           </button>
           <button
@@ -203,12 +207,12 @@ function LeaveTypeActionsMenu({ type, onPreview, onEdit, onDelete }: LeaveTypeAc
               onEdit();
               setIsOpen(false);
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
           >
-            <Edit className="h-3.5 w-3.5 text-slate-400" />
+            <Edit className="h-3.5 w-3.5 text-slate-400 dark:text-slate-350" />
             <span>Edit</span>
           </button>
-          <div className="h-px bg-border/40 my-0.5" />
+          <div className="h-px bg-border/40 dark:bg-slate-800/50 my-0.5" />
           <button
             type="button"
             onClick={() => {
@@ -253,26 +257,30 @@ function HolidayActionsMenu({ holiday, onEdit, onDelete }: HolidayActionsMenuPro
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+          isOpen 
+            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white" 
+            : "text-slate-400 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+        }`}
         title="Actions"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-32 rounded-xl border border-border bg-card/95 dark:bg-slate-900/95 shadow-xl backdrop-blur-md overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1 space-y-0.5 select-none">
+        <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-border dark:border-slate-700/80 bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1 space-y-0.5 select-none ring-1 ring-black/5 dark:ring-white/5">
           <button
             type="button"
             onClick={() => {
               onEdit();
               setIsOpen(false);
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer"
           >
-            <Edit className="h-3.5 w-3.5 text-slate-400" />
+            <Edit className="h-3.5 w-3.5 text-slate-400 dark:text-slate-350" />
             <span>Edit</span>
           </button>
-          <div className="h-px bg-border/40 my-0.5" />
+          <div className="h-px bg-border/40 dark:bg-slate-800/50 my-0.5" />
           <button
             type="button"
             onClick={() => {
@@ -356,6 +364,8 @@ export default function LeaveSettingPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(-1);
   const [uploading, setUploading] = useState(false);
+  const [editPolicy, setEditPolicy] = useState<PolicyDocument | null>(null);
+  const [editPolicyName, setEditPolicyName] = useState("");
 
   // Form states - Holidays
   const [newHolidayName, setNewHolidayName] = useState("");
@@ -615,7 +625,7 @@ export default function LeaveSettingPage() {
     formData.append("documentName", uploadFileName.trim());
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/settings/upload-policy", true);
+    xhr.open("POST", "/api/settings/policy", true);
     if (token) {
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     }
@@ -631,8 +641,8 @@ export default function LeaveSettingPage() {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const resData = JSON.parse(xhr.responseText);
-          if (resData.settings?.leaveSettings?.policyDocuments) {
-            setPolicyDocuments(resData.settings.leaveSettings.policyDocuments);
+          if (resData.policyDocuments) {
+            setPolicyDocuments(resData.policyDocuments);
             setSuccessMsg("Policy document uploaded successfully!");
             setIsAddPolicyModalOpen(false);
             setTimeout(() => setSuccessMsg(""), 4000);
@@ -667,13 +677,55 @@ export default function LeaveSettingPage() {
     xhr.send(formData);
   };
 
+  const handleEditPolicy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPolicy || !editPolicyName.trim()) return;
+
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch("/api/settings/policy", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: editPolicy.id,
+          name: editPolicyName.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to rename policy document");
+      }
+
+      const resData = await res.json();
+      if (resData.policyDocuments) {
+        setPolicyDocuments(resData.policyDocuments);
+        setSuccessMsg("Policy document renamed successfully!");
+        setEditPolicy(null);
+        setEditPolicyName("");
+        setTimeout(() => setSuccessMsg(""), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while renaming the policy document.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeletePolicy = async (id: string) => {
     setErrorMsg("");
     setSuccessMsg("");
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
-      const res = await fetch(`/api/settings/delete-policy?id=${id}`, {
+      const res = await fetch(`/api/settings/policy?id=${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -685,8 +737,8 @@ export default function LeaveSettingPage() {
       }
 
       const resData = await res.json();
-      if (resData.settings?.leaveSettings?.policyDocuments) {
-        setPolicyDocuments(resData.settings.leaveSettings.policyDocuments);
+      if (resData.policyDocuments) {
+        setPolicyDocuments(resData.policyDocuments);
         setSuccessMsg("Policy document deleted successfully!");
         setTimeout(() => setSuccessMsg(""), 4000);
       }
@@ -1462,19 +1514,96 @@ export default function LeaveSettingPage() {
                         <Download className="h-3.5 w-3.5" />
                       </button>
                       {isAuthorized && (
-                        <button
-                          onClick={() => handleDeletePolicy(doc.id)}
-                          className="h-8 w-8 rounded-lg bg-rose-50/10 hover:bg-rose-50/20 text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
-                          title="Delete Document"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditPolicy(doc);
+                              const nameWithoutExt = doc.name.substring(0, doc.name.lastIndexOf('.')) || doc.name;
+                              setEditPolicyName(nameWithoutExt);
+                            }}
+                            className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                            title="Edit / Rename Policy"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePolicy(doc.id)}
+                            className="h-8 w-8 rounded-lg bg-rose-50/10 hover:bg-rose-50/20 text-rose-500 flex items-center justify-center transition-colors cursor-pointer"
+                            title="Delete Document"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Policy Modal */}
+      {editPolicy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-sm w-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between shrink-0">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <Edit className="h-4.5 w-4.5 text-primary" />
+                Rename Policy Handbook
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditPolicy(null);
+                  setEditPolicyName("");
+                }}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditPolicy} className="flex flex-col min-h-0 flex-1">
+              <CardContent className="p-6 flex-1 overflow-y-auto space-y-4 text-left">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                    Document Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={loading}
+                    value={editPolicyName}
+                    onChange={(e) => setEditPolicyName(e.target.value)}
+                    placeholder="Enter new document name"
+                    className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 disabled:opacity-60"
+                  />
+                </div>
+              </CardContent>
+
+              <div className="px-6 py-4 border-t border-border/40 flex justify-end gap-3 shrink-0 bg-slate-50/50 dark:bg-slate-900/20">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditPolicy(null);
+                    setEditPolicyName("");
+                  }}
+                  className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading || !editPolicyName.trim()}
+                  className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                >
+                  {loading ? "Renaming..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
           </Card>
         </div>
       )}
