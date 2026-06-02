@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { getSystemSettings } from "@/lib/settings";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(req: Request) {
   try {
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
       reportingManager,
       workLocation,
       branch,
+      rosterShift,
       personalEmail,
       dateOfBirth,
       emergencyContactName,
@@ -82,6 +84,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Employee with this email already exists" }, { status: 400 });
     }
 
+    // Create Supabase Auth user first so employee ID maps to auth ID.
+    const supabaseAdmin = getSupabaseAdminClient();
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Supabase admin is not configured. Set SUPABASE_SERVICE_ROLE_KEY." },
+        { status: 500 }
+      );
+    }
+
+    const inviteResult = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      data: {
+        name,
+        department,
+        role,
+        wid,
+      },
+    });
+
+    if (inviteResult.error || !inviteResult.data.user?.id) {
+      const message = inviteResult.error?.message || "Failed to create Supabase account";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+    const authUserId = inviteResult.data.user.id;
+
     // Get baseline leave settings
     const settings = getSystemSettings();
     const annualLimit = settings.leaveSettings?.annualLimit ?? 15;
@@ -98,7 +124,7 @@ export async function POST(req: Request) {
     // Create new employee with detailed parameters
     const newEmp = await prisma.employee.create({
       data: {
-        id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        id: authUserId,
         name,
         email,
         role,
@@ -117,6 +143,7 @@ export async function POST(req: Request) {
         reportingManager: reportingManager || null,
         workLocation: workLocation || null,
         branch: branch || null,
+        rosterShift: rosterShift || null,
         personalEmail: personalEmail || null,
         dateOfBirth: dateOfBirth || null,
         emergencyContactName: emergencyContactName || null,

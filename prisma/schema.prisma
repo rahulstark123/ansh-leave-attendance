@@ -32,6 +32,7 @@ model Employee {
   reportingManager      String?        // Name of Reporting Manager
   workLocation          String?        // e.g. Remote, On-site, Hybrid
   branch                String?        // Assigned branch/office name (e.g. Main HQ, Bengaluru Tech Hub)
+  rosterShift           String?        // Assigned shift roster name
   personalEmail         String?        // Personal Email Address
   dateOfBirth           String?        // Date of Birth (YYYY-MM-DD)
   emergencyContactName  String?        // Emergency Contact Name
@@ -72,4 +73,50 @@ model Workspace {
   id        Int      @id @default(autoincrement())
   name      String?
   createdAt DateTime @default(now())
+}
+
+model LeaveCategory {
+  id               String   @id @default(cuid())
+  name             String
+  days             Int
+  color            String
+  allowRollover    Boolean  @default(false)
+  description      String?
+  applicableGender String   @default("All") // "All" | "Male" | "Female"
+  accrualPolicy    String   @default("One-time") // "One-time" | "Monthly" | "Yearly"
+  requiresProof    Boolean  @default(false)
+  wid              Int      @default(1) // Workspace ID for multi-tenant isolation
+  createdAt        DateTime @default(now())
+}
+
+model CompanyHoliday {
+  id        String   @id @default(cuid())
+  name      String
+  date      String   // Date string "YYYY-MM-DD"
+  type      String   // "Gazetted" | "Restricted"
+  branchId  String   @default("All") // "All" or specific branch name
+  wid       Int      @default(1)     // Workspace ID for multi-tenant isolation
+  createdAt DateTime @default(now())
+}
+
+model Shift {
+  id           String   @id @default(cuid())
+  name         String
+  startTime    String   // e.g., "09:00 AM"
+  endTime      String   // e.g., "06:00 PM"
+  gracePeriod  Int      @default(15) // in minutes
+  workingHours Float    @default(9)  // required hours
+  branchId     String   @default("All") // "All" or specific branch name/ID
+  wid          Int      @default(1)  // Workspace ID for multi-tenant isolation
+  createdAt    DateTime @default(now())
+}
+
+model Designation {
+  id        String   @id @default(cuid())
+  name      String
+  wid       Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([name, wid])
+  @@index([wid])
 }

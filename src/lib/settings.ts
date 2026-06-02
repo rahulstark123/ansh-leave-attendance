@@ -35,6 +35,8 @@ export interface Branch {
   pincode?: string;
   city?: string;
   state?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CompanyProfile {

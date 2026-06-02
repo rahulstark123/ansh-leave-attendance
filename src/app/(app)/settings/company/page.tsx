@@ -8,6 +8,16 @@ import { useLeaveStore } from "@/stores/leave-store";
 import { Loader2, Building, Building2, MapPin, Users, CheckCircle, ShieldAlert, Plus, Trash2 } from "lucide-react";
 import { Branch } from "@/lib/settings";
 
+interface MapLocationResult {
+  id: string;
+  label: string;
+  lat: number;
+  lon: number;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}
+
 export default function CompanySettingPage() {
   const { currentUser, initialize } = useLeaveStore();
 
@@ -31,6 +41,12 @@ export default function CompanySettingPage() {
   const [newBranchCity, setNewBranchCity] = useState("");
   const [newBranchState, setNewBranchState] = useState("");
   const [newBranchPincode, setNewBranchPincode] = useState("");
+  const [newBranchLatitude, setNewBranchLatitude] = useState<number | undefined>(undefined);
+  const [newBranchLongitude, setNewBranchLongitude] = useState<number | undefined>(undefined);
+  const [mapQuery, setMapQuery] = useState("");
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapResults, setMapResults] = useState<MapLocationResult[]>([]);
+  const [selectedMapLocation, setSelectedMapLocation] = useState<MapLocationResult | null>(null);
 
   const [toasts, setToasts] = useState<Array<{ id: string; type: "success" | "error"; title: string; message: string }>>([]);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
@@ -262,6 +278,8 @@ export default function CompanySettingPage() {
       city: newBranchCity.trim() || undefined,
       state: newBranchState.trim() || undefined,
       pincode: newBranchPincode.trim() || undefined,
+      latitude: newBranchLatitude,
+      longitude: newBranchLongitude,
     };
 
     const updated = [...branches, newBranch];
@@ -274,6 +292,78 @@ export default function CompanySettingPage() {
     setNewBranchCity("");
     setNewBranchState("");
     setNewBranchPincode("");
+    setNewBranchLatitude(undefined);
+    setNewBranchLongitude(undefined);
+    setMapQuery("");
+    setMapResults([]);
+    setSelectedMapLocation(null);
+  };
+
+  const handleMapSearch = async () => {
+    if (!mapQuery.trim()) {
+      showToast("error", "Location Required", "Type office locality, area, or city to search on map.");
+      return;
+    }
+    setMapLoading(true);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=in&q=${encodeURIComponent(mapQuery.trim())}`;
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+        }
+      });
+      if (!res.ok) {
+        throw new Error("Failed to search map locations");
+      }
+      const data = await res.json();
+      const parsed: MapLocationResult[] = (Array.isArray(data) ? data : []).map((item: any, index: number) => {
+        const cityName =
+          item.address?.city ||
+          item.address?.town ||
+          item.address?.village ||
+          item.address?.municipality ||
+          item.address?.county ||
+          "";
+        return {
+          id: item.place_id ? String(item.place_id) : `loc-${index}-${Date.now()}`,
+          label: item.display_name || "Unnamed location",
+          lat: Number(item.lat),
+          lon: Number(item.lon),
+          city: cityName || undefined,
+          state: item.address?.state || undefined,
+          pincode: item.address?.postcode || undefined,
+        };
+      }).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
+      setMapResults(parsed);
+      if (parsed.length === 0) {
+        showToast("error", "No Results", "No matching map locations found. Try a more specific search.");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Map Search Failed", "Unable to fetch map results right now.");
+    } finally {
+      setMapLoading(false);
+    }
+  };
+
+  const handleSelectMapLocation = (location: MapLocationResult) => {
+    setSelectedMapLocation(location);
+    setNewBranchAddress(location.label);
+    setNewBranchCity(location.city || "");
+    setNewBranchState(location.state || "");
+    setNewBranchPincode(location.pincode || "");
+    setNewBranchLatitude(location.lat);
+    setNewBranchLongitude(location.lon);
+    showToast("success", "Location Selected", "Branch location fields auto-filled from map selection.");
+  };
+
+  const getMapEmbedUrl = (lat: number, lon: number) => {
+    const delta = 0.01;
+    const left = lon - delta;
+    const right = lon + delta;
+    const top = lat + delta;
+    const bottom = lat - delta;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lon}`;
   };
 
   const handleDeleteBranch = (id: string) => {
@@ -592,6 +682,58 @@ export default function CompanySettingPage() {
                 </h4>
 
                 {/* PIN CODE (Comes first for lookup auto-fill) */}
+                <div className="space-y-2.5 rounded-2xl border border-border/60 p-3.5 bg-slate-50/40 dark:bg-slate-900/20">
+                  <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                    Office Location Chooser (Map)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={mapQuery}
+                      onChange={(e) => setMapQuery(e.target.value)}
+                      placeholder="Search area, road, city, or landmark"
+                      className="block w-full rounded-xl border border-border bg-transparent px-3 py-2.5 text-xs outline-none focus:border-primary/45"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleMapSearch}
+                      disabled={mapLoading || !mapQuery.trim()}
+                      className="h-10 px-4 text-[10px] font-bold uppercase tracking-wider"
+                    >
+                      {mapLoading ? "Searching" : "Search"}
+                    </Button>
+                  </div>
+                  {mapResults.length > 0 && (
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                      {mapResults.map((location) => (
+                        <button
+                          key={location.id}
+                          type="button"
+                          onClick={() => handleSelectMapLocation(location)}
+                          className="w-full rounded-xl border border-border/60 bg-card px-3 py-2 text-left text-[10px] hover:border-primary/45 hover:bg-primary/5 transition-colors"
+                        >
+                          {location.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedMapLocation && (
+                    <div className="space-y-2">
+                      <div className="rounded-xl overflow-hidden border border-border/70">
+                        <iframe
+                          title="Selected office location map preview"
+                          src={getMapEmbedUrl(selectedMapLocation.lat, selectedMapLocation.lon)}
+                          className="h-44 w-full"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-[9px] text-slate-500">
+                        Selected coordinates: {selectedMapLocation.lat.toFixed(6)}, {selectedMapLocation.lon.toFixed(6)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 flex items-center gap-1">
                     Pin Code (Auto-fills City & State)
@@ -670,11 +812,16 @@ export default function CompanySettingPage() {
 
                 <Button
                   type="submit"
-                  disabled={branchLoading || !newBranchName.trim() || !newBranchAddress.trim()}
+                  disabled={branchLoading || !newBranchName.trim() || !newBranchAddress.trim() || !selectedMapLocation}
                   className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-11 cursor-pointer"
                 >
                   {branchLoading ? "Saving..." : "Add Office Branch"}
                 </Button>
+                {!selectedMapLocation && (
+                  <p className="text-[10px] text-slate-400">
+                    Select office location from map before adding branch.
+                  </p>
+                )}
               </form>
             )}
           </CardContent>

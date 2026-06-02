@@ -50,57 +50,77 @@
         "name": "Hybrid_and_Remote_Work_Guidelines.pdf",
         "uploadedAt": "2026-05-20",
         "size": "1.1 MB"
+      },
+      {
+        "id": "doc-1780381863861",
+        "name": "kkj.pdf",
+        "uploadedAt": "2026-06-02",
+        "size": "0.6 MB"
       }
     ],
     "companyHolidays": [
       {
-        "id": "hol-ny",
+        "id": "cmpw9cb4q0000u19gdqum6tmw",
         "name": "New Year's Day",
         "date": "2026-01-01",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-rd",
+        "id": "cmpw9cb4s0001u19gk4t9rt56",
         "name": "Republic Day",
         "date": "2026-01-26",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-holi",
+        "id": "cmpw9cb4s0002u19g3rs9q91q",
         "name": "Holi Festival",
         "date": "2026-03-08",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-id",
+        "id": "cmpw9cb4s0003u19gj2v7t9za",
         "name": "Independence Day",
         "date": "2026-08-15",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-gd",
+        "id": "cmpw9cb4s0004u19g728nc0xn",
         "name": "Gandhi Jayanti",
         "date": "2026-10-02",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-diwali",
+        "id": "cmpw9cb4s0005u19gxbcredbq",
         "name": "Diwali Festival",
         "date": "2026-11-08",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       },
       {
-        "id": "hol-christmas",
+        "id": "cmpw9cb4s0006u19giiws2lt0",
         "name": "Christmas Day",
         "date": "2026-12-25",
         "type": "Gazetted",
-        "branchId": "All"
+        "branchId": "All",
+        "wid": 2,
+        "createdAt": "2026-06-02T06:29:36.985Z"
       }
     ]
   },

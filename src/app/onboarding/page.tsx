@@ -153,11 +153,11 @@ export default function OnboardingPage() {
 
         {/* Branding */}
         <div className="relative z-10 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 border border-white/10">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 border border-white/10">
             <img
               src="/logoAnshapps.png"
               alt="Ansh Apps Logo"
-              className="h-6 w-6 object-contain"
+              className="h-8.5 w-8.5 object-contain"
             />
           </div>
           <div>

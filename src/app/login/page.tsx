@@ -64,10 +64,45 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      let { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
+
+      // Fallback: If sign in fails due to invalid credentials, check if it's a seeded email and attempt auto-registration
+      if (error && (error.message.toLowerCase().includes("invalid login credentials") || error.status === 400)) {
+        const seededEmails = [
+          "rahul.raj@ansh.com",
+          "priya.sharma@ansh.com",
+          "amit.patel@ansh.com",
+          "sneha.reddy@ansh.com",
+          "rohan.gupta@ansh.com",
+          "vikram.m@ansh.com"
+        ];
+
+        if (seededEmails.includes(email.trim().toLowerCase())) {
+          // Auto-signup seeded employee in Supabase
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email.trim(),
+            password: password,
+            options: {
+              data: {
+                full_name: email.trim().split("@")[0].split(".").map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(" "),
+              }
+            }
+          });
+
+          if (!signUpError) {
+            // Sign in again with newly registered account
+            const retry = await supabase.auth.signInWithPassword({
+              email: email.trim(),
+              password: password,
+            });
+            data = retry.data;
+            error = retry.error;
+          }
+        }
+      }
 
       if (error) {
         setErrorMsg(error.message);

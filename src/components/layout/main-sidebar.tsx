@@ -41,11 +41,11 @@ export function MainSidebar() {
       )}
     >
       <div className="flex h-16 items-center gap-3 px-4 border-b border-border/50">
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 shadow-md">
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 shadow-md">
           <img
             src="/logoAnshapps.png"
             alt="Ansh Apps Logo"
-            className="h-8 w-8 object-contain"
+            className="h-10 w-10 object-contain"
           />
         </div>
         {!mainSidebarCollapsed && (

@@ -30,6 +30,7 @@ export interface PunchRecord {
   punchOut: string | null;
   duration: string | null; // e.g. "8h 15m"
   status: "On-time" | "Late" | "Half-day" | "Absent";
+  employeeId?: string;
 }
 
 export interface Employee {
@@ -45,6 +46,7 @@ export interface Employee {
     Sick: number;
     Casual: number;
   };
+  branch?: string;
 }
 
 interface LeaveState {
@@ -211,6 +213,7 @@ const initialPunchHistory: PunchRecord[] = [
     punchOut: "06:12 PM",
     duration: "9h 07m",
     status: "On-time",
+    employeeId: "emp-1",
   },
   {
     id: "p-2",
@@ -219,6 +222,7 @@ const initialPunchHistory: PunchRecord[] = [
     punchOut: "06:05 PM",
     duration: "8h 20m",
     status: "Late",
+    employeeId: "emp-1",
   },
   {
     id: "p-3",
@@ -227,6 +231,7 @@ const initialPunchHistory: PunchRecord[] = [
     punchOut: "05:30 PM",
     duration: "8h 32m",
     status: "On-time",
+    employeeId: "emp-1",
   },
   {
     id: "p-4",
@@ -235,6 +240,7 @@ const initialPunchHistory: PunchRecord[] = [
     punchOut: "06:00 PM",
     duration: "8h 58m",
     status: "On-time",
+    employeeId: "emp-1",
   },
   {
     id: "p-5",
@@ -243,6 +249,7 @@ const initialPunchHistory: PunchRecord[] = [
     punchOut: "06:00 PM",
     duration: "5h 00m",
     status: "Half-day",
+    employeeId: "emp-1",
   },
 ];
 
@@ -260,6 +267,7 @@ const mapDbEmployee = (dbEmp: any): Employee => {
       Sick: dbEmp.sickBalance,
       Casual: dbEmp.casualBalance,
     },
+    branch: dbEmp.branch || undefined,
   };
 };
 

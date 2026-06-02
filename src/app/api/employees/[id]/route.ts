@@ -47,6 +47,7 @@ export async function PATCH(
       reportingManager,
       workLocation,
       branch,
+      rosterShift,
       personalEmail,
       dateOfBirth,
       emergencyContactName,
@@ -79,6 +80,7 @@ export async function PATCH(
     if (reportingManager !== undefined) updateData.reportingManager = reportingManager || null;
     if (workLocation !== undefined) updateData.workLocation = workLocation || null;
     if (branch !== undefined) updateData.branch = branch || null;
+    if (rosterShift !== undefined) updateData.rosterShift = rosterShift || null;
     if (personalEmail !== undefined) updateData.personalEmail = personalEmail || null;
     if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth || null;
     if (emergencyContactName !== undefined) updateData.emergencyContactName = emergencyContactName || null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,11 +33,147 @@ import {
   MapPin,
   Cake,
   ShieldAlert,
-  ChevronDown,
-  ChevronUp,
   UserRoundCheck,
-  Building
+  Building,
+  Check,
+  ChevronsUpDown,
+  MoreVertical,
+  Copy,
+  PlusCircle
 } from "lucide-react";
+
+interface CustomSelectOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+interface CustomSelectProps {
+  label: string;
+  value: string;
+  options: CustomSelectOption[];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  allowAddNew?: boolean;
+  addNewLabel?: string;
+  onAddNew?: () => void;
+}
+
+function CustomSelect({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder = "Select option",
+  required = false,
+  allowAddNew = false,
+  addNewLabel = "Add New",
+  onAddNew,
+}: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className="relative w-full" ref={selectRef}>
+      {label ? (
+        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+          {label}
+        </label>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex h-11 w-full items-center justify-between rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer"
+      >
+        <span className={selectedOption ? "text-slate-700 dark:text-slate-200 font-semibold" : "text-slate-400"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1.5 w-full rounded-2xl border border-border bg-card/95 dark:bg-slate-950 shadow-xl backdrop-blur-md overflow-hidden animate-in fade-in slide-in-from-top-1.5 duration-200 max-h-64 overflow-y-auto">
+          <div className="p-1.5 space-y-0.5">
+            {!required && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("");
+                  setIsOpen(false);
+                }}
+                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${
+                  value === ""
+                    ? "bg-primary/15 text-primary font-bold"
+                    : "text-slate-600 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800/80"
+                }`}
+              >
+                <span>None / Unassigned</span>
+                {value === "" && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+              </button>
+            )}
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-primary/15 text-primary font-bold"
+                      : "text-slate-600 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800/80"
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <span className="block truncate">{opt.label}</span>
+                    {opt.description && (
+                      <span className="block text-[9px] text-slate-400 dark:text-slate-400/90 font-normal mt-0.5 truncate leading-none">
+                        {opt.description}
+                      </span>
+                    )}
+                  </div>
+                  {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                </button>
+              );
+            })}
+            {allowAddNew && onAddNew && (
+              <>
+                <div className="h-px bg-border/50 my-1" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onAddNew();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-3.5 py-2 text-left text-xs font-bold text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                >
+                  <PlusCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>{addNewLabel}</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TeamPage() {
   const { employees, currentUser, initialize } = useLeaveStore();
@@ -49,32 +185,63 @@ export default function TeamPage() {
 
   const [branch, setBranch] = useState("");
   const [branches, setBranches] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<any[]>([]);
+  const [designations, setDesignations] = useState<any[]>([]);
 
-  // Fetch branches on mount
-  useState(() => {
-    const loadBranches = async () => {
+  // Fetch branch and shift dropdown values on mount
+  useEffect(() => {
+    const loadDropdowns = async () => {
       try {
         const token = sessionStorage.getItem("ansh_auth_token");
-        const res = await fetch("/api/settings", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const [settingsRes, shiftRes, designationRes] = await Promise.all([
+          fetch("/api/settings", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch("/api/settings/shift", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch("/api/settings/designation", {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
           if (data.settings?.branches) {
             setBranches(data.settings.branches);
+            if (!branch && data.settings.branches.length > 0) {
+              setBranch(data.settings.branches[0].name);
+            }
+          }
+        }
+        if (shiftRes.ok) {
+          const shiftData = await shiftRes.json();
+          setShifts(shiftData.shifts || []);
+        }
+        if (designationRes.ok) {
+          const designationData = await designationRes.json();
+          const list = designationData.designations || [];
+          setDesignations(list);
+          if (!designation && list.length > 0) {
+            setDesignation(list[0].name);
           }
         }
       } catch (err) {
-        console.error("Failed to load branches in directory:", err);
+        console.error("Failed to load team dropdown data:", err);
       }
     };
-    loadBranches();
-  });
+    loadDropdowns();
+  }, []);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDetailActionsOpen, setIsDetailActionsOpen] = useState(false);
+  const [isAddOptionModalOpen, setIsAddOptionModalOpen] = useState(false);
+  const [addOptionField, setAddOptionField] = useState<
+    "designation" | "employmentType" | "department" | "role" | "status" | "workLocation" | "rosterShift" | "branch" | null
+  >(null);
 
   // Form states
   const [name, setName] = useState("");
@@ -89,10 +256,22 @@ export default function TeamPage() {
   const [joiningDate, setJoiningDate] = useState("");
   const [designation, setDesignation] = useState("");
   const [employmentType, setEmploymentType] = useState("Full-time");
+  const [employmentTypeItems, setEmploymentTypeItems] = useState<string[]>([
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Intern",
+  ]);
 
   // Expanded HR details
   const [reportingManager, setReportingManager] = useState("");
   const [workLocation, setWorkLocation] = useState("Remote");
+  const [workLocationItems, setWorkLocationItems] = useState<string[]>([
+    "Remote",
+    "On-site",
+    "Hybrid",
+  ]);
+  const [rosterShift, setRosterShift] = useState("");
   const [personalEmail, setPersonalEmail] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
@@ -108,6 +287,10 @@ export default function TeamPage() {
 
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [deletingEmpId, setDeletingEmpId] = useState("");
+  const [deleteConfirmEmailInput, setDeleteConfirmEmailInput] = useState("");
+  const [deleteEmailCopied, setDeleteEmailCopied] = useState(false);
+  const [newOptionName, setNewOptionName] = useState("");
+  const [newOptionLoading, setNewOptionLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -119,9 +302,28 @@ export default function TeamPage() {
   const [detailLeaves, setDetailLeaves] = useState<any[]>([]);
   const [detailPunches, setDetailPunches] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [departmentItems, setDepartmentItems] = useState<string[]>([
+    "Engineering",
+    "Human Resources",
+    "Product Design",
+    "Data Analytics",
+    "Executive",
+  ]);
+  const [roleItems, setRoleItems] = useState<string[]>([
+    "Employee",
+    "HR Manager",
+    "Admin",
+  ]);
+  const [statusItems, setStatusItems] = useState<string[]>([
+    "Active",
+    "On Leave",
+    "Half-day",
+    "Off",
+  ]);
 
   const loadMemberDetails = async (emp: any) => {
     setSelectedMemberForDetail(emp);
+    setIsDetailActionsOpen(false);
     setActiveTab("profile");
     setLoadingDetails(true);
     setDetailLeaves([]);
@@ -177,10 +379,12 @@ export default function TeamPage() {
     setEmployeeCode("");
     setPhoneNumber("");
     setJoiningDate("");
-    setDesignation("");
+    setDesignation(designations[0]?.name || "");
+    
     setEmploymentType("Full-time");
     setReportingManager("");
     setWorkLocation("Remote");
+    setRosterShift("");
     setBranch(branches.length > 0 ? branches[0].name : "");
     setPersonalEmail("");
     setDateOfBirth("");
@@ -191,6 +395,125 @@ export default function TeamPage() {
     setCasualBalance("6");
     setErrorMsg("");
     setSuccessMsg("");
+  };
+
+  const openEditMemberModal = (emp: any) => {
+    setSelectedEmp(emp);
+    setName(emp.name);
+    setEmail(emp.email);
+    setDepartment(emp.department);
+    setRole(emp.role);
+    setStatus(emp.status);
+    setEmployeeCode(emp.employeeCode || "");
+    setPhoneNumber(emp.phoneNumber || "");
+    setJoiningDate(emp.joiningDate || "");
+    setDesignation(emp.designation || "");
+    if (emp.designation) {
+      setDesignations((prev) => {
+        const exists = prev.some((d: any) => d.name === emp.designation);
+        if (exists) return prev;
+        return [...prev, { id: `local-${emp.designation}`, name: emp.designation }].sort((a: any, b: any) =>
+          a.name.localeCompare(b.name)
+        );
+      });
+    }
+    setEmploymentType(emp.employmentType || "Full-time");
+    setReportingManager(emp.reportingManager || "");
+    setWorkLocation(emp.workLocation || "Remote");
+    setRosterShift(emp.rosterShift || "");
+    setBranch(emp.branch || "");
+    setPersonalEmail(emp.personalEmail || "");
+    setDateOfBirth(emp.dateOfBirth || "");
+    setEmergencyContactName(emp.emergencyContactName || "");
+    setEmergencyContactPhone(emp.emergencyContactPhone || "");
+    setAnnualBalance(String(emp.leaveBalance?.Annual ?? 15));
+    setSickBalance(String(emp.leaveBalance?.Sick ?? 8));
+    setCasualBalance(String(emp.leaveBalance?.Casual ?? 6));
+    setIsEditModalOpen(true);
+    setIsDetailActionsOpen(false);
+  };
+
+  const openDeleteMemberModal = (empId: string) => {
+    setDeletingEmpId(empId);
+    setDeleteConfirmEmailInput("");
+    setDeleteEmailCopied(false);
+    setIsDeleteConfirmOpen(true);
+    setIsDetailActionsOpen(false);
+  };
+
+  const openAddOptionModal = (
+    field: "designation" | "employmentType" | "department" | "role" | "status" | "workLocation" | "rosterShift" | "branch"
+  ) => {
+    setAddOptionField(field);
+    setNewOptionName("");
+    setIsAddOptionModalOpen(true);
+  };
+
+  const handleCreateOption = async () => {
+    const nameToCreate = newOptionName.trim();
+    if (!nameToCreate) return;
+
+    try {
+      setNewOptionLoading(true);
+      setErrorMsg("");
+      if (addOptionField === "designation") {
+        const token = sessionStorage.getItem("ansh_auth_token");
+        const res = await fetch("/api/settings/designation", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: nameToCreate }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to create designation");
+        }
+
+        const created = data.designation;
+        setDesignations((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+        setDesignation(created.name);
+      } else if (addOptionField === "employmentType") {
+        setEmploymentTypeItems((prev) => Array.from(new Set([...prev, nameToCreate])));
+        setEmploymentType(nameToCreate);
+      } else if (addOptionField === "department") {
+        setDepartmentItems((prev) => Array.from(new Set([...prev, nameToCreate])));
+        setDepartment(nameToCreate);
+      } else if (addOptionField === "role") {
+        setRoleItems((prev) => Array.from(new Set([...prev, nameToCreate])));
+        setRole(nameToCreate);
+      } else if (addOptionField === "status") {
+        setStatusItems((prev) => Array.from(new Set([...prev, nameToCreate])));
+        setStatus(nameToCreate);
+      } else if (addOptionField === "workLocation") {
+        setWorkLocationItems((prev) => Array.from(new Set([...prev, nameToCreate])));
+        setWorkLocation(nameToCreate);
+      } else if (addOptionField === "rosterShift") {
+        setShifts((prev) => {
+          const exists = prev.some((s: any) => s.name === nameToCreate);
+          if (exists) return prev;
+          return [...prev, { id: `custom-shift-${Date.now()}`, name: nameToCreate, startTime: "Custom", endTime: "Custom", branchId: "All" }];
+        });
+        setRosterShift(nameToCreate);
+      } else if (addOptionField === "branch") {
+        setBranches((prev) => {
+          const exists = prev.some((b: any) => b.name === nameToCreate);
+          if (exists) return prev;
+          return [...prev, { id: `custom-branch-${Date.now()}`, name: nameToCreate, address: "Added from Team form" }];
+        });
+        setBranch(nameToCreate);
+      }
+
+      setIsAddOptionModalOpen(false);
+      setNewOptionName("");
+      setAddOptionField(null);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to create option");
+    } finally {
+      setNewOptionLoading(false);
+    }
   };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -220,6 +543,7 @@ export default function TeamPage() {
           reportingManager: reportingManager.trim(),
           workLocation,
           branch,
+          rosterShift,
           personalEmail: personalEmail.trim().toLowerCase(),
           dateOfBirth,
           emergencyContactName: emergencyContactName.trim(),
@@ -273,6 +597,7 @@ export default function TeamPage() {
           reportingManager: reportingManager.trim(),
           workLocation,
           branch,
+          rosterShift,
           personalEmail: personalEmail.trim().toLowerCase(),
           dateOfBirth,
           emergencyContactName: emergencyContactName.trim(),
@@ -318,6 +643,8 @@ export default function TeamPage() {
       await initialize();
       setIsDeleteConfirmOpen(false);
       setDeletingEmpId("");
+      setDeleteConfirmEmailInput("");
+      setDeleteEmailCopied(false);
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Failed to delete employee from registry.");
@@ -339,6 +666,48 @@ export default function TeamPage() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const filteredShiftOptions = shifts.filter((s: any) => {
+    if (!branch) return true;
+    return s.branchId === "All" || s.branchId === branch;
+  });
+
+  const departmentOptions: CustomSelectOption[] = departmentItems.map((item) => ({ value: item, label: item }));
+  const roleOptions: CustomSelectOption[] = roleItems.map((item) => ({ value: item, label: item }));
+  const statusOptions: CustomSelectOption[] = statusItems.map((item) => ({ value: item, label: item }));
+  const employmentTypeOptions: CustomSelectOption[] = employmentTypeItems.map((item) => ({
+    value: item,
+    label: item,
+  }));
+  const workLocationOptions: CustomSelectOption[] = workLocationItems.map((item) => ({
+    value: item,
+    label: item,
+  }));
+  const designationOptions: CustomSelectOption[] = designations.map((d: any) => ({
+    value: d.name,
+    label: d.name,
+  }));
+  const managerOptions: CustomSelectOption[] = employees
+    .filter((emp: any) => emp.name !== name && emp.id !== selectedEmp?.id)
+    .map((emp: any) => ({
+      value: emp.name,
+      label: emp.name,
+      description: emp.designation || emp.role,
+    }));
+  const branchOptions: CustomSelectOption[] = branches.map((b) => ({
+    value: b.name,
+    label: b.name,
+    description: b.address,
+  }));
+  const shiftOptions: CustomSelectOption[] = filteredShiftOptions.map((s: any) => ({
+    value: s.name,
+    label: s.name,
+    description: `${s.startTime} - ${s.endTime}`,
+  }));
+  const deletingEmployee = employees.find((emp: any) => emp.id === deletingEmpId) || null;
+  const isDeleteEmailMatched =
+    !!deletingEmployee &&
+    deleteConfirmEmailInput.trim().toLowerCase() === deletingEmployee.email.toLowerCase();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -425,28 +794,7 @@ export default function TeamPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedEmp(emp);
-                        setName(emp.name);
-                        setEmail(emp.email);
-                        setDepartment(emp.department);
-                        setRole(emp.role);
-                        setStatus(emp.status);
-                        setEmployeeCode(emp.employeeCode || "");
-                        setPhoneNumber(emp.phoneNumber || "");
-                        setJoiningDate(emp.joiningDate || "");
-                        setDesignation(emp.designation || "");
-                        setEmploymentType(emp.employmentType || "Full-time");
-                        setReportingManager(emp.reportingManager || "");
-                        setWorkLocation(emp.workLocation || "Remote");
-                        setBranch(emp.branch || "");
-                        setPersonalEmail(emp.personalEmail || "");
-                        setDateOfBirth(emp.dateOfBirth || "");
-                        setEmergencyContactName(emp.emergencyContactName || "");
-                        setEmergencyContactPhone(emp.emergencyContactPhone || "");
-                        setAnnualBalance(String(emp.leaveBalance?.Annual ?? 15));
-                        setSickBalance(String(emp.leaveBalance?.Sick ?? 8));
-                        setCasualBalance(String(emp.leaveBalance?.Casual ?? 6));
-                        setIsEditModalOpen(true);
+                        openEditMemberModal(emp);
                       }}
                       className="text-slate-400 hover:text-primary transition-colors p-1 cursor-pointer"
                       title="Edit Member"
@@ -456,8 +804,7 @@ export default function TeamPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletingEmpId(emp.id);
-                        setIsDeleteConfirmOpen(true);
+                        openDeleteMemberModal(emp.id);
                       }}
                       className="text-slate-400 hover:text-rose-500 transition-colors p-1 cursor-pointer"
                       title="Delete Member"
@@ -673,139 +1020,102 @@ export default function TeamPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Job Title / Designation
-                    </label>
-                    <input
-                      type="text"
-                      value={designation}
-                      onChange={(e) => setDesignation(e.target.value)}
-                      placeholder="e.g. Senior Software Engineer"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                  <CustomSelect
+                    label="Job Title / Designation"
+                    value={designation}
+                    options={designationOptions}
+                    onChange={setDesignation}
+                    placeholder="Select designation"
+                    allowAddNew
+                    addNewLabel="Add New Designation"
+                    onAddNew={() => openAddOptionModal("designation")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Employment Type
-                    </label>
-                    <select
-                      value={employmentType}
-                      onChange={(e) => setEmploymentType(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Full-time">Full-time Employee</option>
-                      <option value="Part-time">Part-time Employee</option>
-                      <option value="Contract">Contractor</option>
-                      <option value="Intern">Intern</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Employment Type"
+                    value={employmentType}
+                    options={employmentTypeOptions}
+                    onChange={setEmploymentType}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Employment Type"
+                    onAddNew={() => openAddOptionModal("employmentType")}
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Department
-                    </label>
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Engineering">Engineering</option>
-                      <option value="Human Resources">Human Resources</option>
-                      <option value="Product Design">Product Design</option>
-                      <option value="Data Analytics">Data Analytics</option>
-                      <option value="Executive">Executive</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Department"
+                    value={department}
+                    options={departmentOptions}
+                    onChange={setDepartment}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Department"
+                    onAddNew={() => openAddOptionModal("department")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      System Role
-                    </label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Employee">Employee</option>
-                      <option value="HR Manager">HR Manager</option>
-                      <option value="Admin">Admin</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="System Role"
+                    value={role}
+                    options={roleOptions}
+                    onChange={setRole}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New System Role"
+                    onAddNew={() => openAddOptionModal("role")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Roster Status
-                    </label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="On Leave">On Leave</option>
-                      <option value="Half-day">Half-day</option>
-                      <option value="Off">Off</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Roster Status"
+                    value={status}
+                    options={statusOptions}
+                    onChange={setStatus}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Roster Status"
+                    onAddNew={() => openAddOptionModal("status")}
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Reporting Manager
-                    </label>
-                    <select
-                      value={reportingManager}
-                      onChange={(e) => setReportingManager(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="">None / Self</option>
-                      {employees
-                        .filter((emp: any) => emp.name !== name)
-                        .map((emp: any) => (
-                          <option key={emp.id} value={emp.name}>
-                            {emp.name} ({emp.designation || emp.role})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Reporting Manager"
+                    value={reportingManager}
+                    options={managerOptions}
+                    onChange={setReportingManager}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Work Location
-                    </label>
-                    <select
-                      value={workLocation}
-                      onChange={(e) => setWorkLocation(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Remote">Remote</option>
-                      <option value="On-site">On-site</option>
-                      <option value="Hybrid">Hybrid</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Work Location"
+                    value={workLocation}
+                    options={workLocationOptions}
+                    onChange={setWorkLocation}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Work Location"
+                    onAddNew={() => openAddOptionModal("workLocation")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Office Branch
-                    </label>
-                    <select
-                      value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="">None / Unassigned</option>
-                      {branches.map((b) => (
-                        <option key={b.id} value={b.name}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Roster Shift"
+                    value={rosterShift}
+                    options={shiftOptions}
+                    onChange={setRosterShift}
+                    allowAddNew
+                    addNewLabel="Add New Roster Shift"
+                    onAddNew={() => openAddOptionModal("rosterShift")}
+                  />
+
+                  <CustomSelect
+                    label="Office Branch"
+                    value={branch}
+                    options={branchOptions}
+                    onChange={setBranch}
+                    allowAddNew
+                    addNewLabel="Add New Office Branch"
+                    onAddNew={() => openAddOptionModal("branch")}
+                  />
                 </div>
 
                 {/* Section 2: Personal & Emergency details */}
@@ -869,19 +1179,19 @@ export default function TeamPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 flex justify-end gap-3 border-t border-border/40">
+                <div className="pt-4 grid grid-cols-2 gap-3 border-t border-border/40">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                    className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="btn-primary text-xs font-bold uppercase tracking-wider h-10 px-6 cursor-pointer"
+                    className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
                   >
                     {loading ? (
                       <>
@@ -1000,139 +1310,102 @@ export default function TeamPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Job Title / Designation
-                    </label>
-                    <input
-                      type="text"
-                      value={designation}
-                      onChange={(e) => setDesignation(e.target.value)}
-                      placeholder="e.g. Senior Software Engineer"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                  <CustomSelect
+                    label="Job Title / Designation"
+                    value={designation}
+                    options={designationOptions}
+                    onChange={setDesignation}
+                    placeholder="Select designation"
+                    allowAddNew
+                    addNewLabel="Add New Designation"
+                    onAddNew={() => openAddOptionModal("designation")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Employment Type
-                    </label>
-                    <select
-                      value={employmentType}
-                      onChange={(e) => setEmploymentType(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Full-time">Full-time Employee</option>
-                      <option value="Part-time">Part-time Employee</option>
-                      <option value="Contract">Contractor</option>
-                      <option value="Intern">Intern</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Employment Type"
+                    value={employmentType}
+                    options={employmentTypeOptions}
+                    onChange={setEmploymentType}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Employment Type"
+                    onAddNew={() => openAddOptionModal("employmentType")}
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Department
-                    </label>
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Engineering">Engineering</option>
-                      <option value="Human Resources">Human Resources</option>
-                      <option value="Product Design">Product Design</option>
-                      <option value="Data Analytics">Data Analytics</option>
-                      <option value="Executive">Executive</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Department"
+                    value={department}
+                    options={departmentOptions}
+                    onChange={setDepartment}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Department"
+                    onAddNew={() => openAddOptionModal("department")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      System Role
-                    </label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Employee">Employee</option>
-                      <option value="HR Manager">HR Manager</option>
-                      <option value="Admin">Admin</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="System Role"
+                    value={role}
+                    options={roleOptions}
+                    onChange={setRole}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New System Role"
+                    onAddNew={() => openAddOptionModal("role")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Roster Status
-                    </label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="On Leave">On Leave</option>
-                      <option value="Half-day">Half-day</option>
-                      <option value="Off">Off</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Roster Status"
+                    value={status}
+                    options={statusOptions}
+                    onChange={setStatus}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Roster Status"
+                    onAddNew={() => openAddOptionModal("status")}
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Reporting Manager
-                    </label>
-                    <select
-                      value={reportingManager}
-                      onChange={(e) => setReportingManager(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="">None / Self</option>
-                      {employees
-                        .filter((emp: any) => emp.name !== name && emp.id !== selectedEmp?.id)
-                        .map((emp: any) => (
-                          <option key={emp.id} value={emp.name}>
-                            {emp.name} ({emp.designation || emp.role})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Reporting Manager"
+                    value={reportingManager}
+                    options={managerOptions}
+                    onChange={setReportingManager}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Work Location
-                    </label>
-                    <select
-                      value={workLocation}
-                      onChange={(e) => setWorkLocation(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="Remote">Remote</option>
-                      <option value="On-site">On-site</option>
-                      <option value="Hybrid">Hybrid</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Work Location"
+                    value={workLocation}
+                    options={workLocationOptions}
+                    onChange={setWorkLocation}
+                    required
+                    allowAddNew
+                    addNewLabel="Add New Work Location"
+                    onAddNew={() => openAddOptionModal("workLocation")}
+                  />
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Office Branch
-                    </label>
-                    <select
-                      value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer"
-                    >
-                      <option value="">None / Unassigned</option>
-                      {branches.map((b) => (
-                        <option key={b.id} value={b.name}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Roster Shift"
+                    value={rosterShift}
+                    options={shiftOptions}
+                    onChange={setRosterShift}
+                    allowAddNew
+                    addNewLabel="Add New Roster Shift"
+                    onAddNew={() => openAddOptionModal("rosterShift")}
+                  />
+
+                  <CustomSelect
+                    label="Office Branch"
+                    value={branch}
+                    options={branchOptions}
+                    onChange={setBranch}
+                    allowAddNew
+                    addNewLabel="Add New Office Branch"
+                    onAddNew={() => openAddOptionModal("branch")}
+                  />
                 </div>
 
                 {/* Section 2: Personal & Emergency details */}
@@ -1273,14 +1546,81 @@ export default function TeamPage() {
         </div>
       )}
 
+      {/* Add Option Modal */}
+      {isAddOptionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-md w-full bg-card border border-border text-foreground shadow-2xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <PlusCircle className="h-4.5 w-4.5 text-primary" />
+                Add New {addOptionField === "employmentType"
+                  ? "Employment Type"
+                  : addOptionField === "department"
+                  ? "Department"
+                  : addOptionField === "role"
+                  ? "System Role"
+                  : addOptionField === "status"
+                  ? "Roster Status"
+                  : addOptionField === "workLocation"
+                  ? "Work Location"
+                  : addOptionField === "rosterShift"
+                  ? "Roster Shift"
+                  : addOptionField === "branch"
+                  ? "Office Branch"
+                  : "Designation"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddOptionModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <CardContent className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={newOptionName}
+                  onChange={(e) => setNewOptionName(e.target.value)}
+                  placeholder="Enter new option name"
+                  className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/40">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsAddOptionModalOpen(false)}
+                  className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleCreateOption}
+                  disabled={newOptionLoading || !newOptionName.trim()}
+                  className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                >
+                  {newOptionLoading ? "Adding..." : "Add"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* 3. Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <Card className="crm-card max-w-sm w-full bg-card border border-border text-foreground shadow-2xl p-6 text-center space-y-4">
+          <Card className="crm-card max-w-md w-full bg-card border border-border text-foreground shadow-2xl p-6 space-y-4">
             <div className="h-12 w-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
               <Trash2 className="h-6 w-6" />
             </div>
-            <div>
+            <div className="text-center">
               <h3 className="font-extrabold text-sm text-slate-800 dark:text-white uppercase tracking-wider">
                 Remove Team Member?
               </h3>
@@ -1288,22 +1628,62 @@ export default function TeamPage() {
                 This action is irreversible. All leaves and punches history related to this employee will be deleted forever.
               </p>
             </div>
-            <div className="pt-2 flex justify-center gap-3">
+
+            {deletingEmployee && (
+              <div className="rounded-2xl border border-border/50 bg-slate-50/50 dark:bg-slate-900/30 p-3 space-y-2">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Type email to confirm deletion
+                </label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded-lg bg-card border border-border/60 px-2.5 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 truncate">
+                    {deletingEmployee.email}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(deletingEmployee.email);
+                      setDeleteEmailCopied(true);
+                      setTimeout(() => setDeleteEmailCopied(false), 1400);
+                    }}
+                    className="h-8 w-8 rounded-lg border border-border/60 flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 transition-colors cursor-pointer"
+                    title="Copy email"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={deleteConfirmEmailInput}
+                    onChange={(e) => setDeleteConfirmEmailInput(e.target.value)}
+                    placeholder="Paste email here to confirm"
+                    className="block w-full rounded-xl border border-border bg-transparent px-3 py-2 text-xs outline-none focus:border-primary/45"
+                  />
+                  {deleteEmailCopied && (
+                    <p className="text-[10px] text-emerald-500 mt-1 font-semibold">Email copied</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 grid grid-cols-2 gap-3">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => {
                   setIsDeleteConfirmOpen(false);
                   setDeletingEmpId("");
+                  setDeleteConfirmEmailInput("");
+                  setDeleteEmailCopied(false);
                 }}
-                className="text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDeleteSubmit}
-                disabled={loading}
-                className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-wider h-10 px-6 rounded-xl cursor-pointer"
+                disabled={loading || !isDeleteEmailMatched}
+                className="bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400/50 text-white text-xs font-bold uppercase tracking-wider h-10 rounded-xl cursor-pointer"
               >
                 {loading ? "Deleting..." : "Delete Member"}
               </Button>
@@ -1318,7 +1698,10 @@ export default function TeamPage() {
           {/* Backdrop Overlay with blur */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
-            onClick={() => setSelectedMemberForDetail(null)}
+            onClick={() => {
+              setSelectedMemberForDetail(null);
+              setIsDetailActionsOpen(false);
+            }}
           />
 
           {/* Drawer Panel */}
@@ -1339,12 +1722,49 @@ export default function TeamPage() {
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedMemberForDetail(null)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="relative flex items-center gap-1.5">
+                  {isAuthorized && selectedMemberForDetail.id !== currentUser?.id && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsDetailActionsOpen((prev) => !prev)}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        title="Member actions"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                      {isDetailActionsOpen && (
+                        <div className="absolute right-10 top-0 z-50 w-36 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => openEditMemberModal(selectedMemberForDetail)}
+                            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openDeleteMemberModal(selectedMemberForDetail.id)}
+                            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedMemberForDetail(null);
+                      setIsDetailActionsOpen(false);
+                    }}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
               {/* Tabs Selector */}
@@ -1400,6 +1820,10 @@ export default function TeamPage() {
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Office Branch</span>
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.branch || "Unassigned"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Roster Shift</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.rosterShift || "Unassigned"}</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Work Location</span>

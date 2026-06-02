@@ -45,11 +45,11 @@ export default function LandingPage() {
       {/* TOP HEADER */}
       <header className="relative z-10 mx-auto max-w-7xl px-6 h-20 flex items-center justify-between border-b border-white/5">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 border border-white/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 border border-white/10">
             <img
               src="/logoAnshapps.png"
               alt="Ansh Apps Logo"
-              className="h-7 w-7 object-contain"
+              className="h-9 w-9 object-contain"
             />
           </div>
           <div>
