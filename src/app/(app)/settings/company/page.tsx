@@ -51,6 +51,7 @@ export default function CompanySettingPage() {
   // Leaflet Map Modal states
   const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
   const [modalSearchQuery, setModalSearchQuery] = useState("");
   const [modalSearchLoading, setModalSearchLoading] = useState(false);
   const [modalSearchResults, setModalSearchResults] = useState<any[]>([]);
@@ -443,6 +444,7 @@ export default function CompanySettingPage() {
     setMapQuery("");
     setMapResults([]);
     setSelectedMapLocation(null);
+    setIsAddBranchModalOpen(false);
   };
 
 
@@ -693,11 +695,31 @@ export default function CompanySettingPage() {
 
         {/* Office Branches Manager */}
         <Card className="crm-card h-fit">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
               <Building2 className="h-4.5 w-4.5 text-primary" />
-              Office Branches Registry
+              Office Branches
             </CardTitle>
+            {isAuthorized && (
+              <button
+                type="button"
+                onClick={() => {
+                  setNewBranchName("");
+                  setNewBranchAddress("");
+                  setNewBranchCity("");
+                  setNewBranchState("");
+                  setNewBranchPincode("");
+                  setNewBranchLatitude(undefined);
+                  setNewBranchLongitude(undefined);
+                  setSelectedMapLocation(null);
+                  setIsAddBranchModalOpen(true);
+                }}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add Branch
+              </button>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-xs text-slate-400">
@@ -754,14 +776,32 @@ export default function CompanySettingPage() {
               )}
             </div>
 
-            {/* Add Branch Form */}
-            {isAuthorized && (
-              <form onSubmit={handleAddBranch} className="space-y-4 pt-4 border-t border-border/40">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
-                  <Plus className="h-3.5 w-3.5 text-primary" />
-                  Add Office Branch
-                </h4>
 
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Add Branch Modal */}
+      {isAddBranchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-lg w-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between shrink-0">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <Building2 className="h-4.5 w-4.5 text-primary" />
+                Add Office Branch
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddBranchModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddBranch} className="flex flex-col min-h-0 flex-1">
+              <CardContent className="p-6 flex-1 overflow-y-auto space-y-4 text-left">
+                {/* Office Location Map Trigger */}
                 <div className="space-y-2">
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Office Location
@@ -785,7 +825,7 @@ export default function CompanySettingPage() {
                             setTempPincode(newBranchPincode);
                             setIsMapModalOpen(true);
                           }}
-                          className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-xl"
+                          className="h-8 text-[10px] font-bold uppercase tracking-wider rounded-xl cursor-pointer"
                         >
                           Change
                         </Button>
@@ -817,6 +857,7 @@ export default function CompanySettingPage() {
                   )}
                 </div>
 
+                {/* Pincode */}
                 <div>
                   <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 flex items-center gap-1">
                     Pin Code (Auto-fills City & State)
@@ -892,24 +933,36 @@ export default function CompanySettingPage() {
                     className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
                   />
                 </div>
+              </CardContent>
 
-                <Button
-                  type="submit"
-                  disabled={branchLoading || !newBranchName.trim() || !newBranchAddress.trim() || !selectedMapLocation}
-                  className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-11 cursor-pointer"
-                >
-                  {branchLoading ? "Saving..." : "Add Office Branch"}
-                </Button>
+              <div className="px-6 py-4 border-t border-border/40 flex flex-col gap-2 shrink-0 bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="flex justify-end gap-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddBranchModalOpen(false)}
+                    className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={branchLoading || !newBranchName.trim() || !newBranchAddress.trim() || !selectedMapLocation}
+                    className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  >
+                    {branchLoading ? "Saving..." : "Add Office Branch"}
+                  </Button>
+                </div>
                 {!selectedMapLocation && (
-                  <p className="text-[10px] text-slate-400">
-                    Select office location from map before adding branch.
+                  <p className="text-[10px] text-slate-400 text-center w-full font-medium">
+                    * Pin location on map before saving branch.
                   </p>
                 )}
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
 
       {/* Custom Delete Confirmation Modal */}
       {branchToDelete && (
