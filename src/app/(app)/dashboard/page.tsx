@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLeaveStore } from "@/stores/leave-store";
+import { FaceScanDialog } from "@/components/attendance/FaceScanDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Clock,
   Calendar,
@@ -29,10 +31,23 @@ export default function DashboardPage() {
     punchIn,
     punchOut,
     employees,
+    faceEnrolled,
   } = useLeaveStore();
 
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [tickingTimer, setTickingTimer] = useState<string>("00:00:00");
+  const [isFaceScanOpen, setIsFaceScanOpen] = useState(false);
+  const [isFaceRequiredAlertOpen, setIsFaceRequiredAlertOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"punch-in" | "punch-out" | null>(null);
+
+  const handlePunchClick = (action: "punch-in" | "punch-out") => {
+    if (faceEnrolled) {
+      setPendingAction(action);
+      setIsFaceScanOpen(true);
+    } else {
+      setIsFaceRequiredAlertOpen(true);
+    }
+  };
 
   // Keep clock updated
   useEffect(() => {
@@ -156,7 +171,7 @@ export default function DashboardPage() {
               <div className="flex gap-3">
                 {!currentPunchIn ? (
                   <Button
-                    onClick={punchIn}
+                    onClick={() => handlePunchClick("punch-in")}
                     className="btn-primary min-w-[140px] font-bold text-sm"
                   >
                     <UserCheck className="mr-2 h-4 w-4" />
@@ -164,7 +179,7 @@ export default function DashboardPage() {
                   </Button>
                 ) : (
                   <Button
-                    onClick={punchOut}
+                    onClick={() => handlePunchClick("punch-out")}
                     variant="destructive"
                     className="min-w-[140px] font-bold text-sm h-11 rounded-xl shadow-lg shadow-destructive/25 hover:shadow-destructive/40 transition-all border-0"
                   >
@@ -423,6 +438,65 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <FaceScanDialog
+        isOpen={isFaceScanOpen}
+        onClose={() => {
+          setIsFaceScanOpen(false);
+          setPendingAction(null);
+        }}
+        actionName={pendingAction || "punch-in"}
+        onSuccess={async () => {
+          if (pendingAction === "punch-in") {
+            await punchIn();
+          } else if (pendingAction === "punch-out") {
+            await punchOut();
+          }
+        }}
+      />
+
+      <Dialog open={isFaceRequiredAlertOpen} onOpenChange={setIsFaceRequiredAlertOpen}>
+        <DialogContent className="sm:max-w-[400px] p-6 rounded-3xl border border-border/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl select-none animate-in fade-in zoom-in-95 duration-200">
+          <DialogHeader className="pb-3 border-b border-border/40">
+            <DialogTitle className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              <span>Face Scan Required</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4 text-center">
+            <div className="flex justify-center py-2">
+              <div className="h-12 w-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20 shadow-sm animate-pulse">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="text-sm font-extrabold text-slate-850 dark:text-white">Biometric Setup Required</h4>
+              <p className="text-xs text-slate-400 dark:text-slate-400 leading-relaxed font-semibold">
+                You must upload your face images (Front, Left, and Right profiles) to register your biometric signature before you can record your attendance.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setIsFaceRequiredAlertOpen(false)}
+              className="rounded-xl font-bold text-xs uppercase tracking-wider h-11 w-full border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+            <Link href="/settings/profile" className="w-full block">
+              <Button
+                className="btn-primary rounded-xl font-bold text-xs uppercase tracking-wider h-11 border-0 w-full flex items-center justify-center"
+              >
+                Go to Face Setup
+              </Button>
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

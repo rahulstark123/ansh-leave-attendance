@@ -30,6 +30,7 @@ model Employee {
   designation           String?        // Job Title e.g. Senior Software Engineer
   employmentType        String?        // e.g. Full-time, Part-time, Contract, Intern
   reportingManager      String?        // Name of Reporting Manager
+  reportingHR           String?        // Name of Reporting HR
   workLocation          String?        // e.g. Remote, On-site, Hybrid
   branch                String?        // Assigned branch/office name (e.g. Main HQ, Bengaluru Tech Hub)
   rosterShift           String?        // Assigned shift roster name
@@ -37,9 +38,13 @@ model Employee {
   dateOfBirth           String?        // Date of Birth (YYYY-MM-DD)
   emergencyContactName  String?        // Emergency Contact Name
   emergencyContactPhone String?        // Emergency Contact Phone Number
+  faceEmbedding         Float[]
+  facePhotos            String[]
   createdAt             DateTime       @default(now())
   leaves                LeaveRequest[]
   punches               PunchRecord[]
+  regularizations       AttendanceRegularization[]
+  wfhRequests           WFHRequest[]
 }
 
 model LeaveRequest {
@@ -85,6 +90,7 @@ model LeaveCategory {
   applicableGender String   @default("All") // "All" | "Male" | "Female"
   accrualPolicy    String   @default("One-time") // "One-time" | "Monthly" | "Yearly"
   requiresProof    Boolean  @default(false)
+  branchId         String   @default("All") // "All" or specific branch name/ID
   wid              Int      @default(1) // Workspace ID for multi-tenant isolation
   createdAt        DateTime @default(now())
 }
@@ -120,3 +126,31 @@ model Designation {
   @@unique([name, wid])
   @@index([wid])
 }
+
+model AttendanceRegularization {
+  id           String   @id @default(cuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date         String   // YYYY-MM-DD
+  requestedIn  String   // e.g., "09:00 AM"
+  requestedOut String   // e.g., "06:00 PM"
+  reason       String
+  status       String   // "Pending" | "Approved" | "Rejected"
+  wid          Int      @default(1)
+  appliedAt    DateTime @default(now())
+}
+
+model WFHRequest {
+  id             String   @id @default(cuid())
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  startDate      String   // YYYY-MM-DD
+  endDate        String   // YYYY-MM-DD
+  totalDays      Float
+  halfDay        Boolean  @default(false)
+  reason         String
+  status         String   // "Pending" | "Approved" | "Rejected"
+  wid            Int      @default(1)
+  appliedAt      DateTime @default(now())
+}
+

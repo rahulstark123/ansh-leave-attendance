@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLeaveStore } from "@/stores/leave-store";
+import { FaceManageModal } from "@/components/attendance/FaceManageModal";
 import {
   Loader2,
   Clock,
@@ -21,7 +22,8 @@ import {
   Check,
   PlusCircle,
   Eye,
-  X
+  X,
+  Smile
 } from "lucide-react";
 
 interface CustomSelectOption {
@@ -296,6 +298,9 @@ export default function AttendanceSettingPage() {
   const [previewShift, setPreviewShift] = useState<any | null>(null);
   const [drawerTab, setDrawerTab] = useState<"details" | "health">("details");
   const [healthFilter, setHealthFilter] = useState<string>("All Time");
+  const [activeTab, setActiveTab] = useState<"roster" | "faces">("roster");
+  const [selectedFaceEmployee, setSelectedFaceEmployee] = useState<any | null>(null);
+  const [faceSearch, setFaceSearch] = useState("");
 
   // New Shift form fields
   const [newShiftName, setNewShiftName] = useState("");
@@ -553,9 +558,36 @@ export default function AttendanceSettingPage() {
         </div>
       )}
 
-      {/* SHIFT ROSTER VIEW */}
-      <div className="space-y-6">
-        <Card className="crm-card animate-in fade-in duration-300">
+      {/* TAB SWITCHER */}
+      <div className="flex border-b border-border/40 gap-6 select-none pb-0.5">
+        {[
+          { id: "roster", label: "Shift Rosters" },
+          { id: "faces", label: "Face Enrollment Profiles" }
+        ].map((tab) => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`pb-3 text-xs font-bold uppercase tracking-wider relative transition-colors outline-none cursor-pointer ${
+                active
+                  ? "text-primary font-black"
+                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              }`}
+            >
+              {tab.label}
+              {active && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-primary rounded-full" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === "roster" ? (
+        /* SHIFT ROSTER VIEW */
+        <div className="space-y-6">
+          <Card className="crm-card animate-in fade-in duration-300">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
               <Sparkles className="h-4.5 w-4.5 text-primary" />
@@ -628,6 +660,127 @@ export default function AttendanceSettingPage() {
             )}
           </CardContent>
         </Card>
+      </div>
+    ) : (
+      /* EMPLOYEE FACIAL SIGN-IN MANAGER VIEW */
+      <div className="space-y-6">
+        <Card className="crm-card">
+          <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-border/40 pb-4">
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Smile className="h-4.5 w-4.5 text-primary" />
+                Employee Face Profiles
+              </CardTitle>
+              <p className="text-[11px] text-slate-400">
+                Manage employee facial enrollment profiles, update front/profile images, and clear biometric databases.
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            {/* Search Bar */}
+            <div className="max-w-md">
+              <input
+                type="text"
+                value={faceSearch}
+                onChange={(e) => setFaceSearch(e.target.value)}
+                placeholder="Search employee name, department, designation..."
+                className="block w-full rounded-xl border border-border bg-transparent px-3.5 py-2.5 text-xs outline-none focus:border-primary/45"
+              />
+            </div>
+
+            {/* Employees List Table */}
+            <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border/40 bg-slate-50/50 dark:bg-slate-900/50 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <th className="px-5 py-3.5">Employee</th>
+                    <th className="px-5 py-3.5">Role & Department</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5">Enrolled Photos</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40 text-xs">
+                  {employees
+                    .filter((emp) => {
+                      const term = faceSearch.toLowerCase().trim();
+                      if (!term) return true;
+                      return (
+                        emp.name.toLowerCase().includes(term) ||
+                        (emp.department && emp.department.toLowerCase().includes(term)) ||
+                        (emp.role && emp.role.toLowerCase().includes(term))
+                      );
+                    })
+                    .map((emp) => {
+                      const isEnrolled = emp.faceEnrolled;
+                      return (
+                        <tr key={emp.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors">
+                          <td className="px-5 py-4 flex items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-black text-xs">
+                              {emp.avatarInitials}
+                            </div>
+                            <div>
+                              <span className="block font-bold text-slate-800 dark:text-white">{emp.name}</span>
+                              <span className="block text-[10px] text-slate-400 mt-0.5">{emp.email}</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="block font-semibold text-slate-700 dark:text-slate-350">{emp.role}</span>
+                            <span className="block text-[10px] text-slate-450 mt-0.5">{emp.department}</span>
+                          </td>
+                          <td className="px-5 py-4">
+                            {isEnrolled ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                Enrolled
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-border/40">
+                                Not Setup
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4">
+                            {isEnrolled && Array.isArray(emp.facePhotos) && emp.facePhotos.length === 3 ? (
+                              <div className="flex gap-1.5">
+                                {emp.facePhotos.map((url) => (
+                                  <div key={url} className="h-7 w-9 rounded-lg border border-border overflow-hidden bg-slate-950 shadow-sm shrink-0">
+                                    <img src={url} className="h-full w-full object-cover scale-x-[-1]" />
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-semibold">—</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <Button
+                              onClick={() => setSelectedFaceEmployee(emp)}
+                              className="h-8 px-3 rounded-lg text-[10px] font-bold btn-primary"
+                            >
+                              Manage Face
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )}
+
+    <FaceManageModal
+      employee={selectedFaceEmployee}
+      onClose={() => setSelectedFaceEmployee(null)}
+      onUpdateComplete={async () => {
+        await initialize();
+      }}
+      onDeleteComplete={async () => {
+        await initialize();
+      }}
+    />
 
         {/* Add Shift Modal Dialog */}
         <Dialog open={isAddShiftOpen} onOpenChange={setIsAddShiftOpen}>
@@ -846,7 +999,6 @@ export default function AttendanceSettingPage() {
             </div>
           </div>
         )}
-      </div>
 
       {/* Roster Preview Slide-out Drawer */}
       {previewShift && (() => {
@@ -862,7 +1014,7 @@ export default function AttendanceSettingPage() {
         
         // Apply date range filter
         const filteredPunches = rosterPunches.filter((p) => isDateInRange(p.date, healthFilter));
-        const onTimeCount = filteredPunches.filter((p) => p.status === "On-time").length;
+        const onTimeCount = filteredPunches.filter((p) => p.status === "On-time" || p.status === "WFH").length;
         const lateCount = filteredPunches.filter((p) => p.status === "Late").length;
         const totalPunches = filteredPunches.length;
         const onTimeRate = totalPunches > 0 ? Math.round((onTimeCount / totalPunches) * 100) : 100;

@@ -105,7 +105,8 @@ export async function POST(req: Request) {
       description,
       applicableGender,
       accrualPolicy,
-      requiresProof
+      requiresProof,
+      branchId
     } = body;
 
     if (!name || days === undefined || !color) {
@@ -122,6 +123,7 @@ export async function POST(req: Request) {
         applicableGender: applicableGender || "All",
         accrualPolicy: accrualPolicy || "One-time",
         requiresProof: !!requiresProof,
+        branchId: branchId || "All",
         wid
       }
     });
@@ -156,7 +158,8 @@ export async function PATCH(req: Request) {
       description,
       applicableGender,
       accrualPolicy,
-      requiresProof
+      requiresProof,
+      branchId
     } = body;
 
     if (!id) {
@@ -182,7 +185,8 @@ export async function PATCH(req: Request) {
         description: description !== undefined ? description : existing.description,
         applicableGender: applicableGender !== undefined ? applicableGender : existing.applicableGender,
         accrualPolicy: accrualPolicy !== undefined ? accrualPolicy : existing.accrualPolicy,
-        requiresProof: requiresProof !== undefined ? !!requiresProof : existing.requiresProof
+        requiresProof: requiresProof !== undefined ? !!requiresProof : existing.requiresProof,
+        branchId: branchId !== undefined ? branchId : existing.branchId
       }
     });
 

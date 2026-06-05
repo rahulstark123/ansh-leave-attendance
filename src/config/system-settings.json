@@ -52,10 +52,11 @@
         "size": "1.1 MB"
       },
       {
-        "id": "doc-1780381863861",
-        "name": "kkj.pdf",
+        "id": "doc-1780420266896",
+        "name": "Completion of Probation-Rahul Raj (2).pdf",
         "uploadedAt": "2026-06-02",
-        "size": "0.6 MB"
+        "size": "177 KB",
+        "s3Key": "2/1780420266339_Completion_of_Probation-Rahul_Raj__2_.pdf"
       }
     ],
     "companyHolidays": [

@@ -1,0 +1,117 @@
+import { NextResponse } from "next/server";
+import { getAuthEmployee } from "@/lib/auth-helper";
+import { prisma } from "@/lib/db";
+
+export async function GET(req: Request) {
+  try {
+    const employee = await getAuthEmployee(req);
+    if (!employee) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const wid = employee.wid ?? 1;
+
+    let requests;
+    if (employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner") {
+      // Admins and HR Managers see all regularization requests in the workspace
+      requests = await prisma.attendanceRegularization.findMany({
+        where: { wid },
+        include: {
+          employee: {
+            select: {
+              name: true,
+              role: true,
+              avatarInitials: true,
+              branch: true,
+            },
+          },
+        },
+        orderBy: { appliedAt: "desc" },
+      });
+    } else {
+      // Regular employees only see their own requests
+      requests = await prisma.attendanceRegularization.findMany({
+        where: { employeeId: employee.id, wid },
+        include: {
+          employee: {
+            select: {
+              name: true,
+              role: true,
+              avatarInitials: true,
+              branch: true,
+            },
+          },
+        },
+        orderBy: { appliedAt: "desc" },
+      });
+    }
+
+    const formattedRequests = requests.map((r) => ({
+      id: r.id,
+      employeeId: r.employeeId,
+      employeeName: r.employee.name,
+      employeeRole: r.employee.role,
+      avatarInitials: r.employee.avatarInitials,
+      employeeBranch: r.employee.branch || "All",
+      date: r.date,
+      requestedIn: r.requestedIn,
+      requestedOut: r.requestedOut,
+      reason: r.reason,
+      status: r.status,
+      appliedAt: r.appliedAt.toISOString(),
+    }));
+
+    return NextResponse.json({ requests: formattedRequests });
+  } catch (error) {
+    console.error("API /api/attendance/regularization GET error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const employee = await getAuthEmployee(req);
+    if (!employee) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { date, requestedIn, requestedOut, reason } = body;
+
+    if (!date || !requestedIn || !requestedOut || !reason) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const request = await prisma.attendanceRegularization.create({
+      data: {
+        employeeId: employee.id,
+        date,
+        requestedIn,
+        requestedOut,
+        reason,
+        status: "Pending",
+        wid: employee.wid ?? 1,
+      },
+    });
+
+    const formattedRequest = {
+      id: request.id,
+      employeeId: request.employeeId,
+      employeeName: employee.name,
+      employeeRole: employee.role,
+      avatarInitials: employee.avatarInitials,
+      employeeBranch: employee.branch || "All",
+      date: request.date,
+      requestedIn: request.requestedIn,
+      requestedOut: request.requestedOut,
+      reason: request.reason,
+      status: request.status,
+      appliedAt: request.appliedAt.toISOString(),
+    };
+
+    return NextResponse.json({ request: formattedRequest });
+  } catch (error) {
+    console.error("API /api/attendance/regularization POST error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

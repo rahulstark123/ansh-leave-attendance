@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { queuedLocalStorage } from "@/lib/safe-storage";
 
-export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity";
+export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity" | "WFH" | string;
 export type LeaveStatus = "Approved" | "Pending" | "Rejected";
 export type EmployeeStatus = "Active" | "On Leave" | "Half-day" | "Off";
 export type EmployeeRole = "Admin" | "HR Manager" | "Employee" | "Owner";
@@ -29,7 +29,7 @@ export interface PunchRecord {
   punchIn: string;
   punchOut: string | null;
   duration: string | null; // e.g. "8h 15m"
-  status: "On-time" | "Late" | "Half-day" | "Absent";
+  status: "On-time" | "Late" | "Half-day" | "Absent" | "WFH";
   employeeId?: string;
 }
 
@@ -47,6 +47,10 @@ export interface Employee {
     Casual: number;
   };
   branch?: string;
+  reportingManager?: string;
+  reportingHR?: string;
+  facePhotos?: string[];
+  faceEnrolled?: boolean;
 }
 
 interface LeaveState {
@@ -55,10 +59,14 @@ interface LeaveState {
   punchHistory: PunchRecord[];
   currentPunchIn: string | null; // ISO String of when user punched in
   currentUser: Employee;
+  faceEnrolled: boolean;
+  setFaceEnrolled: (enrolled: boolean) => void;
   initialize: () => Promise<void>;
   applyLeave: (request: Omit<LeaveRequest, "id" | "employeeId" | "employeeName" | "employeeRole" | "avatarInitials" | "appliedAt" | "status">) => Promise<void>;
   approveLeave: (id: string) => Promise<void>;
   rejectLeave: (id: string) => Promise<void>;
+  updateLeave: (id: string, request: any) => Promise<void>;
+  deleteLeave: (id: string) => Promise<void>;
   punchIn: () => Promise<void>;
   punchOut: () => Promise<void>;
   switchUser: (id: string) => void;
@@ -268,6 +276,10 @@ const mapDbEmployee = (dbEmp: any): Employee => {
       Casual: dbEmp.casualBalance,
     },
     branch: dbEmp.branch || undefined,
+    reportingManager: dbEmp.reportingManager || undefined,
+    reportingHR: dbEmp.reportingHR || undefined,
+    facePhotos: dbEmp.facePhotos || [],
+    faceEnrolled: Array.isArray(dbEmp.faceEmbedding) && dbEmp.faceEmbedding.length === 128,
   };
 };
 
@@ -291,6 +303,8 @@ export const useLeaveStore = create<LeaveState>()(
       punchHistory: initialPunchHistory,
       currentPunchIn: null,
       currentUser: initialEmployees[0],
+      faceEnrolled: false,
+      setFaceEnrolled: (enrolled: boolean) => set({ faceEnrolled: enrolled }),
 
       initialize: async () => {
         try {
@@ -318,6 +332,7 @@ export const useLeaveStore = create<LeaveState>()(
           const punchData = await punchRes.json();
           const punchHistory = punchData.punchHistory || [];
           const currentPunchIn = punchData.currentPunchIn || null;
+          const faceEnrolled = punchData.faceEnrolled || false;
 
           set({
             currentUser,
@@ -325,6 +340,7 @@ export const useLeaveStore = create<LeaveState>()(
             leaves,
             punchHistory,
             currentPunchIn,
+            faceEnrolled,
           });
         } catch (error) {
           console.error("Store initialization failed:", error);
@@ -367,18 +383,20 @@ export const useLeaveStore = create<LeaveState>()(
                 const days = l.totalDays;
                 const type = l.type as "Annual" | "Sick" | "Casual";
                 
-                state.employees = state.employees.map((e) => {
-                  if (e.id === l.employeeId && e.leaveBalance[type] !== undefined) {
-                    return {
-                      ...e,
-                      leaveBalance: {
-                        ...e.leaveBalance,
-                        [type]: Math.max(0, e.leaveBalance[type] - days),
-                      },
-                    };
-                  }
-                  return e;
-                });
+                if (type === "Annual" || type === "Sick" || type === "Casual") {
+                  state.employees = state.employees.map((e) => {
+                    if (e.id === l.employeeId && e.leaveBalance[type] !== undefined) {
+                      return {
+                        ...e,
+                        leaveBalance: {
+                          ...e.leaveBalance,
+                          [type]: Math.max(0, e.leaveBalance[type] - days),
+                        },
+                      };
+                    }
+                    return e;
+                  });
+                }
 
                 return { ...l, status: "Approved" as LeaveStatus };
               }
@@ -469,6 +487,42 @@ export const useLeaveStore = create<LeaveState>()(
           const user = state.employees.find((e) => e.id === id) || state.currentUser;
           return { currentUser: user };
         }),
+
+      updateLeave: async (id, req) => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch("/api/leaves", {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify({ id, ...req }),
+          });
+          if (!res.ok) throw new Error("Failed to update leave request");
+          const data = await res.json();
+          if (data.leave) {
+            set((state) => ({
+              leaves: state.leaves.map((l) => (l.id === id ? data.leave : l)),
+            }));
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      },
+
+      deleteLeave: async (id) => {
+        try {
+          const headers = getHeaders();
+          const res = await fetch(`/api/leaves?id=${id}`, {
+            method: "DELETE",
+            headers,
+          });
+          if (!res.ok) throw new Error("Failed to delete leave request");
+          set((state) => ({
+            leaves: state.leaves.filter((l) => l.id !== id),
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      },
     }),
     {
       name: "ansh-leave-database",

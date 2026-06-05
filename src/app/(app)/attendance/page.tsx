@@ -27,7 +27,7 @@ export default function AttendancePage() {
   // Statistics calculations
   const totalDays = punchHistory.length;
   const lateCount = punchHistory.filter((p) => p.status === "Late").length;
-  const onTimeCount = punchHistory.filter((p) => p.status === "On-time").length;
+  const onTimeCount = punchHistory.filter((p) => p.status === "On-time" || p.status === "WFH").length;
   const onTimePercentage = totalDays > 0 ? Math.round((onTimeCount / totalDays) * 100) : 100;
 
   return (
@@ -102,7 +102,7 @@ export default function AttendancePage() {
       {/* FILTER BUTTONS BAR */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div className="flex gap-2.5">
-          {["All", "On-time", "Late", "Half-day"].map((filter) => {
+          {["All", "On-time", "Late", "Half-day", "WFH"].map((filter) => {
             const active = statusFilter === filter;
             return (
               <button
@@ -187,6 +187,10 @@ export default function AttendancePage() {
                         ) : p.status === "Half-day" ? (
                           <Badge className="bg-blue-500/10 text-blue-600 border-0 hover:bg-blue-500/10">
                             Half-day
+                          </Badge>
+                        ) : p.status === "WFH" ? (
+                          <Badge className="bg-indigo-500/10 text-indigo-600 border-0 hover:bg-indigo-500/10">
+                            WFH
                           </Badge>
                         ) : (
                           <Badge variant="destructive">Absent</Badge>

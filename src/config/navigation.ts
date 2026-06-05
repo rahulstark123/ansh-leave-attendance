@@ -11,7 +11,9 @@ import {
   User,
   Building,
   CreditCard,
-  MessagesSquare
+  MessagesSquare,
+  FileText,
+  Home
 } from "lucide-react";
 
 export type NavSectionId =
@@ -60,6 +62,8 @@ export const mainNav: MainNavItem[] = [
     subNav: [
       { id: "my-leave", label: "Leave Requests", href: "/leave", icon: User },
       { id: "approvals", label: "Approvals", href: "/leave/approvals", icon: CheckSquare, badge: "1" },
+      { id: "holidays", label: "Holidays", href: "/leave/holidays", icon: Calendar },
+      { id: "policies", label: "Leave Policies", href: "/leave/policies", icon: FileText },
     ],
   },
   {
@@ -67,6 +71,11 @@ export const mainNav: MainNavItem[] = [
     label: "Attendance",
     href: "/attendance",
     icon: Clock,
+    subNav: [
+      { id: "logs", label: "Attendance Logs", href: "/attendance", icon: Clock },
+      { id: "regularization", label: "Regularization", href: "/attendance/regularization", icon: Calendar },
+      { id: "wfh", label: "Work From Home", href: "/attendance/wfh", icon: Home },
+    ],
   },
   {
     id: "team",

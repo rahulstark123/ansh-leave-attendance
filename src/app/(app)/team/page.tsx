@@ -243,6 +243,90 @@ export default function TeamPage() {
     "designation" | "employmentType" | "department" | "role" | "status" | "workLocation" | "rosterShift" | "branch" | null
   >(null);
 
+  // Wizard step state variables
+  const [currentStep, setCurrentStep] = useState(1);
+  const [editCurrentStep, setEditCurrentStep] = useState(1);
+
+  // Validate step 1 fields
+  const validateStep1 = () => {
+    if (!name.trim()) return "Full Name is required.";
+    if (!email.trim()) return "Work Email is required.";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return "Please enter a valid work email address.";
+    if (personalEmail.trim() && !emailRegex.test(personalEmail.trim())) {
+      return "Please enter a valid personal email address.";
+    }
+    return null;
+  };
+
+  const handleNextStep1 = () => {
+    setErrorMsg("");
+    const err = validateStep1();
+    if (err) {
+      setErrorMsg(err);
+      return;
+    }
+    setCurrentStep(2);
+  };
+
+  const handleEditNextStep1 = () => {
+    setErrorMsg("");
+    const err = validateStep1();
+    if (err) {
+      setErrorMsg(err);
+      return;
+    }
+    setEditCurrentStep(2);
+  };
+
+  // Render horizontal stepper component
+  const renderStepper = (step: number) => {
+    const steps = [
+      { num: 1, label: "Personal Info" },
+      { num: 2, label: "Job Info" },
+      { num: 3, label: "Emergency Info" }
+    ];
+    return (
+      <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-900/30 border-b border-border/40 flex items-center justify-between">
+        {steps.map((s, idx) => {
+          const isActive = step === s.num;
+          const isCompleted = step > s.num;
+          return (
+            <div key={s.num} className="flex items-center flex-1 last:flex-none">
+              <div className="flex items-center gap-2">
+                <div className={`h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-2 ring-primary/20 ring-offset-2 dark:ring-offset-slate-900' 
+                    : isCompleted 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400'
+                }`}>
+                  {isCompleted ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    s.num
+                  )}
+                </div>
+                <span className={`text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-300 ${
+                  isActive ? 'text-primary' : isCompleted ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-400'
+                }`}>
+                  {s.label}
+                </span>
+              </div>
+              {idx < steps.length - 1 && (
+                <div className="h-0.5 flex-1 mx-4 bg-slate-100 dark:bg-slate-800/80 relative">
+                  <div className={`absolute inset-y-0 left-0 bg-primary transition-all duration-500 ${
+                    isCompleted ? 'w-full' : 'w-0'
+                  }`} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -265,11 +349,13 @@ export default function TeamPage() {
 
   // Expanded HR details
   const [reportingManager, setReportingManager] = useState("");
+  const [reportingHR, setReportingHR] = useState("");
   const [workLocation, setWorkLocation] = useState("Remote");
   const [workLocationItems, setWorkLocationItems] = useState<string[]>([
     "Remote",
     "On-site",
     "Hybrid",
+    "Out of Office",
   ]);
   const [rosterShift, setRosterShift] = useState("");
   const [personalEmail, setPersonalEmail] = useState("");
@@ -384,6 +470,7 @@ export default function TeamPage() {
     
     setEmploymentType("Full-time");
     setReportingManager("");
+    setReportingHR("");
     setWorkLocation("Remote");
     setRosterShift("");
     setBranch(branches.length > 0 ? branches[0].name : "");
@@ -396,6 +483,8 @@ export default function TeamPage() {
     setCasualBalance("6");
     setErrorMsg("");
     setSuccessMsg("");
+    setCurrentStep(1);
+    setEditCurrentStep(1);
   };
 
   const openEditMemberModal = (emp: any) => {
@@ -420,6 +509,7 @@ export default function TeamPage() {
     }
     setEmploymentType(emp.employmentType || "Full-time");
     setReportingManager(emp.reportingManager || "");
+    setReportingHR(emp.reportingHR || "");
     setWorkLocation(emp.workLocation || "Remote");
     setRosterShift(emp.rosterShift || "");
     setBranch(emp.branch || "");
@@ -430,6 +520,7 @@ export default function TeamPage() {
     setAnnualBalance(String(emp.leaveBalance?.Annual ?? 15));
     setSickBalance(String(emp.leaveBalance?.Sick ?? 8));
     setCasualBalance(String(emp.leaveBalance?.Casual ?? 6));
+    setEditCurrentStep(1);
     setIsEditModalOpen(true);
     setIsDetailActionsOpen(false);
   };
@@ -542,6 +633,7 @@ export default function TeamPage() {
           designation: designation.trim(),
           employmentType,
           reportingManager: reportingManager.trim(),
+          reportingHR: reportingHR.trim(),
           workLocation,
           branch,
           rosterShift,
@@ -596,6 +688,7 @@ export default function TeamPage() {
           designation: designation.trim(),
           employmentType,
           reportingManager: reportingManager.trim(),
+          reportingHR: reportingHR.trim(),
           workLocation,
           branch,
           rosterShift,
@@ -690,6 +783,13 @@ export default function TeamPage() {
   }));
   const managerOptions: CustomSelectOption[] = employees
     .filter((emp: any) => emp.name !== name && emp.id !== selectedEmp?.id)
+    .map((emp: any) => ({
+      value: emp.name,
+      label: emp.name,
+      description: emp.designation || emp.role,
+    }));
+  const hrOptions: CustomSelectOption[] = employees
+    .filter((emp: any) => (emp.role === "HR Manager" || emp.role === "Admin" || emp.role === "Owner") && emp.name !== name && emp.id !== selectedEmp?.id)
     .map((emp: any) => ({
       value: emp.name,
       label: emp.name,
@@ -948,273 +1048,330 @@ export default function TeamPage() {
               </button>
             </div>
             <form onSubmit={handleAddSubmit}>
-              <CardContent className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+              {renderStepper(currentStep)}
+              <CardContent className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 {errorMsg && (
-                  <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500">
+                  <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500 animate-in fade-in duration-200">
                     {errorMsg}
                   </div>
                 )}
 
-                {/* Section 1: Professional Information */}
-                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Professional Information
-                </span>
+                {currentStep === 1 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Personal Information
+                    </span>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. John Doe"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Work Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="e.g. john@company.com"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Work Email Address
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. john@company.com"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Phone Number
+                        </label>
+                        <div className="phone-input-container">
+                          <PhoneInput
+                            international
+                            defaultCountry="IN"
+                            placeholder="Enter phone number"
+                            value={phoneNumber}
+                            onChange={(val) => setPhoneNumber(val || "")}
+                          />
+                        </div>
+                      </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Employee ID / Code
-                    </label>
-                    <input
-                      type="text"
-                      value={employeeCode}
-                      onChange={(e) => setEmployeeCode(e.target.value)}
-                      placeholder="e.g. ANSH-085"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Personal Email
+                        </label>
+                        <input
+                          type="email"
+                          value={personalEmail}
+                          onChange={(e) => setPersonalEmail(e.target.value)}
+                          placeholder="e.g. personal@gmail.com"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Phone Number
-                    </label>
-                    <div className="phone-input-container">
-                      <PhoneInput
-                        international
-                        defaultCountry="IN"
-                        placeholder="Enter phone number"
-                        value={phoneNumber}
-                        onChange={(val) => setPhoneNumber(val || "")}
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          value={dateOfBirth}
+                          onChange={(e) => setDateOfBirth(e.target.value)}
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                        />
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Joining Date
-                    </label>
-                    <input
-                      type="date"
-                      value={joiningDate}
-                      onChange={(e) => setJoiningDate(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
-                    />
-                  </div>
-                </div>
+                {currentStep === 2 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Job Details
+                    </span>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CustomSelect
-                    label="Job Title / Designation"
-                    value={designation}
-                    options={designationOptions}
-                    onChange={setDesignation}
-                    placeholder="Select designation"
-                    allowAddNew
-                    addNewLabel="Add New Designation"
-                    onAddNew={() => openAddOptionModal("designation")}
-                  />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Employee ID / Code
+                        </label>
+                        <input
+                          type="text"
+                          value={employeeCode}
+                          onChange={(e) => setEmployeeCode(e.target.value)}
+                          placeholder="e.g. ANSH-085"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
 
-                  <CustomSelect
-                    label="Employment Type"
-                    value={employmentType}
-                    options={employmentTypeOptions}
-                    onChange={setEmploymentType}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Employment Type"
-                    onAddNew={() => openAddOptionModal("employmentType")}
-                  />
-                </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Joining Date
+                        </label>
+                        <input
+                          type="date"
+                          value={joiningDate}
+                          onChange={(e) => setJoiningDate(e.target.value)}
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                        />
+                      </div>
+                    </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <CustomSelect
-                    label="Department"
-                    value={department}
-                    options={departmentOptions}
-                    onChange={setDepartment}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Department"
-                    onAddNew={() => openAddOptionModal("department")}
-                  />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <CustomSelect
+                        label="Job Title / Designation"
+                        value={designation}
+                        options={designationOptions}
+                        onChange={setDesignation}
+                        placeholder="Select designation"
+                        allowAddNew
+                        addNewLabel="Add New Designation"
+                        onAddNew={() => openAddOptionModal("designation")}
+                      />
 
-                  <CustomSelect
-                    label="System Role"
-                    value={role}
-                    options={roleOptions}
-                    onChange={setRole}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New System Role"
-                    onAddNew={() => openAddOptionModal("role")}
-                  />
-
-                  <CustomSelect
-                    label="Roster Status"
-                    value={status}
-                    options={statusOptions}
-                    onChange={setStatus}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Roster Status"
-                    onAddNew={() => openAddOptionModal("status")}
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <CustomSelect
-                    label="Reporting Manager"
-                    value={reportingManager}
-                    options={managerOptions}
-                    onChange={setReportingManager}
-                  />
-
-                  <CustomSelect
-                    label="Work Location"
-                    value={workLocation}
-                    options={workLocationOptions}
-                    onChange={setWorkLocation}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Work Location"
-                    onAddNew={() => openAddOptionModal("workLocation")}
-                  />
-
-                  <CustomSelect
-                    label="Roster Shift"
-                    value={rosterShift}
-                    options={shiftOptions}
-                    onChange={setRosterShift}
-                    allowAddNew
-                    addNewLabel="Add New Roster Shift"
-                    onAddNew={() => openAddOptionModal("rosterShift")}
-                  />
-
-                  <CustomSelect
-                    label="Office Branch"
-                    value={branch}
-                    options={branchOptions}
-                    onChange={setBranch}
-                    allowAddNew
-                    addNewLabel="Add New Office Branch"
-                    onAddNew={() => openAddOptionModal("branch")}
-                  />
-                </div>
-
-                {/* Section 2: Personal & Emergency details */}
-                <div className="border-t border-border/40 pt-4 space-y-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Personal & Emergency Details
-                  </span>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Personal Email
-                      </label>
-                      <input
-                        type="email"
-                        value={personalEmail}
-                        onChange={(e) => setPersonalEmail(e.target.value)}
-                        placeholder="e.g. personal@gmail.com"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                      <CustomSelect
+                        label="Employment Type"
+                        value={employmentType}
+                        options={employmentTypeOptions}
+                        onChange={setEmploymentType}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Employment Type"
+                        onAddNew={() => openAddOptionModal("employmentType")}
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={dateOfBirth}
-                        onChange={(e) => setDateOfBirth(e.target.value)}
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <CustomSelect
+                        label="Department"
+                        value={department}
+                        options={departmentOptions}
+                        onChange={setDepartment}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Department"
+                        onAddNew={() => openAddOptionModal("department")}
+                      />
+
+                      <CustomSelect
+                        label="System Role"
+                        value={role}
+                        options={roleOptions}
+                        onChange={setRole}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New System Role"
+                        onAddNew={() => openAddOptionModal("role")}
+                      />
+
+                      <CustomSelect
+                        label="Roster Status"
+                        value={status}
+                        options={statusOptions}
+                        onChange={setStatus}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Roster Status"
+                        onAddNew={() => openAddOptionModal("status")}
+                      />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <CustomSelect
+                        label="Reporting Manager"
+                        value={reportingManager}
+                        options={managerOptions}
+                        onChange={setReportingManager}
+                      />
+
+                      <CustomSelect
+                        label="Reporting HR"
+                        value={reportingHR}
+                        options={hrOptions}
+                        onChange={setReportingHR}
+                      />
+
+                      <CustomSelect
+                        label="Work Location"
+                        value={workLocation}
+                        options={workLocationOptions}
+                        onChange={setWorkLocation}
+                        required
+                      />
+
+                      <CustomSelect
+                        label="Roster Shift"
+                        value={rosterShift}
+                        options={shiftOptions}
+                        onChange={setRosterShift}
+                        allowAddNew
+                        addNewLabel="Add New Roster Shift"
+                        onAddNew={() => openAddOptionModal("rosterShift")}
+                      />
+
+                      <CustomSelect
+                        label="Office Branch"
+                        value={branch}
+                        options={branchOptions}
+                        onChange={setBranch}
+                        allowAddNew
+                        addNewLabel="Add New Office Branch"
+                        onAddNew={() => openAddOptionModal("branch")}
                       />
                     </div>
                   </div>
+                )}
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Emergency Contact Name
-                      </label>
-                      <input
-                        type="text"
-                        value={emergencyContactName}
-                        onChange={(e) => setEmergencyContactName(e.target.value)}
-                        placeholder="e.g. Spouse, Parent Name"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
-                    </div>
+                {currentStep === 3 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Emergency Information
+                    </span>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Emergency Contact Name
+                        </label>
+                        <input
+                          type="text"
+                          value={emergencyContactName}
+                          onChange={(e) => setEmergencyContactName(e.target.value)}
+                          placeholder="e.g. Spouse, Parent Name"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Emergency Contact Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={emergencyContactPhone}
-                        onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                        placeholder="e.g. +91 9999988888"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Emergency Contact Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={emergencyContactPhone}
+                          onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                          placeholder="e.g. +91 9999988888"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <div className="pt-4 grid grid-cols-2 gap-3 border-t border-border/40">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      "Add Member"
-                    )}
-                  </Button>
+                  {currentStep === 1 ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setIsAddModalOpen(false)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleNextStep1}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        Next
+                      </Button>
+                    </>
+                  ) : currentStep === 2 ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setCurrentStep(1)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setCurrentStep(3)}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        Next
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={loading}
+                        onClick={() => setCurrentStep(2)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding...
+                          </>
+                        ) : (
+                          "Add Member"
+                        )}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </form>
@@ -1239,319 +1396,376 @@ export default function TeamPage() {
               </button>
             </div>
             <form onSubmit={handleEditSubmit}>
-              <CardContent className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+              {renderStepper(editCurrentStep)}
+              <CardContent className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 {errorMsg && (
-                  <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500">
+                  <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500 animate-in fade-in duration-200">
                     {errorMsg}
                   </div>
                 )}
 
-                {/* Section 1: Professional Information */}
-                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Professional Information
-                </span>
+                {editCurrentStep === 1 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Personal Information
+                    </span>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. John Doe"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Email Address (Read-only)
+                        </label>
+                        <input
+                          type="email"
+                          disabled
+                          value={email}
+                          className="block w-full rounded-2xl border border-border bg-slate-100/50 dark:bg-slate-900/40 px-4 py-3 text-xs outline-none cursor-not-allowed opacity-60"
+                        />
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Email Address (Read-only)
-                    </label>
-                    <input
-                      type="email"
-                      disabled
-                      value={email}
-                      className="block w-full rounded-2xl border border-border bg-slate-100/50 dark:bg-slate-900/40 px-4 py-3 text-xs outline-none cursor-not-allowed opacity-60"
-                    />
-                  </div>
-                </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Phone Number
+                        </label>
+                        <div className="phone-input-container">
+                          <PhoneInput
+                            international
+                            defaultCountry="IN"
+                            placeholder="Enter phone number"
+                            value={phoneNumber}
+                            onChange={(val) => setPhoneNumber(val || "")}
+                          />
+                        </div>
+                      </div>
 
-                {/* Detailed HR Fields */}
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Employee ID / Code
-                    </label>
-                    <input
-                      type="text"
-                      value={employeeCode}
-                      onChange={(e) => setEmployeeCode(e.target.value)}
-                      placeholder="e.g. ANSH-085"
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Personal Email
+                        </label>
+                        <input
+                          type="email"
+                          value={personalEmail}
+                          onChange={(e) => setPersonalEmail(e.target.value)}
+                          placeholder="e.g. personal@gmail.com"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Phone Number
-                    </label>
-                    <div className="phone-input-container">
-                      <PhoneInput
-                        international
-                        defaultCountry="IN"
-                        placeholder="Enter phone number"
-                        value={phoneNumber}
-                        onChange={(val) => setPhoneNumber(val || "")}
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          value={dateOfBirth}
+                          onChange={(e) => setDateOfBirth(e.target.value)}
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                        />
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Joining Date
-                    </label>
-                    <input
-                      type="date"
-                      value={joiningDate}
-                      onChange={(e) => setJoiningDate(e.target.value)}
-                      className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
-                    />
-                  </div>
-                </div>
+                {editCurrentStep === 2 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Job Details
+                    </span>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CustomSelect
-                    label="Job Title / Designation"
-                    value={designation}
-                    options={designationOptions}
-                    onChange={setDesignation}
-                    placeholder="Select designation"
-                    allowAddNew
-                    addNewLabel="Add New Designation"
-                    onAddNew={() => openAddOptionModal("designation")}
-                  />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Employee ID / Code
+                        </label>
+                        <input
+                          type="text"
+                          value={employeeCode}
+                          onChange={(e) => setEmployeeCode(e.target.value)}
+                          placeholder="e.g. ANSH-085"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
 
-                  <CustomSelect
-                    label="Employment Type"
-                    value={employmentType}
-                    options={employmentTypeOptions}
-                    onChange={setEmploymentType}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Employment Type"
-                    onAddNew={() => openAddOptionModal("employmentType")}
-                  />
-                </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Joining Date
+                        </label>
+                        <input
+                          type="date"
+                          value={joiningDate}
+                          onChange={(e) => setJoiningDate(e.target.value)}
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                        />
+                      </div>
+                    </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <CustomSelect
-                    label="Department"
-                    value={department}
-                    options={departmentOptions}
-                    onChange={setDepartment}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Department"
-                    onAddNew={() => openAddOptionModal("department")}
-                  />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <CustomSelect
+                        label="Job Title / Designation"
+                        value={designation}
+                        options={designationOptions}
+                        onChange={setDesignation}
+                        placeholder="Select designation"
+                        allowAddNew
+                        addNewLabel="Add New Designation"
+                        onAddNew={() => openAddOptionModal("designation")}
+                      />
 
-                  <CustomSelect
-                    label="System Role"
-                    value={role}
-                    options={roleOptions}
-                    onChange={setRole}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New System Role"
-                    onAddNew={() => openAddOptionModal("role")}
-                  />
-
-                  <CustomSelect
-                    label="Roster Status"
-                    value={status}
-                    options={statusOptions}
-                    onChange={setStatus}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Roster Status"
-                    onAddNew={() => openAddOptionModal("status")}
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <CustomSelect
-                    label="Reporting Manager"
-                    value={reportingManager}
-                    options={managerOptions}
-                    onChange={setReportingManager}
-                  />
-
-                  <CustomSelect
-                    label="Work Location"
-                    value={workLocation}
-                    options={workLocationOptions}
-                    onChange={setWorkLocation}
-                    required
-                    allowAddNew
-                    addNewLabel="Add New Work Location"
-                    onAddNew={() => openAddOptionModal("workLocation")}
-                  />
-
-                  <CustomSelect
-                    label="Roster Shift"
-                    value={rosterShift}
-                    options={shiftOptions}
-                    onChange={setRosterShift}
-                    allowAddNew
-                    addNewLabel="Add New Roster Shift"
-                    onAddNew={() => openAddOptionModal("rosterShift")}
-                  />
-
-                  <CustomSelect
-                    label="Office Branch"
-                    value={branch}
-                    options={branchOptions}
-                    onChange={setBranch}
-                    allowAddNew
-                    addNewLabel="Add New Office Branch"
-                    onAddNew={() => openAddOptionModal("branch")}
-                  />
-                </div>
-
-                {/* Section 2: Personal & Emergency details */}
-                <div className="border-t border-border/40 pt-4 space-y-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Personal & Emergency Details
-                  </span>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Personal Email
-                      </label>
-                      <input
-                        type="email"
-                        value={personalEmail}
-                        onChange={(e) => setPersonalEmail(e.target.value)}
-                        placeholder="e.g. personal@gmail.com"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                      <CustomSelect
+                        label="Employment Type"
+                        value={employmentType}
+                        options={employmentTypeOptions}
+                        onChange={setEmploymentType}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Employment Type"
+                        onAddNew={() => openAddOptionModal("employmentType")}
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={dateOfBirth}
-                        onChange={(e) => setDateOfBirth(e.target.value)}
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-600 dark:text-slate-300"
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <CustomSelect
+                        label="Department"
+                        value={department}
+                        options={departmentOptions}
+                        onChange={setDepartment}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Department"
+                        onAddNew={() => openAddOptionModal("department")}
+                      />
+
+                      <CustomSelect
+                        label="System Role"
+                        value={role}
+                        options={roleOptions}
+                        onChange={setRole}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New System Role"
+                        onAddNew={() => openAddOptionModal("role")}
+                      />
+
+                      <CustomSelect
+                        label="Roster Status"
+                        value={status}
+                        options={statusOptions}
+                        onChange={setStatus}
+                        required
+                        allowAddNew
+                        addNewLabel="Add New Roster Status"
+                        onAddNew={() => openAddOptionModal("status")}
+                      />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <CustomSelect
+                        label="Reporting Manager"
+                        value={reportingManager}
+                        options={managerOptions}
+                        onChange={setReportingManager}
+                      />
+
+                      <CustomSelect
+                        label="Reporting HR"
+                        value={reportingHR}
+                        options={hrOptions}
+                        onChange={setReportingHR}
+                      />
+
+                      <CustomSelect
+                        label="Work Location"
+                        value={workLocation}
+                        options={workLocationOptions}
+                        onChange={setWorkLocation}
+                        required
+                      />
+
+                      <CustomSelect
+                        label="Roster Shift"
+                        value={rosterShift}
+                        options={shiftOptions}
+                        onChange={setRosterShift}
+                        allowAddNew
+                        addNewLabel="Add New Roster Shift"
+                        onAddNew={() => openAddOptionModal("rosterShift")}
+                      />
+
+                      <CustomSelect
+                        label="Office Branch"
+                        value={branch}
+                        options={branchOptions}
+                        onChange={setBranch}
+                        allowAddNew
+                        addNewLabel="Add New Office Branch"
+                        onAddNew={() => openAddOptionModal("branch")}
                       />
                     </div>
                   </div>
+                )}
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Emergency Contact Name
-                      </label>
-                      <input
-                        type="text"
-                        value={emergencyContactName}
-                        onChange={(e) => setEmergencyContactName(e.target.value)}
-                        placeholder="e.g. Spouse, Parent Name"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
+                {editCurrentStep === 3 && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Emergency Information
+                    </span>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Emergency Contact Name
+                        </label>
+                        <input
+                          type="text"
+                          value={emergencyContactName}
+                          onChange={(e) => setEmergencyContactName(e.target.value)}
+                          placeholder="e.g. Spouse, Parent Name"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Emergency Contact Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={emergencyContactPhone}
+                          onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                          placeholder="e.g. +91 9999988888"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Emergency Contact Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={emergencyContactPhone}
-                        onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                        placeholder="e.g. +91 9999988888"
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
+                    <div className="border-t border-border/40 pt-4 space-y-4">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        Adjust Leave Allowance pools
+                      </span>
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Annual Leave
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={annualBalance}
+                            onChange={(e) => setAnnualBalance(e.target.value)}
+                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Sick Leave
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={sickBalance}
+                            onChange={(e) => setSickBalance(e.target.value)}
+                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Casual Leave
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={casualBalance}
+                            onChange={(e) => setCasualBalance(e.target.value)}
+                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="border-t border-border/40 pt-4 space-y-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Adjust Leave Allowance pools
-                  </span>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div>
-                      <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Annual Leave
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={annualBalance}
-                        onChange={(e) => setAnnualBalance(e.target.value)}
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Sick Leave
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={sickBalance}
-                        onChange={(e) => setSickBalance(e.target.value)}
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        Casual Leave
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={casualBalance}
-                        onChange={(e) => setCasualBalance(e.target.value)}
-                        className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end gap-3 border-t border-border/40">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-primary text-xs font-bold uppercase tracking-wider h-10 px-6 cursor-pointer"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      "Save Details"
-                    )}
-                  </Button>
+                <div className="pt-4 grid grid-cols-2 gap-3 border-t border-border/40">
+                  {editCurrentStep === 1 ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setIsEditModalOpen(false)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleEditNextStep1}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        Next
+                      </Button>
+                    </>
+                  ) : editCurrentStep === 2 ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setEditCurrentStep(1)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setEditCurrentStep(3)}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        Next
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={loading}
+                        onClick={() => setEditCurrentStep(2)}
+                        className="w-full text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 cursor-pointer"
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Save Details"
+                        )}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </form>
@@ -1845,6 +2059,10 @@ export default function TeamPage() {
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Manager</span>
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.reportingManager || "None"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Reporting HR</span>
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.reportingHR || "None"}</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Joining Date</span>

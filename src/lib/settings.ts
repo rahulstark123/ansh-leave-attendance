@@ -11,6 +11,7 @@ export interface CustomLeaveType {
   applicableGender?: string; // "All" | "Male" | "Female"
   accrualPolicy?: string; // "Monthly" | "Yearly" | "One-time"
   requiresProof?: boolean;
+  branchId?: string; // "All" or specific branch ID/Name
 }
 
 export interface PolicyDocument {
@@ -38,6 +39,7 @@ export interface Branch {
   state?: string;
   latitude?: number;
   longitude?: number;
+  allowWFH?: boolean;
 }
 
 export interface CompanyProfile {
@@ -155,8 +157,8 @@ const defaultSettings: SystemSettings = {
     currency: "INR",
   },
   branches: [
-    { id: "branch-hq", name: "Main HQ", address: "123 Corporate Tower, New Delhi, India" },
-    { id: "branch-bengaluru", name: "Bengaluru Tech Park", address: "45 Technology Blvd, Outer Ring Road, Bengaluru, India" }
+    { id: "branch-hq", name: "Main HQ", address: "123 Corporate Tower, New Delhi, India", allowWFH: true },
+    { id: "branch-bengaluru", name: "Bengaluru Tech Park", address: "45 Technology Blvd, Outer Ring Road, Bengaluru, India", allowWFH: true }
   ],
   companyProfile: {
     name: "ANSH Solutions",

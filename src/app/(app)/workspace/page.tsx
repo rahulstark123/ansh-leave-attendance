@@ -142,19 +142,19 @@ export default function WorkspacePage() {
   const colleagues = employees.filter((e) => e.id !== currentUser?.id);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-slate-900 text-slate-100 flex animate-in fade-in duration-500">
+    <div className="h-full w-full overflow-hidden bg-background text-foreground flex animate-in fade-in duration-500">
       {/* 1. LEFT SIDEBAR: Channels and Direct Messages */}
-      <div className="w-[260px] bg-[#111317] border-r border-border/30 flex flex-col shrink-0">
+      <div className="w-[260px] bg-slate-50/80 dark:bg-card/40 border-r border-border flex flex-col shrink-0">
         {/* Workspace Header */}
-        <div className="p-5 border-b border-border/20 flex items-center justify-between">
+        <div className="p-5 border-b border-border/50 flex items-center justify-between">
           <div>
-            <h3 className="font-black text-sm tracking-tight text-white uppercase">ANSH Workspace</h3>
-            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-slate-400">
+            <h3 className="font-black text-sm tracking-tight text-slate-900 dark:text-white uppercase">ANSH Workspace</h3>
+            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {currentUser?.name}
             </div>
           </div>
-          <div className="h-8 w-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
             {currentUser?.avatarInitials}
           </div>
         </div>
@@ -163,11 +163,11 @@ export default function WorkspacePage() {
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
           {/* Channels Header */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               <span>Channels</span>
               <button
                 onClick={() => setIsCreateChannelOpen(true)}
-                className="hover:text-white transition-colors cursor-pointer"
+                className="hover:text-slate-900 dark:hover:text-white text-slate-400 dark:text-slate-500 transition-colors cursor-pointer"
                 title="Create Channel"
               >
                 <Plus className="h-4 w-4" />
@@ -182,8 +182,8 @@ export default function WorkspacePage() {
                     onClick={() => setActiveTab({ type: "channel", id: chan.id })}
                     className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${
                       isActive
-                        ? "bg-slate-800 text-white shadow-sm ring-1 ring-slate-700"
-                        : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
+                        ? "bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <Hash className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : "text-slate-500"}`} />
@@ -196,11 +196,11 @@ export default function WorkspacePage() {
 
           {/* DMs Header */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               <span>Direct Messages</span>
               <button
                 onClick={() => setIsStartDmOpen(true)}
-                className="hover:text-white transition-colors cursor-pointer"
+                className="hover:text-slate-900 dark:hover:text-white text-slate-400 dark:text-slate-500 transition-colors cursor-pointer"
                 title="Start DM"
               >
                 <Plus className="h-4 w-4" />
@@ -218,15 +218,15 @@ export default function WorkspacePage() {
                       onClick={() => setActiveTab({ type: "dm", id: emp.id })}
                       className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
                         isActive
-                          ? "bg-slate-800 text-white shadow-sm ring-1 ring-slate-700"
-                          : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
+                          ? "bg-primary/10 text-primary shadow-xs ring-1 ring-primary/20"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200"
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className="h-6 w-6 rounded-lg bg-slate-700 text-slate-200 flex items-center justify-center font-bold text-[10px]">
+                        <div className="h-6 w-6 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-[10px]">
                           {emp.avatarInitials}
                         </div>
-                        <span className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900 ${
+                        <span className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background ${
                           emp.status === "Active" ? "bg-emerald-500" : emp.status === "On Leave" ? "bg-rose-500" : "bg-amber-500"
                         }`} />
                       </div>
@@ -239,57 +239,58 @@ export default function WorkspacePage() {
         </div>
       </div>
 
+
       {/* 2. CHAT CONTAINER: Messages list and input box */}
-      <div className="flex-1 bg-[#16181d] flex flex-col min-w-0">
+      <div className="flex-1 bg-background flex flex-col min-w-0">
         {/* Chat Header */}
-        <div className="h-16 px-6 border-b border-border/20 flex items-center justify-between shrink-0 bg-[#16181d]">
+        <div className="h-16 px-6 border-b border-border flex items-center justify-between shrink-0 bg-background/50 backdrop-blur-xs">
           <div className="min-w-0">
             {activeTab.type === "channel" ? (
               <div className="flex items-center gap-2">
-                <Hash className="h-4.5 w-4.5 text-slate-400 shrink-0" />
-                <h4 className="font-extrabold text-sm text-white truncate">
+                <Hash className="h-4.5 w-4.5 text-muted-foreground shrink-0" />
+                <h4 className="font-extrabold text-sm text-foreground truncate">
                   {activeChannel?.name}
                 </h4>
                 {activeChannel?.description && (
-                  <span className="hidden sm:inline text-xs text-slate-400 truncate border-l border-slate-700 pl-2">
+                  <span className="hidden sm:inline text-xs text-muted-foreground truncate border-l border-border pl-2">
                     {activeChannel.description}
                   </span>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2.5">
-                <div className="h-6.5 w-6.5 rounded-lg bg-primary/20 text-primary flex items-center justify-center font-bold text-[10px] shrink-0">
+                <div className="h-6.5 w-6.5 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] shrink-0">
                   {activeDmEmployee?.avatarInitials}
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-sm text-white truncate leading-none">
+                  <h4 className="font-extrabold text-sm text-foreground truncate leading-none">
                     {activeDmEmployee?.name}
                   </h4>
-                  <p className="text-[9px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">
+                  <p className="text-[9px] text-muted-foreground mt-1 uppercase tracking-wider font-semibold">
                     {activeDmEmployee?.role} · {activeDmEmployee?.department}
                   </p>
                 </div>
               </div>
             )}
           </div>
-          <button className="text-slate-400 hover:text-slate-200 cursor-pointer">
+          <button className="text-muted-foreground hover:text-foreground cursor-pointer">
             <Info className="h-5 w-5" />
           </button>
         </div>
 
         {/* Message Feed Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 chat-wallpaper">
           {filteredMessages.length === 0 ? (
             /* Starter greeting when channel/chat is clean */
             <div className="h-full flex flex-col justify-center items-center text-center p-8 space-y-4">
-              <div className="h-16 w-16 rounded-3xl bg-slate-800 text-slate-400 flex items-center justify-center">
+              <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center">
                 {activeTab.type === "channel" ? <Hash className="h-8 w-8" /> : <MessageSquare className="h-8 w-8" />}
               </div>
               <div className="max-w-md">
-                <h2 className="text-xl font-extrabold text-white">
+                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
                   Welcome to {activeTab.type === "channel" ? `#${activeChannel?.name}` : activeDmEmployee?.name}!
                 </h2>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
                   {activeTab.type === "channel"
                     ? `This is the start of the #${activeChannel?.name} channel. ${activeChannel?.description || "Collaborate and connect with your colleagues."}`
                     : `This is the very beginning of your direct message history with ${activeDmEmployee?.name}.`}
@@ -307,23 +308,23 @@ export default function WorkspacePage() {
               });
 
               return (
-                <div key={msg.id} className="flex gap-4 items-start group hover:bg-slate-800/10 -mx-6 px-6 py-1 transition-all rounded-xl">
+                <div key={msg.id} className="flex gap-4 items-start group hover:bg-slate-100/40 dark:hover:bg-slate-800/20 -mx-6 px-6 py-2.5 transition-all rounded-xl">
                   {/* Sender Avatar */}
-                  <div className="h-10 w-10 rounded-xl bg-slate-800 text-slate-200 font-bold flex items-center justify-center shrink-0 shadow-sm border border-slate-700/50">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center shrink-0 shadow-xs border border-border">
                     {msg.avatarInitials}
                   </div>
                   {/* Sender details + content */}
                   <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-extrabold text-sm text-slate-200 truncate hover:underline cursor-pointer">
+                      <span className="font-extrabold text-sm text-slate-800 dark:text-slate-200 truncate hover:underline cursor-pointer">
                         {msg.senderName}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-500">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                         {formattedTime}
                       </span>
                     </div>
                     {/* Render message body content supporting basic bold/italic formatting mock */}
-                    <p className="text-xs text-slate-350 leading-relaxed break-words whitespace-pre-wrap">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words whitespace-pre-wrap">
                       {msg.content.startsWith("**") && msg.content.endsWith("**") ? (
                         <strong>{msg.content.slice(2, -2)}</strong>
                       ) : msg.content.startsWith("*") && msg.content.endsWith("*") ? (
@@ -341,15 +342,15 @@ export default function WorkspacePage() {
         </div>
 
         {/* Input area */}
-        <div className="p-6 pt-0 bg-[#16181d]">
-          <form onSubmit={handleSend} className="rounded-2xl border border-border/30 bg-[#1a1d24] overflow-hidden focus-within:border-primary/40 transition-colors">
+        <div className="p-6 pt-0 bg-background">
+          <form onSubmit={handleSend} className="rounded-2xl border border-border bg-card overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
             {/* Toolbar */}
-            <div className="flex items-center gap-1 px-4 py-2 border-b border-border/10 bg-[#1e222b]">
+            <div className="flex items-center gap-1 px-4 py-2 border-b border-border bg-slate-50/50 dark:bg-slate-900/50">
               <button
                 type="button"
                 onClick={() => setIsBold(!isBold)}
-                className={`p-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors cursor-pointer ${
-                  isBold ? "text-primary bg-primary/10" : "text-slate-400"
+                className={`p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer ${
+                  isBold ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-slate-400"
                 }`}
                 title="Bold"
               >
@@ -358,31 +359,31 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setIsItalic(!isItalic)}
-                className={`p-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors cursor-pointer ${
-                  isItalic ? "text-primary bg-primary/10" : "text-slate-400"
+                className={`p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer ${
+                  isItalic ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-slate-400"
                 }`}
                 title="Italic"
               >
                 <Italic className="h-3.5 w-3.5" />
               </button>
-              <div className="h-4 w-px bg-slate-700/60 mx-1" />
+              <div className="h-4 w-px bg-border mx-1" />
               <button
                 type="button"
-                className="p-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors text-slate-400 cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-slate-400 cursor-pointer"
                 title="Attach file"
               >
                 <Paperclip className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
-                className="p-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors text-slate-400 cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-slate-400 cursor-pointer"
                 title="Emoji"
               >
                 <Smile className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
-                className="p-1.5 rounded-lg hover:bg-slate-800 hover:text-white transition-colors text-slate-400 cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-slate-400 cursor-pointer"
                 title="Mention colleague"
               >
                 <AtSign className="h-3.5 w-3.5" />
@@ -401,7 +402,7 @@ export default function WorkspacePage() {
                     : `Message ${activeDmEmployee?.name || "colleague"}`
                 }
                 rows={1}
-                className="flex-1 bg-transparent border-0 outline-none text-xs text-slate-100 placeholder-slate-500 resize-none py-1 h-8 max-h-32"
+                className="flex-1 bg-transparent border-0 outline-none text-xs text-foreground placeholder-muted-foreground resize-none py-1 h-8 max-h-32"
               />
               <button
                 type="submit"
@@ -409,14 +410,14 @@ export default function WorkspacePage() {
                 className={`h-8 w-8 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                   inputValue.trim()
                     ? "bg-primary text-primary-foreground hover:scale-105"
-                    : "bg-slate-800 text-slate-600 cursor-not-allowed"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 }`}
               >
                 <Send className="h-3.5 w-3.5" />
               </button>
             </div>
           </form>
-          <div className="text-[9px] text-slate-500 mt-2 px-1">
+          <div className="text-[9px] text-muted-foreground mt-2 px-1">
             <strong>Return</strong> to send, <strong>Shift + Return</strong> to add a new line
           </div>
         </div>
@@ -425,16 +426,16 @@ export default function WorkspacePage() {
       {/* 3. DIALOGS/MODALS (Inline glassmorphic overlays) */}
       {/* Create Channel Modal */}
       {isCreateChannelOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <Card className="crm-card max-w-md w-full bg-slate-900 border border-slate-800 text-white shadow-2xl overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-md w-full bg-card border border-border text-card-foreground shadow-2xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-2">
                 <Hash className="h-4.5 w-4.5 text-primary" />
                 Create a Channel
               </h3>
               <button
                 onClick={() => setIsCreateChannelOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -442,7 +443,7 @@ export default function WorkspacePage() {
             <form onSubmit={handleCreateChannel}>
               <CardContent className="p-6 space-y-5">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
                     Channel Name
                   </label>
                   <input
@@ -451,20 +452,20 @@ export default function WorkspacePage() {
                     value={newChannelName}
                     onChange={(e) => setNewChannelName(e.target.value)}
                     placeholder="e.g. sales-leads"
-                    className="block w-full rounded-2xl border border-slate-800 bg-[#16181d] px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45"
+                    className="block w-full rounded-2xl border border-border bg-background px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                    Description <span className="text-[9px] text-slate-500">(Optional)</span>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                    Description <span className="text-[9px] text-muted-foreground/60">(Optional)</span>
                   </label>
                   <textarea
                     rows={2}
                     value={newChannelDesc}
                     onChange={(e) => setNewChannelDesc(e.target.value)}
                     placeholder="What is this channel about?"
-                    className="block w-full rounded-2xl border border-slate-800 bg-[#16181d] px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 resize-none"
+                    className="block w-full rounded-2xl border border-border bg-background px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 resize-none"
                   />
                 </div>
 
@@ -473,7 +474,7 @@ export default function WorkspacePage() {
                     type="button"
                     variant="ghost"
                     onClick={() => setIsCreateChannelOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider h-10 border border-slate-800 hover:bg-slate-800 text-slate-350 cursor-pointer"
+                    className="text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground cursor-pointer"
                   >
                     Cancel
                   </Button>
@@ -492,16 +493,16 @@ export default function WorkspacePage() {
 
       {/* Start DM Modal */}
       {isStartDmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <Card className="crm-card max-w-md w-full bg-slate-900 border border-slate-800 text-white shadow-2xl overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-200 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <Card className="crm-card max-w-md w-full bg-card border border-border text-card-foreground shadow-2xl overflow-hidden">
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-2">
                 <MessageSquare className="h-4.5 w-4.5 text-primary" />
                 Direct Message Colleague
               </h3>
               <button
                 onClick={() => setIsStartDmOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -509,20 +510,20 @@ export default function WorkspacePage() {
             <form onSubmit={handleStartDm}>
               <CardContent className="p-6 space-y-5">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
                     Select Coworker
                   </label>
                   <select
                     required
                     value={selectedEmployeeId}
                     onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                    className="block w-full rounded-2xl border border-slate-800 bg-[#16181d] px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 cursor-pointer"
+                    className="block w-full rounded-2xl border border-border bg-background px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 cursor-pointer"
                   >
-                    <option value="" disabled className="text-slate-600 bg-slate-900">
+                    <option value="" disabled className="text-muted-foreground bg-card">
                       Choose a coworker...
                     </option>
                     {colleagues.map((emp) => (
-                      <option key={emp.id} value={emp.id} className="text-slate-200 bg-slate-900">
+                      <option key={emp.id} value={emp.id} className="text-foreground bg-card">
                         {emp.name} ({emp.role} · {emp.department})
                       </option>
                     ))}
@@ -534,7 +535,7 @@ export default function WorkspacePage() {
                     type="button"
                     variant="ghost"
                     onClick={() => setIsStartDmOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider h-10 border border-slate-800 hover:bg-slate-800 text-slate-350 cursor-pointer"
+                    className="text-xs font-bold uppercase tracking-wider h-10 border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground cursor-pointer"
                   >
                     Cancel
                   </Button>

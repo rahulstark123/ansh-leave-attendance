@@ -96,9 +96,8 @@ function CustomSelect({
           </span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-slate-400 transition-transform duration-250 shrink-0 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 text-slate-400 transition-transform duration-250 shrink-0 ${isOpen ? "rotate-180" : ""
+            }`}
         />
       </button>
 
@@ -115,11 +114,10 @@ function CustomSelect({
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${
-                    isSelected
+                  className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${isSelected
                       ? "bg-primary/10 text-primary font-bold"
                       : "text-slate-600 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {opt.colorPreview && (
@@ -178,11 +176,10 @@ function LeaveTypeActionsMenu({ type, onPreview, onEdit, onDelete }: LeaveTypeAc
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-          isOpen 
-            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white" 
+        className={`p-1.5 rounded-xl transition-all cursor-pointer ${isOpen
+            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white"
             : "text-slate-400 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-        }`}
+          }`}
         title="Actions"
       >
         <MoreVertical className="h-4 w-4" />
@@ -257,11 +254,10 @@ function HolidayActionsMenu({ holiday, onEdit, onDelete }: HolidayActionsMenuPro
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-          isOpen 
-            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white" 
+        className={`p-1.5 rounded-xl transition-all cursor-pointer ${isOpen
+            ? "bg-slate-150 dark:bg-slate-800 text-slate-800 dark:text-white"
             : "text-slate-400 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-        }`}
+          }`}
         title="Actions"
       >
         <MoreVertical className="h-4 w-4" />
@@ -374,6 +370,16 @@ export default function LeaveSettingPage() {
   const [newHolidayType, setNewHolidayType] = useState("Gazetted");
   const [newHolidayBranch, setNewHolidayBranch] = useState("All");
   const [branches, setBranches] = useState<any[]>([]);
+  const [newTypeBranch, setNewTypeBranch] = useState("All");
+
+  const branchSelectorOptions = [
+    { value: "All", label: "All Branches", description: "Applicable to all locations" },
+    ...branches.map((b) => ({
+      value: b.name,
+      label: b.name,
+      description: b.address
+    }))
+  ];
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -431,190 +437,193 @@ export default function LeaveSettingPage() {
         setFetching(false);
       }
     };
- 
-     fetchSettings();
-   }, []);
- 
-   const handleSaveCustom = async (updatedSettings: any) => {
-     setErrorMsg("");
-     setSuccessMsg("");
-     setLoading(true);
- 
-     try {
-       const token = sessionStorage.getItem("ansh_auth_token");
-       const res = await fetch("/api/settings", {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-         },
-         body: JSON.stringify({
-           leaveSettings: {
-             annualLimit,
-             sickLimit,
-             casualLimit,
-             policyDocuments,
-             companyHolidays,
-             ...updatedSettings
-           },
-         }),
-       });
- 
-       if (!res.ok) {
-         throw new Error("Failed to save leave settings");
-       }
- 
-       const data = await res.json();
-       if (data.settings?.leaveSettings) {
-         setPolicyDocuments(data.settings.leaveSettings.policyDocuments || []);
-         setCompanyHolidays(data.settings.leaveSettings.companyHolidays || []);
-       }
-       setSuccessMsg("System leave settings updated successfully!");
-       setTimeout(() => setSuccessMsg(""), 4000);
-       await initialize();
-     } catch (err) {
-       console.error(err);
-       setErrorMsg("An error occurred while saving leave settings.");
-     } finally {
-       setLoading(false);
-     }
-   };
- 
- 
-   const handleAddLeaveType = async (e: React.FormEvent) => {
-     e.preventDefault();
-     if (!newTypeName.trim()) return;
- 
-     setLoading(true);
-     setErrorMsg("");
-     setSuccessMsg("");
- 
-     try {
-       const token = sessionStorage.getItem("ansh_auth_token");
-       const res = await fetch("/api/settings/leave-category", {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-         },
-         body: JSON.stringify({
-           name: newTypeName.trim(),
-           days: parseInt(newTypeDays) || 0,
-           color: newTypeColor,
-           allowRollover: newTypeRollover,
-           description: newTypeDescription.trim() || undefined,
-           applicableGender: newTypeGender,
-           accrualPolicy: newTypeAccrual,
-           requiresProof: newTypeRequiresProof
-         }),
-       });
- 
-       if (!res.ok) {
-         throw new Error("Failed to create leave category");
-       }
- 
-       const data = await res.json();
-       if (data.leaveCategory) {
-         setCustomLeaveTypes([...customLeaveTypes, data.leaveCategory]);
-         setSuccessMsg("Custom leave category added successfully!");
-         setIsAddModalOpen(false);
-         setTimeout(() => setSuccessMsg(""), 4000);
-       }
- 
-       setNewTypeName("");
-       setNewTypeDays("10");
-       setNewTypeColor("purple");
-       setNewTypeRollover(false);
-       setNewTypeDescription("");
-       setNewTypeGender("All");
-       setNewTypeAccrual("One-time");
-       setNewTypeRequiresProof(false);
-     } catch (err) {
-       console.error(err);
-       setErrorMsg("An error occurred while creating custom leave category.");
-     } finally {
-       setLoading(false);
-     }
-   };
- 
-    const handleEditLeaveType = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!editLeaveType || !editLeaveType.name.trim()) return;
-  
-      setLoading(true);
-      setErrorMsg("");
-      setSuccessMsg("");
-  
-      try {
-        const token = sessionStorage.getItem("ansh_auth_token");
-        const res = await fetch("/api/settings/leave-category", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+
+    fetchSettings();
+  }, []);
+
+  const handleSaveCustom = async (updatedSettings: any) => {
+    setErrorMsg("");
+    setSuccessMsg("");
+    setLoading(true);
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          leaveSettings: {
+            annualLimit,
+            sickLimit,
+            casualLimit,
+            policyDocuments,
+            companyHolidays,
+            ...updatedSettings
           },
-          body: JSON.stringify({
-            id: editLeaveType.id,
-            name: editLeaveType.name.trim(),
-            days: editLeaveType.days,
-            color: editLeaveType.color,
-            allowRollover: editLeaveType.allowRollover,
-            description: editLeaveType.description?.trim() || undefined,
-            applicableGender: editLeaveType.applicableGender,
-            accrualPolicy: editLeaveType.accrualPolicy,
-            requiresProof: editLeaveType.requiresProof
-          }),
-        });
-  
-        if (!res.ok) {
-          throw new Error("Failed to update leave category");
-        }
-  
-        const data = await res.json();
-        if (data.leaveCategory) {
-          setCustomLeaveTypes(customLeaveTypes.map((t) => t.id === editLeaveType.id ? data.leaveCategory : t));
-          setSuccessMsg("Custom leave category updated successfully!");
-          setEditLeaveType(null);
-          setTimeout(() => setSuccessMsg(""), 4000);
-        }
-      } catch (err) {
-        console.error(err);
-        setErrorMsg("An error occurred while updating custom leave category.");
-      } finally {
-        setLoading(false);
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save leave settings");
       }
-    };
- 
-   const handleDeleteLeaveType = async (id: string) => {
-     setErrorMsg("");
-     setSuccessMsg("");
- 
-     try {
-       const token = sessionStorage.getItem("ansh_auth_token");
-       const res = await fetch(`/api/settings/leave-category?id=${id}`, {
-         method: "DELETE",
-         headers: {
-           Authorization: `Bearer ${token}`,
-         },
-       });
- 
-       if (!res.ok) {
-         throw new Error("Failed to delete leave category");
-       }
- 
-       setCustomLeaveTypes(customLeaveTypes.filter((t) => t.id !== id));
-       setSuccessMsg("Custom leave category deleted successfully!");
-       setTimeout(() => setSuccessMsg(""), 4000);
-     } catch (err) {
-       console.error(err);
-       setErrorMsg("An error occurred while deleting leave category.");
-     }
-   };
+
+      const data = await res.json();
+      if (data.settings?.leaveSettings) {
+        setPolicyDocuments(data.settings.leaveSettings.policyDocuments || []);
+        setCompanyHolidays(data.settings.leaveSettings.companyHolidays || []);
+      }
+      setSuccessMsg("System leave settings updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 4000);
+      await initialize();
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while saving leave settings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleAddLeaveType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTypeName.trim()) return;
+
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch("/api/settings/leave-category", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newTypeName.trim(),
+          days: parseInt(newTypeDays) || 0,
+          color: newTypeColor,
+          allowRollover: newTypeRollover,
+          description: newTypeDescription.trim() || undefined,
+          applicableGender: newTypeGender,
+          accrualPolicy: newTypeAccrual,
+          requiresProof: newTypeRequiresProof,
+          branchId: newTypeBranch
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create leave category");
+      }
+
+      const data = await res.json();
+      if (data.leaveCategory) {
+        setCustomLeaveTypes([...customLeaveTypes, data.leaveCategory]);
+        setSuccessMsg("Custom leave category added successfully!");
+        setIsAddModalOpen(false);
+        setTimeout(() => setSuccessMsg(""), 4000);
+      }
+
+      setNewTypeName("");
+      setNewTypeDays("10");
+      setNewTypeColor("purple");
+      setNewTypeRollover(false);
+      setNewTypeDescription("");
+      setNewTypeGender("All");
+      setNewTypeAccrual("One-time");
+      setNewTypeRequiresProof(false);
+      setNewTypeBranch("All");
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while creating custom leave category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditLeaveType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editLeaveType || !editLeaveType.name.trim()) return;
+
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch("/api/settings/leave-category", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: editLeaveType.id,
+          name: editLeaveType.name.trim(),
+          days: editLeaveType.days,
+          color: editLeaveType.color,
+          allowRollover: editLeaveType.allowRollover,
+          description: editLeaveType.description?.trim() || undefined,
+          applicableGender: editLeaveType.applicableGender,
+          accrualPolicy: editLeaveType.accrualPolicy,
+          requiresProof: editLeaveType.requiresProof,
+          branchId: editLeaveType.branchId || "All"
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update leave category");
+      }
+
+      const data = await res.json();
+      if (data.leaveCategory) {
+        setCustomLeaveTypes(customLeaveTypes.map((t) => t.id === editLeaveType.id ? data.leaveCategory : t));
+        setSuccessMsg("Custom leave category updated successfully!");
+        setEditLeaveType(null);
+        setTimeout(() => setSuccessMsg(""), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while updating custom leave category.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLeaveType = async (id: string) => {
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch(`/api/settings/leave-category?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete leave category");
+      }
+
+      setCustomLeaveTypes(customLeaveTypes.filter((t) => t.id !== id));
+      setSuccessMsg("Custom leave category deleted successfully!");
+      setTimeout(() => setSuccessMsg(""), 4000);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An error occurred while deleting leave category.");
+    }
+  };
 
   const handleUploadPolicy = (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadFileName.trim() || !selectedFile) return;
-    
+
     setUploading(true);
     setUploadProgress(0);
     setErrorMsg("");
@@ -933,11 +942,10 @@ export default function LeaveSettingPage() {
                 setSuccessMsg("");
                 setErrorMsg("");
               }}
-              className={`pb-4 text-xs font-bold uppercase tracking-wider relative transition-colors outline-none cursor-pointer ${
-                active
+              className={`pb-4 text-xs font-bold uppercase tracking-wider relative transition-colors outline-none cursor-pointer ${active
                   ? "text-primary font-black"
                   : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              }`}
+                }`}
             >
               {tab.label}
               {active && (
@@ -1006,11 +1014,11 @@ export default function LeaveSettingPage() {
                               type={type}
                               onPreview={() => setPreviewLeaveType(type)}
                               onEdit={() => setEditLeaveType({ ...type })}
-                              onDelete={() => handleDeleteLeaveType(type.id)}
+                              onDelete={() => setLeaveCategoryToDelete(type)}
                             />
                           )}
                         </div>
-                        
+
                         <span className="block text-xl font-black text-slate-800 dark:text-white mt-1">
                           {type.days} Days
                         </span>
@@ -1025,6 +1033,9 @@ export default function LeaveSettingPage() {
                         <div className="mt-4 pt-3 border-t border-border/20 flex flex-wrap gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                           <span className="bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">
                             Eligible: {type.applicableGender || "All"}
+                          </span>
+                          <span className="bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">
+                            Branch: {type.branchId || "All"}
                           </span>
                           <span className="bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md">
                             Accrual: {type.accrualPolicy || "One-time"}
@@ -1126,6 +1137,13 @@ export default function LeaveSettingPage() {
                     onChange={setNewTypeAccrual}
                   />
                 </div>
+
+                <CustomSelect
+                  label="Branch Applicability"
+                  value={newTypeBranch}
+                  options={branchSelectorOptions}
+                  onChange={setNewTypeBranch}
+                />
 
                 <div className="grid grid-cols-2 gap-4 py-0.5">
                   <div className="flex items-center gap-2">
@@ -1230,12 +1248,12 @@ export default function LeaveSettingPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
                         Gender Eligibility
                       </span>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border font-semibold text-slate-700 dark:text-slate-200">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border font-semibold text-slate-700 dark:text-slate-200 truncate">
                         {previewLeaveType.applicableGender || "All"}
                       </div>
                     </div>
@@ -1244,8 +1262,17 @@ export default function LeaveSettingPage() {
                       <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
                         Accrual Strategy
                       </span>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border font-semibold text-slate-700 dark:text-slate-200">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border font-semibold text-slate-700 dark:text-slate-200 truncate">
                         {previewLeaveType.accrualPolicy || "One-time"}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                        Office Branch
+                      </span>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border font-semibold text-slate-700 dark:text-slate-200 truncate">
+                        {previewLeaveType.branchId || "All"}
                       </div>
                     </div>
                   </div>
@@ -1361,6 +1388,13 @@ export default function LeaveSettingPage() {
                       onChange={(val) => setEditLeaveType({ ...editLeaveType, accrualPolicy: val })}
                     />
                   </div>
+
+                  <CustomSelect
+                    label="Branch Applicability"
+                    value={editLeaveType.branchId || "All"}
+                    options={branchSelectorOptions}
+                    onChange={(val) => setEditLeaveType({ ...editLeaveType, branchId: val })}
+                  />
 
                   <div className="grid grid-cols-2 gap-4 py-0.5">
                     <div className="flex items-center gap-2">
@@ -1638,7 +1672,7 @@ export default function LeaveSettingPage() {
               </p>
               <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-500 flex items-start gap-2">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
-                <span>This action cannot be undone. The document will be permanently removed from system database and S3 storage.</span>
+                <span>This action cannot be undone. The document will be permanently removed from system</span>
               </div>
             </CardContent>
 
@@ -1836,7 +1870,7 @@ export default function LeaveSettingPage() {
                             />
                           )}
                         </div>
-                        
+
                         <span className="block text-sm font-extrabold text-slate-800 dark:text-white mt-1">
                           {hol.name}
                         </span>

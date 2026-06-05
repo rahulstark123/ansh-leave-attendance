@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLeaveStore } from "@/stores/leave-store";
+import { FaceUploadEnrollment } from "@/components/attendance/FaceUploadEnrollment";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { 
@@ -93,39 +94,44 @@ export default function ProfileSettingPage() {
       />
 
       <div className="grid gap-8 lg:grid-cols-3">
-        {/* Profile Card Summary */}
-        <Card className="crm-card h-fit lg:col-span-1">
-          <CardContent className="pt-8 text-center space-y-5">
-            <div className="flex justify-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-3xl shadow-xl shadow-primary/5">
-                {currentUser?.avatarInitials}
+        <div className="space-y-8 lg:col-span-1">
+          {/* Profile Card Summary */}
+          <Card className="crm-card h-fit w-full">
+            <CardContent className="pt-8 text-center space-y-5">
+              <div className="flex justify-center">
+                <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-3xl shadow-xl shadow-primary/5">
+                  {currentUser?.avatarInitials}
+                </div>
               </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                {currentUserAny?.name}
-              </h3>
-              <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
-                {currentUserAny?.designation || currentUserAny?.role}
-              </p>
-            </div>
-            
-            <div className="border-t border-border/45 pt-4 space-y-3.5 text-xs text-slate-500 font-medium text-left">
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5" /> Department</span>
-                <span className="font-bold text-slate-700 dark:text-slate-350">{currentUserAny?.department || "N/A"}</span>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                  {currentUserAny?.name}
+                </h3>
+                <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                  {currentUserAny?.designation || currentUserAny?.role}
+                </p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5"><Building className="h-3.5 w-3.5" /> Office Branch</span>
-                <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.branch || "Main HQ"}</span>
+              
+              <div className="border-t border-border/45 pt-4 space-y-3.5 text-xs text-slate-500 font-medium text-left">
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5" /> Department</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-350">{currentUserAny?.department || "N/A"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5"><Building className="h-3.5 w-3.5" /> Office Branch</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.branch || "Main HQ"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" /> Employee Code</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.employeeCode || "N/A"}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" /> Employee Code</span>
-                <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.employeeCode || "N/A"}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          
+          {/* Facial Recognition Enrollment Card */}
+          <FaceUploadEnrollment />
+        </div>
 
         {/* Edit Form */}
         <Card className="crm-card lg:col-span-2">
@@ -363,6 +369,14 @@ export default function ProfileSettingPage() {
                 <div className="text-left">
                   <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Reporting Manager</span>
                   <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.reportingManager || "N/A"}</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-slate-50/50 dark:bg-slate-900/30 flex items-start gap-3">
+                <UserCheck className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div className="text-left">
+                  <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">Reporting HR</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-white mt-1 block">{currentUserAny?.reportingHR || "N/A"}</span>
                 </div>
               </div>
 

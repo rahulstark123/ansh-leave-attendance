@@ -29,75 +29,43 @@ export default function ApprovalsPage() {
 
   const [activeTab, setActiveTab] = useState<LeaveStatus>("Pending");
 
-  // Access validation: Only HR Managers or Admins can access approvals
-  const isAuthorized =
+  // Access validation: Owner/HR/Admin can see all, regular employee can only see their approved requests
+  const isHRorAdminorOwner =
     currentUser.role === "HR Manager" || currentUser.role === "Admin" || currentUser.role === "Owner";
 
-  const filteredRequests = leaves.filter((r) => r.status === activeTab);
+  const canApproveOrReject = (req: any) => {
+    if (currentUser.role === "Owner") return true;
 
-  if (!isAuthorized) {
-    // Elegant glassmorphism access restriction card
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
-        <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 shadow-xl shadow-amber-500/10 dark:bg-amber-950/20 dark:text-amber-400">
-          <ShieldAlert className="h-10 w-10" />
-        </div>
+    const requester = employees.find((e) => e.id === req.employeeId);
+    if (!requester) return false;
 
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">
-          Access Restricted
-        </h2>
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-          You are currently logged in as <span className="font-bold text-slate-700 dark:text-slate-300">{currentUser.name} ({currentUser.role})</span>. 
-          Only HR Managers or Administrators have permission to approve leave applications.
-        </p>
+    const isManager = requester.reportingManager && currentUser.name.toLowerCase() === requester.reportingManager.toLowerCase();
+    const isReportingHR = requester.reportingHR && currentUser.name.toLowerCase() === requester.reportingHR.toLowerCase();
 
-        <Card className="crm-card max-w-md mt-10 p-6 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/50">
-          <span className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
-            Switch Employee Account
-          </span>
-          <div className="grid gap-3">
-            {employees
-              .filter((e) => e.role === "HR Manager" || e.role === "Admin" || e.role === "Owner")
-              .map((manager) => (
-                <button
-                  key={manager.id}
-                  onClick={() => switchUser(manager.id)}
-                  className="flex w-full items-center justify-between rounded-xl border border-slate-200/60 bg-white px-4 py-3 text-left transition-all hover:bg-slate-50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800/50 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
-                      {manager.avatarInitials}
-                    </div>
-                    <div>
-                      <span className="block text-sm font-bold text-slate-800 dark:text-white">
-                        {manager.name}
-                      </span>
-                      <span className="block text-[11px] text-slate-400 font-medium">
-                        {manager.role} · {manager.department}
-                      </span>
-                    </div>
-                  </div>
-                  <User className="h-4 w-4 text-slate-400" />
-                </button>
-              ))}
-          </div>
-        </Card>
-      </div>
-    );
-  }
+    return !!(isManager || isReportingHR);
+  };
+
+  const visibleLeaves = leaves.filter((req) => {
+    if (!isHRorAdminorOwner) {
+      return req.employeeId === currentUser.id && req.status === "Approved";
+    }
+    return true;
+  });
+
+  const filteredRequests = visibleLeaves.filter((r) => r.status === activeTab);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
-        eyebrow="HR Administrator Dashboard"
+        eyebrow={!isHRorAdminorOwner ? "Time Off Registry" : "HR Administrator Dashboard"}
         title="Leave Request Approvals"
-        description="Review, approve, or decline employee leave applications in real time. Deducts leave allowance upon approval."
+        description={!isHRorAdminorOwner ? "View your approved leave applications." : "Review, approve, or decline employee leave applications in real time. Deducts leave allowance upon approval."}
       />
 
       {/* FILTER TABS */}
       <div className="flex border-b border-border/40 gap-6">
         {(["Pending", "Approved", "Rejected"] as LeaveStatus[]).map((tab) => {
-          const count = leaves.filter((r) => r.status === tab).length;
+          const count = visibleLeaves.filter((r) => r.status === tab).length;
           const active = activeTab === tab;
 
           return (
@@ -166,7 +134,11 @@ export default function ApprovalsPage() {
                       ? "bg-emerald-500/10 text-emerald-600"
                       : req.type === "Sick"
                       ? "bg-sky-500/10 text-sky-600"
-                      : "bg-purple-500/10 text-purple-600"
+                      : req.type === "Casual"
+                      ? "bg-purple-500/10 text-purple-600"
+                      : req.type === "WFH"
+                      ? "bg-blue-500/10 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400"
+                      : "bg-slate-500/10 text-slate-600"
                   }`}
                 >
                   {req.type}
@@ -203,24 +175,33 @@ export default function ApprovalsPage() {
                   </p>
                 </div>
 
-                {req.status === "Pending" && (
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      onClick={() => approveLeave(req.id)}
-                      className="btn-primary flex-1 font-bold text-xs uppercase tracking-wider h-10 border-0"
-                    >
-                      <Check className="mr-1.5 h-4 w-4" />
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={() => rejectLeave(req.id)}
-                      variant="destructive"
-                      className="flex-1 font-bold text-xs uppercase tracking-wider h-10 border-0 bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/25 transition-all text-white"
-                    >
-                      <X className="mr-1.5 h-4 w-4" />
-                      Reject
-                    </Button>
-                  </div>
+                 {req.status === "Pending" && (
+                  <>
+                    {canApproveOrReject(req) ? (
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={() => approveLeave(req.id)}
+                          className="btn-primary flex-1 font-bold text-xs uppercase tracking-wider h-10 border-0"
+                        >
+                          <Check className="mr-1.5 h-4 w-4" />
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => rejectLeave(req.id)}
+                          variant="destructive"
+                          className="flex-1 font-bold text-xs uppercase tracking-wider h-10 border-0 bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/10 hover:shadow-rose-500/25 transition-all text-white"
+                        >
+                          <X className="mr-1.5 h-4 w-4" />
+                          Reject
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 justify-center py-2 px-3 rounded-xl bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-500 dark:bg-slate-900/30 dark:border-slate-800">
+                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <span>Awaiting approval from designated Manager/HR</span>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {req.status !== "Pending" && (

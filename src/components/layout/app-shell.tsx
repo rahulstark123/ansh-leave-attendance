@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SubSidebar } from "./sub-sidebar";
 import { MainSidebar } from "./main-sidebar";
@@ -19,13 +19,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isMobileSize, setIsMobileSize] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const initialize = useLeaveStore((s) => s.initialize);
+  const hasChecked = useRef(false);
 
-  // Authenticated route protection
+  // Authenticated route protection — runs ONCE on mount only.
+  // Do NOT add `pathname` to the dependency array; every navigation
+  // would re-trigger the check, which causes an infinite redirect loop:
+  //   /dashboard → 401/404 → /login → session found → /dashboard → …
   useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     const checkAuth = async () => {
       const session = sessionStorage.getItem("ansh_auth_session");
       const token = sessionStorage.getItem("ansh_auth_token");
-      
+
       if (!session || !token) {
         router.push("/login");
         return;
@@ -60,7 +67,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
 
     checkAuth();
-  }, [pathname, router, initialize]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 767px)");
@@ -105,7 +113,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </h2>
 
         <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-          Ansh Leave & Attendance is optimised for desktop use. Please open it on a larger screen for the full experience.
+          Ansh HR is optimised for desktop use. Please open it on a larger screen for the full experience.
         </p>
       </div>
     );

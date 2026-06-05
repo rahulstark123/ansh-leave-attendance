@@ -42,7 +42,10 @@ export function SubSidebar() {
       <nav className="flex-1 space-y-1 px-3 pb-4">
         {subNav.map((item) => {
           const isActive =
-            pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+            pathname === item.href ||
+            (item.href !== "/" &&
+              pathname.startsWith(item.href + "/") &&
+              !subNav.some((other) => other.id !== item.id && pathname.startsWith(other.href)));
           const Icon = item.icon;
           
           // Display actual count of pending requests for the approvals tab

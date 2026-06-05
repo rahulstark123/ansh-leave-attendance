@@ -47,6 +47,7 @@ export default function CompanySettingPage() {
   const [mapLoading, setMapLoading] = useState(false);
   const [mapResults, setMapResults] = useState<MapLocationResult[]>([]);
   const [selectedMapLocation, setSelectedMapLocation] = useState<MapLocationResult | null>(null);
+  const [newBranchAllowWFH, setNewBranchAllowWFH] = useState(false);
 
   // Leaflet Map Modal states
   const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
@@ -427,6 +428,7 @@ export default function CompanySettingPage() {
       pincode: newBranchPincode.trim() || undefined,
       latitude: newBranchLatitude,
       longitude: newBranchLongitude,
+      allowWFH: newBranchAllowWFH,
     };
 
     const updated = [...branches, newBranch];
@@ -441,6 +443,7 @@ export default function CompanySettingPage() {
     setNewBranchPincode("");
     setNewBranchLatitude(undefined);
     setNewBranchLongitude(undefined);
+    setNewBranchAllowWFH(false);
     setMapQuery("");
     setMapResults([]);
     setSelectedMapLocation(null);
@@ -749,6 +752,13 @@ export default function CompanySettingPage() {
                             <Users className="h-2.5 w-2.5" />
                             {count} Employee{count !== 1 && "s"}
                           </span>
+                          <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md ${
+                            branch.allowWFH !== false
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "bg-rose-500/10 text-rose-600 dark:text-rose-450"
+                          }`}>
+                            WFH: {branch.allowWFH !== false ? "Allowed" : "Not Allowed"}
+                          </span>
                         </div>
                         <span className="block text-[10px] text-slate-400 leading-relaxed text-left">
                           {branch.address}
@@ -932,6 +942,27 @@ export default function CompanySettingPage() {
                     placeholder="e.g. Floor 12, Maker Chambers, Nariman Point"
                     className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
                   />
+                </div>
+
+                {/* Allow WFH Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl border border-border bg-slate-50/20 dark:bg-slate-900/10">
+                  <div className="space-y-0.5">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                      Allow Work From Home (WFH)
+                    </label>
+                    <span className="block text-[9px] text-slate-400">
+                      Enable or disable WFH applications for this office branch
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={newBranchAllowWFH}
+                      onChange={(e) => setNewBranchAllowWFH(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 dark:bg-slate-850 peer-focus:outline-none rounded-full peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
                 </div>
               </CardContent>
 

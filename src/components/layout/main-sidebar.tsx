@@ -40,8 +40,8 @@ export function MainSidebar() {
         mainSidebarCollapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
-      <div className="flex h-16 items-center gap-3 px-4 border-b border-border/50">
-        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 shadow-md">
+      <div className="flex h-16 items-center gap-1.5 px-4 border-b border-border/50">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
           <img
             src="/logoAnshapps.png"
             alt="Ansh Apps Logo"
@@ -52,9 +52,6 @@ export function MainSidebar() {
           <div className="min-w-0 animate-in fade-in duration-300">
             <p className="truncate text-sm font-extrabold tracking-tight text-slate-900 dark:text-white uppercase">
               Ansh HR
-            </p>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/70">
-              Leave & Attendance
             </p>
           </div>
         )}

@@ -45,6 +45,7 @@ export async function PATCH(
       designation,
       employmentType,
       reportingManager,
+      reportingHR,
       workLocation,
       branch,
       rosterShift,
@@ -78,6 +79,7 @@ export async function PATCH(
     if (designation !== undefined) updateData.designation = designation || null;
     if (employmentType !== undefined) updateData.employmentType = employmentType || null;
     if (reportingManager !== undefined) updateData.reportingManager = reportingManager || null;
+    if (reportingHR !== undefined) updateData.reportingHR = reportingHR || null;
     if (workLocation !== undefined) updateData.workLocation = workLocation || null;
     if (branch !== undefined) updateData.branch = branch || null;
     if (rosterShift !== undefined) updateData.rosterShift = rosterShift || null;

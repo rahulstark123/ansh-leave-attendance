@@ -18,6 +18,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       currentPunchIn: employee.currentPunchIn,
       punchHistory: punches,
+      faceEnrolled: Array.isArray(employee.faceEmbedding) && employee.faceEmbedding.length > 0,
     });
   } catch (error) {
     console.error("API /api/attendance/punch GET error:", error);

@@ -16,8 +16,12 @@ const monoFont = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ansh Leave & Attendance",
+  title: "Ansh HR",
   description: "A premium, state-of-the-art workspace dashboard for managing employee leave requests, attendance tracking, and HR analytics.",
+  icons: {
+    icon: "/anshFavicon.png",
+    shortcut: "/anshFavicon.png",
+  },
 };
 
 export default function RootLayout({

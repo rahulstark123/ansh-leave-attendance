@@ -230,18 +230,9 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between">
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Password
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-[10px] font-bold tracking-widest text-emerald-600 hover:text-emerald-500 uppercase"
-                  >
-                    FORGOT?
-                  </Link>
-
-                </div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Password
+                </label>
                 <div className="mt-2 relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -262,6 +253,14 @@ export default function LoginPage() {
                       <Eye className="h-4.5 w-4.5" />
                     )}
                   </button>
+                </div>
+                <div className="mt-2.5 text-right">
+                  <Link
+                    href="/forgot-password"
+                    className="text-[10px] font-bold tracking-widest text-emerald-600 hover:text-emerald-500 uppercase"
+                  >
+                    Forgot Password?
+                  </Link>
                 </div>
               </div>
 
