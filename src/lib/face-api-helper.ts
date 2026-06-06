@@ -15,6 +15,16 @@ export async function loadFaceApiModels(): Promise<void> {
     // Model files served locally from the public/models directory
     const MODEL_URL = '/models';
     
+    // Ensure TensorFlow.js is ready and initialized before loading models.
+    // This resolves issues with WebGL compilation hangs or backend initialization races.
+    try {
+      if (faceapi.tf) {
+        await (faceapi.tf as any).ready();
+      }
+    } catch (tfErr) {
+      console.warn("TensorFlow.js ready check failed, attempting to load models anyway:", tfErr);
+    }
+    
     // Load tinyFaceDetector (for fast client-side localization),
     // faceLandmark68Net (for extracting shape landmarks), and
     // faceRecognitionNet (for extracting the 128-dimensional descriptor vector).

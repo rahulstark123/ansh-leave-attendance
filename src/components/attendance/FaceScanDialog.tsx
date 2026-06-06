@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getFaceDescriptor, computeDistance } from "@/lib/face-api-helper";
+import { getFaceDescriptor, computeDistance, loadFaceApiModels } from "@/lib/face-api-helper";
 import { Loader2, ShieldAlert, Sparkles, Smile, VideoOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ interface FaceScanDialogProps {
 
 export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceScanDialogProps) {
   const [status, setStatus] = useState<"initializing" | "fetching" | "scanning" | "matched" | "failed" | "error">("initializing");
+  const [subStatus, setSubStatus] = useState("Loading face detection engine...");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
   
@@ -48,12 +49,17 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
 
   const initScan = async () => {
     setStatus("initializing");
+    setSubStatus("Loading face models...");
     setErrorMsg(null);
     setAttempts(0);
     referenceEmbeddingRef.current = null;
 
     try {
+      // 0. Pre-load face-api models before starting camera/fetching reference
+      await loadFaceApiModels();
+
       // 1. Fetch camera stream
+      setSubStatus("Accessing camera...");
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: "user" },
         audio: false,
@@ -61,9 +67,15 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.warn("Auto-play blocked or failed, waiting for user interaction:", playErr);
+        }
       }
 
       // 2. Fetch reference face embedding
+      setSubStatus("Downloading face profile...");
       setStatus("fetching");
       const token = sessionStorage.getItem("ansh_auth_token");
       const res = await fetch("/api/employee/face-embedding", {
@@ -98,7 +110,16 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
       if (!loopActiveRef.current || !videoRef.current || !referenceEmbeddingRef.current) return;
 
       try {
-        const liveDescriptor = await getFaceDescriptor(videoRef.current);
+        const video = videoRef.current;
+        // Ensure the video element is initialized, playing, and has valid dimensions before processing
+        if (video.paused || video.ended || video.readyState < 2 || video.videoWidth === 0) {
+          if (loopActiveRef.current) {
+            setTimeout(scan, 250);
+          }
+          return;
+        }
+
+        const liveDescriptor = await getFaceDescriptor(video);
 
         if (liveDescriptor) {
           const distance = computeDistance(liveDescriptor, referenceEmbeddingRef.current);
@@ -120,7 +141,7 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
             failedMatches++;
             setAttempts(failedMatches);
             
-            if (failedMatches >= 25) { // ~5-6 seconds of active mismatch
+            if (failedMatches >= 20) { // ~5-6 seconds of active mismatch at 250ms interval
               setStatus("failed");
               loopActiveRef.current = false;
               stopCamera();
@@ -132,9 +153,9 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
         console.error("Scan loop error:", err);
       }
 
-      // Check face again in 150ms (achieves smooth real-time response with low CPU)
+      // Check face again in 250ms (more relaxed interval prevents CPU starvation and keeps UI responsive)
       if (loopActiveRef.current) {
-        setTimeout(scan, 150);
+        setTimeout(scan, 250);
       }
     };
 
@@ -184,7 +205,7 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
             {status === "initializing" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950 text-slate-400 z-10">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                <span className="text-xs font-bold">Accessing camera...</span>
+                <span className="text-xs font-bold">{subStatus}</span>
               </div>
             )}
 

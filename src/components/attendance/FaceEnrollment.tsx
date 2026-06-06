@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLeaveStore } from "@/stores/leave-store";
-import { getFaceDescriptor, averageDescriptors } from "@/lib/face-api-helper";
+import { getFaceDescriptor, averageDescriptors, loadFaceApiModels } from "@/lib/face-api-helper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, CheckCircle2, Loader2, RefreshCw, ShieldAlert, Sparkles, Smile } from "lucide-react";
@@ -36,6 +36,9 @@ export function FaceEnrollment() {
     setIsInitializing(true);
     setErrorMsg(null);
     try {
+      // Pre-load face-api models
+      await loadFaceApiModels();
+
       if (streamRef.current) {
         stopCamera();
       }
@@ -52,6 +55,11 @@ export function FaceEnrollment() {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.warn("Auto-play blocked or failed, waiting for user interaction:", playErr);
+        }
       }
       setHasCameraAccess(true);
       return true;
@@ -135,7 +143,14 @@ export function FaceEnrollment() {
     
     while (attempts < 5) {
       if (!videoRef.current) break;
-      descriptor = await getFaceDescriptor(videoRef.current);
+      const video = videoRef.current;
+      // Ensure the video element is initialized, playing, and has valid dimensions before processing
+      if (video.paused || video.ended || video.readyState < 2 || video.videoWidth === 0) {
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      
+      descriptor = await getFaceDescriptor(video);
       if (descriptor) break;
       
       attempts++;
