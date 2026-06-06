@@ -15,10 +15,9 @@ export async function loadFaceApiModels(): Promise<void> {
     // Model files served locally from the public/models directory
     const MODEL_URL = '/models';
     
-    // Ensure TensorFlow.js is ready and initialized before loading models.
-    // This resolves issues with WebGL compilation hangs or backend initialization races.
     try {
       if (faceapi.tf) {
+        await (faceapi.tf as any).setBackend('cpu');
         await (faceapi.tf as any).ready();
       }
     } catch (tfErr) {

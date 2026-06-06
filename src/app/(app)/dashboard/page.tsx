@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLeaveStore } from "@/stores/leave-store";
 import { FaceScanDialog } from "@/components/attendance/FaceScanDialog";
+import { loadFaceApiModels } from "@/lib/face-api-helper";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Clock,
@@ -48,6 +49,16 @@ export default function DashboardPage() {
       setIsFaceRequiredAlertOpen(true);
     }
   };
+
+  // Preload face recognition models 2 seconds after dashboard mounts to prevent main thread interference during initial render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadFaceApiModels().catch((err) => {
+        console.warn("Failed to preload face-api models:", err);
+      });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Keep clock updated
   useEffect(() => {
