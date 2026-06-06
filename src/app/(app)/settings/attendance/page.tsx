@@ -290,6 +290,7 @@ export default function AttendanceSettingPage() {
   // List states
   const [branches, setBranches] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
+  const [requireFaceMatch, setRequireFaceMatch] = useState(false);
 
   // Modals & form states
   const [isAddShiftOpen, setIsAddShiftOpen] = useState(false);
@@ -331,6 +332,9 @@ export default function AttendanceSettingPage() {
           if (data.settings?.branches) {
             setBranches(data.settings.branches);
           }
+          if (data.settings?.attendanceSettings) {
+            setRequireFaceMatch(data.settings.attendanceSettings.requireFaceMatch !== false);
+          }
         }
 
         // Fetch shift configurations from database
@@ -352,6 +356,55 @@ export default function AttendanceSettingPage() {
 
     fetchSettings();
   }, []);
+
+  const handleToggleFaceMatch = async (checked: boolean) => {
+    if (!isAuthorized) return;
+    setRequireFaceMatch(checked);
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      
+      const getRes = await fetch("/api/settings", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      let currentSettings = {};
+      if (getRes.ok) {
+        const d = await getRes.json();
+        currentSettings = d.settings || {};
+      }
+
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...currentSettings,
+          attendanceSettings: {
+            ...(currentSettings as any).attendanceSettings,
+            requireFaceMatch: checked
+          }
+        }),
+      });
+
+      if (res.ok) {
+        setSuccessMsg("Attendance verification settings updated successfully!");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } else {
+        setErrorMsg("Failed to update settings");
+        setTimeout(() => setErrorMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Failed to update settings");
+      setTimeout(() => setErrorMsg(""), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddShift = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -556,6 +609,48 @@ export default function AttendanceSettingPage() {
         <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-400 max-w-xl animate-in fade-in duration-300">
           {errorMsg}
         </div>
+      )}
+
+      {isAuthorized && (
+        <Card className="crm-card border-l-4 border-l-primary animate-in fade-in duration-300">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <Shield className="h-4.5 w-4.5 text-primary" />
+              Biometric & Security Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <span className="block text-xs font-bold text-slate-700 dark:text-slate-200">
+                Require Selfie on Punch In/Out
+              </span>
+              <p className="text-[11px] text-slate-400 leading-relaxed max-w-xl">
+                When enabled, employees capture a live selfie on punch. The server compares it to their enrolled
+                face profile (no heavy models in the browser). HR can review punch selfies with AI match scores on
+                the attendance and team pages.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => handleToggleFaceMatch(!requireFaceMatch)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-205 ease-in-out focus:outline-none ${
+                  requireFaceMatch ? "bg-primary" : "bg-slate-200 dark:bg-slate-800"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    requireFaceMatch ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-350 min-w-[50px]">
+                {requireFaceMatch ? "Enabled" : "Disabled"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* TAB SWITCHER */}

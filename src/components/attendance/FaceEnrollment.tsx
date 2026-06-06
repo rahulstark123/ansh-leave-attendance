@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLeaveStore } from "@/stores/leave-store";
-import { getFaceDescriptor, averageDescriptors, loadFaceApiModels } from "@/lib/face-api-helper";
+import { averageDescriptors } from "@/lib/face-api-helper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, CheckCircle2, Loader2, RefreshCw, ShieldAlert, Sparkles, Smile } from "lucide-react";
@@ -36,7 +36,7 @@ export function FaceEnrollment() {
     setIsInitializing(true);
     setErrorMsg(null);
     try {
-      // Pre-load face-api models
+      const { loadFaceApiModels } = await import("@/lib/face-api-helper");
       await loadFaceApiModels();
 
       if (streamRef.current) {
@@ -150,7 +150,10 @@ export function FaceEnrollment() {
         continue;
       }
       
-      descriptor = await getFaceDescriptor(video);
+      descriptor = await (async () => {
+        const { getFaceDescriptor } = await import("@/lib/face-api-helper");
+        return getFaceDescriptor(video);
+      })();
       if (descriptor) break;
       
       attempts++;

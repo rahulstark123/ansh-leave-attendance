@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { queuedLocalStorage } from "@/lib/safe-storage";
+import { isFaceEnrolled } from "@/lib/face-enrollment";
 
 export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity" | "WFH" | string;
 export type LeaveStatus = "Approved" | "Pending" | "Rejected";
@@ -31,6 +32,12 @@ export interface PunchRecord {
   duration: string | null; // e.g. "8h 15m"
   status: "On-time" | "Late" | "Half-day" | "Absent" | "WFH";
   employeeId?: string;
+  punchInPhoto?: string | null;
+  punchOutPhoto?: string | null;
+  punchInLat?: number | null;
+  punchInLng?: number | null;
+  punchOutLat?: number | null;
+  punchOutLng?: number | null;
 }
 
 export interface Employee {
@@ -58,6 +65,9 @@ interface LeaveState {
   leaves: LeaveRequest[];
   punchHistory: PunchRecord[];
   currentPunchIn: string | null; // ISO String of when user punched in
+  currentPunchInPhoto: string | null; // S3 URL of punch-in selfie
+  currentPunchInLat: number | null; // Latitude of check-in
+  currentPunchInLng: number | null; // Longitude of check-in
   currentUser: Employee;
   faceEnrolled: boolean;
   setFaceEnrolled: (enrolled: boolean) => void;
@@ -67,8 +77,8 @@ interface LeaveState {
   rejectLeave: (id: string) => Promise<void>;
   updateLeave: (id: string, request: any) => Promise<void>;
   deleteLeave: (id: string) => Promise<void>;
-  punchIn: () => Promise<void>;
-  punchOut: () => Promise<void>;
+  punchIn: (selfie?: string, lat?: number | null, lng?: number | null) => Promise<void>;
+  punchOut: (selfie?: string, lat?: number | null, lng?: number | null) => Promise<void>;
   switchUser: (id: string) => void;
 }
 
@@ -279,7 +289,7 @@ const mapDbEmployee = (dbEmp: any): Employee => {
     reportingManager: dbEmp.reportingManager || undefined,
     reportingHR: dbEmp.reportingHR || undefined,
     facePhotos: dbEmp.facePhotos || [],
-    faceEnrolled: Array.isArray(dbEmp.faceEmbedding) && dbEmp.faceEmbedding.length === 128,
+    faceEnrolled: isFaceEnrolled(dbEmp.facePhotos, dbEmp.faceEmbedding),
   };
 };
 
@@ -302,6 +312,9 @@ export const useLeaveStore = create<LeaveState>()(
       leaves: initialLeaves,
       punchHistory: initialPunchHistory,
       currentPunchIn: null,
+      currentPunchInPhoto: null,
+      currentPunchInLat: null,
+      currentPunchInLng: null,
       currentUser: initialEmployees[0],
       faceEnrolled: false,
       setFaceEnrolled: (enrolled: boolean) => set({ faceEnrolled: enrolled }),
@@ -332,6 +345,9 @@ export const useLeaveStore = create<LeaveState>()(
           const punchData = await punchRes.json();
           const punchHistory = punchData.punchHistory || [];
           const currentPunchIn = punchData.currentPunchIn || null;
+          const currentPunchInPhoto = punchData.currentPunchInPhoto || null;
+          const currentPunchInLat = punchData.currentPunchInLat || null;
+          const currentPunchInLng = punchData.currentPunchInLng || null;
           const faceEnrolled = punchData.faceEnrolled || false;
 
           set({
@@ -340,6 +356,9 @@ export const useLeaveStore = create<LeaveState>()(
             leaves,
             punchHistory,
             currentPunchIn,
+            currentPunchInPhoto,
+            currentPunchInLat,
+            currentPunchInLng,
             faceEnrolled,
           });
         } catch (error) {
@@ -437,19 +456,22 @@ export const useLeaveStore = create<LeaveState>()(
         }
       },
 
-      punchIn: async () => {
+      punchIn: async (selfie?: string, lat?: number | null, lng?: number | null) => {
         try {
           const headers = getHeaders();
           const res = await fetch("/api/attendance/punch", {
             method: "POST",
             headers,
-            body: JSON.stringify({ action: "punch-in" }),
+            body: JSON.stringify({ action: "punch-in", selfie, lat, lng }),
           });
           if (!res.ok) throw new Error("Failed to punch in");
           const data = await res.json();
           
           set({
             currentPunchIn: data.currentPunchIn,
+            currentPunchInPhoto: data.currentPunchInPhoto || null,
+            currentPunchInLat: data.currentPunchInLat || null,
+            currentPunchInLng: data.currentPunchInLng || null,
           });
           set((state) => ({
             currentUser: { ...state.currentUser, status: "Active" },
@@ -462,19 +484,22 @@ export const useLeaveStore = create<LeaveState>()(
         }
       },
 
-      punchOut: async () => {
+      punchOut: async (selfie?: string, lat?: number | null, lng?: number | null) => {
         try {
           const headers = getHeaders();
           const res = await fetch("/api/attendance/punch", {
             method: "POST",
             headers,
-            body: JSON.stringify({ action: "punch-out" }),
+            body: JSON.stringify({ action: "punch-out", selfie, lat, lng }),
           });
           if (!res.ok) throw new Error("Failed to punch out");
           const data = await res.json();
           
           set((state) => ({
             currentPunchIn: null,
+            currentPunchInPhoto: null,
+            currentPunchInLat: null,
+            currentPunchInLng: null,
             punchHistory: [data.punchRecord, ...state.punchHistory],
           }));
         } catch (error) {

@@ -25,7 +25,8 @@ async function cleanupS3Photos(photoUrls: string[]) {
   }
 }
 
-// POST: Enroll or Update Employee Face Embeddings & Photos
+import { extractAverageDescriptorFromBuffers } from "@/lib/face-api-server";
+import { isFaceEnrolled } from "@/lib/face-enrollment";
 export async function POST(req: Request) {
   try {
     const loggedInEmployee = await getAuthEmployee(req);
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const targetEmployeeId = formData.get("employeeId") as string | null;
     const faceEmbeddingStr = formData.get("faceEmbedding") as string | null;
-    
+
     const photo1 = formData.get("photo1") as File | null;
     const photo2 = formData.get("photo2") as File | null;
     const photo3 = formData.get("photo3") as File | null;
@@ -60,23 +61,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Employee not found" }, { status: 444 });
     }
 
-    // Validate faceEmbedding vector
-    if (!faceEmbeddingStr) {
-      return NextResponse.json({ error: "Missing faceEmbedding data" }, { status: 400 });
-    }
-
+    // Optional client-provided embedding; otherwise computed on the server from photos.
     let faceEmbedding: number[] = [];
-    try {
-      faceEmbedding = JSON.parse(faceEmbeddingStr);
-    } catch {
-      return NextResponse.json({ error: "Invalid faceEmbedding JSON string" }, { status: 400 });
+    if (faceEmbeddingStr) {
+      try {
+        faceEmbedding = JSON.parse(faceEmbeddingStr);
+      } catch {
+        return NextResponse.json({ error: "Invalid faceEmbedding JSON string" }, { status: 400 });
+      }
+      if (
+        !Array.isArray(faceEmbedding) ||
+        (faceEmbedding.length > 0 &&
+          (faceEmbedding.length !== 128 || faceEmbedding.some((val) => typeof val !== "number")))
+      ) {
+        return NextResponse.json(
+          { error: "faceEmbedding must be an array of 128 numbers when provided" },
+          { status: 400 }
+        );
+      }
     }
 
-    if (!Array.isArray(faceEmbedding) || faceEmbedding.length !== 128 || faceEmbedding.some(val => typeof val !== 'number')) {
-      return NextResponse.json({ error: "faceEmbedding must be an array of 128 numbers" }, { status: 400 });
-    }
-
-    // Validate photos
     if (!photo1 || !photo2 || !photo3) {
       return NextResponse.json({ error: "Please upload all 3 photos (Front, Left, Right)" }, { status: 400 });
     }
@@ -116,6 +120,23 @@ export async function POST(req: Request) {
       publicUrls.push(publicUrl);
     }
 
+    if (faceEmbedding.length !== 128) {
+      const buffers = await Promise.all(
+        photos.map(async (file) => Buffer.from(await file.arrayBuffer()))
+      );
+      const avgDescriptor = await extractAverageDescriptorFromBuffers(buffers);
+      if (!avgDescriptor) {
+        return NextResponse.json(
+          {
+            error:
+              "Could not detect a face in the uploaded photos. Use clear, front-facing images with good lighting.",
+          },
+          { status: 422 }
+        );
+      }
+      faceEmbedding = Array.from(avgDescriptor);
+    }
+
     // Update Employee record
     const updatedEmployee = await prisma.employee.update({
       where: { id: employeeId },
@@ -130,7 +151,7 @@ export async function POST(req: Request) {
       message: "Facial sign-in enrolled successfully",
       employee: {
         id: updatedEmployee.id,
-        faceEnrolled: true,
+        faceEnrolled: isFaceEnrolled(updatedEmployee.facePhotos, updatedEmployee.faceEmbedding),
         facePhotos: updatedEmployee.facePhotos,
       }
     });

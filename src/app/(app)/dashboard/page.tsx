@@ -49,7 +49,6 @@ export default function DashboardPage() {
     }
   };
 
-
   // Keep clock updated
   useEffect(() => {
     setCurrentTime(new Date());
@@ -447,11 +446,11 @@ export default function DashboardPage() {
           setPendingAction(null);
         }}
         actionName={pendingAction || "punch-in"}
-        onSuccess={async () => {
+        onSuccess={async (selfieBase64, lat, lng) => {
           if (pendingAction === "punch-in") {
-            await punchIn();
+            await punchIn(selfieBase64, lat, lng);
           } else if (pendingAction === "punch-out") {
-            await punchOut();
+            await punchOut(selfieBase64, lat, lng);
           }
         }}
       />

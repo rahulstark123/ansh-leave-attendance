@@ -67,6 +67,7 @@ export interface SystemSettings {
     shiftStartTime: string; // "09:00 AM"
     gracePeriod: number; // minutes
     workingHours: number; // hours
+    requireFaceMatch?: boolean;
   };
   billingSettings: {
     planName: string;
@@ -149,6 +150,7 @@ const defaultSettings: SystemSettings = {
     shiftStartTime: "09:00 AM",
     gracePeriod: 15,
     workingHours: 9,
+    requireFaceMatch: false,
   },
   billingSettings: {
     planName: "ANSH HR Premium - Startup Edition",

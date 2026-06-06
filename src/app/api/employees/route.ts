@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     const {
       name,
       email,
+      password,
       department,
       role,
       status,
@@ -65,6 +66,13 @@ export async function POST(req: Request) {
 
     if (!name || !email || !department || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    if (!password || typeof password !== "string" || password.length < 6) {
+      return NextResponse.json(
+        { error: "Password is required and must be at least 6 characters" },
+        { status: 400 }
+      );
     }
 
     // Default current user's wid if not set
@@ -94,8 +102,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const inviteResult = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      data: {
+    const createResult = await supabaseAdmin.auth.admin.createUser({
+      email: email.trim().toLowerCase(),
+      password,
+      email_confirm: true,
+      user_metadata: {
         name,
         department,
         role,
@@ -103,11 +114,11 @@ export async function POST(req: Request) {
       },
     });
 
-    if (inviteResult.error || !inviteResult.data.user?.id) {
-      const message = inviteResult.error?.message || "Failed to create Supabase account";
+    if (createResult.error || !createResult.data.user?.id) {
+      const message = createResult.error?.message || "Failed to create Supabase account";
       return NextResponse.json({ error: message }, { status: 400 });
     }
-    const authUserId = inviteResult.data.user.id;
+    const authUserId = createResult.data.user.id;
 
     // Get baseline leave settings
     const settings = getSystemSettings();

@@ -20,6 +20,9 @@ model Employee {
   sickBalance    Float          @default(8)
   casualBalance  Float          @default(6)
   currentPunchIn String?        // Active punch-in timestamp
+  currentPunchInPhoto String?   // S3 URL of the punch-in selfie photo
+  currentPunchInLat   Float?    // Check-in location latitude
+  currentPunchInLng   Float?    // Check-in location longitude
   companyName    String?        // Company Name for Admins/HR Managers
   companyAddress String?        // Company Address for Admins/HR Managers
   employeeCount  String?        // Employee Count range for Admins/HR Managers
@@ -45,6 +48,10 @@ model Employee {
   punches               PunchRecord[]
   regularizations       AttendanceRegularization[]
   wfhRequests           WFHRequest[]
+  createdChannels       WorkspaceChannel[]         @relation("ChannelCreator")
+  channelMemberships    ChannelMember[]
+  sentMessages          WorkspaceMessage[]         @relation("MessageSender")
+  receivedMessages      WorkspaceMessage[]         @relation("MessageReceiver")
 }
 
 model LeaveRequest {
@@ -72,6 +79,12 @@ model PunchRecord {
   duration   String?   // e.g. "9h 07m"
   status     String    // "On-time" | "Late" | "Half-day" | "Absent"
   wid        Int?      // Workspace ID
+  punchInPhoto  String?   // S3 URL of the punch-in selfie photo
+  punchOutPhoto String?   // S3 URL of the punch-out selfie photo
+  punchInLat    Float?    // Check-in location latitude
+  punchInLng    Float?    // Check-in location longitude
+  punchOutLat   Float?    // Check-out location latitude
+  punchOutLng   Float?    // Check-out location longitude
 }
 
 model Workspace {
@@ -152,5 +165,49 @@ model WFHRequest {
   status         String   // "Pending" | "Approved" | "Rejected"
   wid            Int      @default(1)
   appliedAt      DateTime @default(now())
+}
+
+model WorkspaceChannel {
+  id          String             @id @default(cuid())
+  name        String
+  description String             @default("")
+  isPublic    Boolean            @default(true)
+  createdById String
+  createdBy   Employee           @relation("ChannelCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  wid         Int                @default(1)
+  createdAt   DateTime           @default(now())
+  members     ChannelMember[]
+  messages    WorkspaceMessage[]
+
+  @@unique([name, wid])
+  @@index([wid])
+}
+
+model ChannelMember {
+  id         String           @id @default(cuid())
+  channelId  String
+  channel    WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  joinedAt   DateTime         @default(now())
+
+  @@unique([channelId, employeeId])
+}
+
+model WorkspaceMessage {
+  id         String            @id @default(cuid())
+  content    String
+  senderId   String
+  sender     Employee          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  channelId  String?
+  channel    WorkspaceChannel? @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  receiverId String?
+  receiver   Employee?         @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  wid        Int               @default(1)
+  sentAt     DateTime          @default(now())
+
+  @@index([channelId, sentAt])
+  @@index([senderId, receiverId, sentAt])
+  @@index([wid])
 }
 

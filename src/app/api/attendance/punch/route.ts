@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
+import { s3Client, BUCKET_NAME } from "@/lib/s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+
+import { isFaceEnrolled } from "@/lib/face-enrollment";
+import { resolveCoordsFromRequest } from "@/lib/ip-geolocation";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hjnqlybokoljhxyzsqqi.supabase.co";
+
+function parseCoord(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = parseFloat(String(value));
+  return Number.isFinite(n) ? n : null;
+}
 
 export async function GET(req: Request) {
   try {
@@ -17,8 +30,11 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       currentPunchIn: employee.currentPunchIn,
+      currentPunchInPhoto: employee.currentPunchInPhoto,
+      currentPunchInLat: employee.currentPunchInLat,
+      currentPunchInLng: employee.currentPunchInLng,
       punchHistory: punches,
-      faceEnrolled: Array.isArray(employee.faceEmbedding) && employee.faceEmbedding.length > 0,
+      faceEnrolled: isFaceEnrolled(employee.facePhotos, employee.faceEmbedding),
     });
   } catch (error) {
     console.error("API /api/attendance/punch GET error:", error);
@@ -34,7 +50,47 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { action } = body; // "punch-in" | "punch-out"
+    const { action, selfie, lat, lng } = body; // "punch-in" | "punch-out", selfie is base64 string, lat/lng are coordinates
+
+    let selfieUrl: string | null = null;
+    if (selfie) {
+      try {
+        const matches = selfie.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        let buffer: Buffer;
+        let contentType = "image/jpeg";
+        let extension = "jpg";
+        
+        if (matches && matches.length === 3) {
+          contentType = matches[1];
+          extension = contentType.split("/")[1] || "jpg";
+          buffer = Buffer.from(matches[2], 'base64');
+        } else {
+          buffer = Buffer.from(selfie, 'base64');
+        }
+        
+        const s3Key = `punches/${employee.id}/${Date.now()}_${action}.${extension}`;
+        const uploadCommand = new PutObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: s3Key,
+          Body: buffer,
+          ContentType: contentType,
+        });
+        await s3Client.send(uploadCommand);
+        
+        selfieUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${s3Key}`;
+      } catch (uploadErr) {
+        console.error("Failed to upload punch selfie to S3:", uploadErr);
+      }
+    }
+
+    // Parse coordinates — browser GPS first, IP geolocation fallback on server
+    const clientLat = parseCoord(lat);
+    const clientLng = parseCoord(lng);
+    const { lat: latitude, lng: longitude } = await resolveCoordsFromRequest(
+      req,
+      clientLat,
+      clientLng
+    );
 
     if (action === "punch-in") {
       if (employee.currentPunchIn) {
@@ -45,12 +101,18 @@ export async function POST(req: Request) {
         where: { id: employee.id },
         data: {
           currentPunchIn: new Date().toISOString(),
+          currentPunchInPhoto: selfieUrl,
+          currentPunchInLat: latitude,
+          currentPunchInLng: longitude,
           status: "Active",
         },
       });
 
       return NextResponse.json({
         currentPunchIn: updatedEmployee.currentPunchIn,
+        currentPunchInPhoto: updatedEmployee.currentPunchInPhoto,
+        currentPunchInLat: updatedEmployee.currentPunchInLat,
+        currentPunchInLng: updatedEmployee.currentPunchInLng,
         status: updatedEmployee.status,
       });
     } else if (action === "punch-out") {
@@ -91,7 +153,6 @@ export async function POST(req: Request) {
 
       const status = pinTime.getTime() > lateThreshold.getTime() ? "Late" : "On-time";
 
-
       const punchRecord = await prisma.$transaction(async (tx) => {
         const record = await tx.punchRecord.create({
           data: {
@@ -102,6 +163,12 @@ export async function POST(req: Request) {
             duration: `${diffHrs}h ${diffMins}m`,
             status: status,
             wid: employee.wid ?? 1,
+            punchInPhoto: employee.currentPunchInPhoto,
+            punchOutPhoto: selfieUrl,
+            punchInLat: employee.currentPunchInLat,
+            punchInLng: employee.currentPunchInLng,
+            punchOutLat: latitude,
+            punchOutLng: longitude,
           },
         });
 
@@ -109,6 +176,9 @@ export async function POST(req: Request) {
           where: { id: employee.id },
           data: {
             currentPunchIn: null,
+            currentPunchInPhoto: null,
+            currentPunchInLat: null,
+            currentPunchInLng: null,
           },
         });
 

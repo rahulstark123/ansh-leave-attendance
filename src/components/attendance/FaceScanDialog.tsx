@@ -2,42 +2,38 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getFaceDescriptor, computeDistance, loadFaceApiModels } from "@/lib/face-api-helper";
-import { Loader2, ShieldAlert, Sparkles, Smile, VideoOff, RefreshCw } from "lucide-react";
+import { Loader2, ShieldAlert, Sparkles, Smile, VideoOff, RefreshCw, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FaceScanDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (selfieBase64: string, lat: number | null, lng: number | null) => void;
   actionName: "punch-in" | "punch-out";
 }
 
+type ScanStatus = "initializing" | "ready" | "verifying" | "matched" | "failed" | "error";
+
 export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceScanDialogProps) {
-  const [status, setStatus] = useState<"initializing" | "fetching" | "scanning" | "matched" | "failed" | "error">("initializing");
-  const [subStatus, setSubStatus] = useState("Loading face detection engine...");
+  const [status, setStatus] = useState<ScanStatus>("initializing");
+  const [subStatus, setSubStatus] = useState("Opening camera...");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [attempts, setAttempts] = useState(0);
-  
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const referenceEmbeddingRef = useRef<number[] | null>(null);
-  const loopActiveRef = useRef(false);
+  const coordsRef = useRef<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
 
-  // Stop camera when closed
   useEffect(() => {
     if (!isOpen) {
       stopCamera();
+      coordsRef.current = { lat: null, lng: null };
     } else {
       initScan();
     }
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, [isOpen]);
 
   const stopCamera = () => {
-    loopActiveRef.current = false;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -47,19 +43,53 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
     }
   };
 
+  const getCoordinates = (): Promise<{ lat: number | null; lng: number | null }> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve({ lat: null, lng: null });
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) =>
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          }),
+        () => resolve({ lat: null, lng: null }),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      );
+    });
+  };
+
+  const captureFrame = (): string | null => {
+    if (!videoRef.current) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.translate(640, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(videoRef.current, 0, 0, 640, 480);
+    return canvas.toDataURL("image/jpeg", 0.85);
+  };
+
+  const finishWithSelfie = async (selfieBase64: string) => {
+    const coords = coordsRef.current;
+    setStatus("matched");
+    setTimeout(() => {
+      stopCamera();
+      onSuccess(selfieBase64, coords.lat, coords.lng);
+      onClose();
+    }, 400);
+  };
+
   const initScan = async () => {
     setStatus("initializing");
-    setSubStatus("Loading face models...");
+    setSubStatus("Opening camera...");
     setErrorMsg(null);
-    setAttempts(0);
-    referenceEmbeddingRef.current = null;
 
     try {
-      // 0. Pre-load face-api models before starting camera/fetching reference
-      await loadFaceApiModels();
-
-      // 1. Fetch camera stream
-      setSubStatus("Accessing camera...");
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: "user" },
         audio: false,
@@ -69,98 +99,92 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
         videoRef.current.srcObject = stream;
         try {
           await videoRef.current.play();
-        } catch (playErr) {
-          console.warn("Auto-play blocked or failed, waiting for user interaction:", playErr);
+        } catch {
+          /* autoplay blocked */
         }
       }
-
-      // 2. Fetch reference face embedding
-      setSubStatus("Downloading face profile...");
-      setStatus("fetching");
-      const token = sessionStorage.getItem("ansh_auth_token");
-      const res = await fetch("/api/employee/face-embedding", {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error("Could not retrieve your registered face scan. Please register your face in Profile Settings first.");
-      }
-
-      const data = await res.json();
-      referenceEmbeddingRef.current = data.faceEmbedding;
-
-      // 3. Start scanning loop
-      setStatus("scanning");
-      loopActiveRef.current = true;
-      startScanLoop();
-    } catch (err: any) {
-      console.error("Face scan initialization failed:", err);
-      setErrorMsg(err.message || "An unexpected error occurred.");
+      setStatus("ready");
+      setSubStatus("Allow location access if prompted, then tap Capture.");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Could not access camera.");
       setStatus("error");
       stopCamera();
     }
   };
 
-  const startScanLoop = async () => {
-    let failedMatches = 0;
+  const handleCapture = async () => {
+    if (!videoRef.current || status !== "ready") return;
 
-    const scan = async () => {
-      if (!loopActiveRef.current || !videoRef.current || !referenceEmbeddingRef.current) return;
+    const video = videoRef.current;
+    if (video.paused || video.ended || video.readyState < 2 || video.videoWidth === 0) {
+      setErrorMsg("Camera is still starting. Please wait a moment and try again.");
+      setStatus("failed");
+      return;
+    }
 
-      try {
-        const video = videoRef.current;
-        // Ensure the video element is initialized, playing, and has valid dimensions before processing
-        if (video.paused || video.ended || video.readyState < 2 || video.videoWidth === 0) {
-          if (loopActiveRef.current) {
-            setTimeout(scan, 250);
-          }
-          return;
-        }
+    const selfieBase64 = captureFrame();
+    if (!selfieBase64) {
+      setErrorMsg("Could not capture photo. Please try again.");
+      setStatus("failed");
+      return;
+    }
 
-        const liveDescriptor = await getFaceDescriptor(video);
+    setStatus("verifying");
+    setSubStatus("Allow location if prompted — verifying face...");
+    setErrorMsg(null);
 
-        if (liveDescriptor) {
-          const distance = computeDistance(liveDescriptor, referenceEmbeddingRef.current);
-          console.log(`Face match distance: ${distance.toFixed(4)}`);
+    // Must request GPS on the Capture click (user gesture) — async face verify breaks permission otherwise.
+    const coordsPromise = getCoordinates();
 
-          if (distance < 0.55) {
-            // MATCH SUCCESS!
-            setStatus("matched");
-            loopActiveRef.current = false;
-            
-            // Wait 600ms for user feedback animation before completing
-            setTimeout(() => {
-              stopCamera();
-              onSuccess();
-              onClose();
-            }, 600);
-            return;
-          } else {
-            failedMatches++;
-            setAttempts(failedMatches);
-            
-            if (failedMatches >= 20) { // ~5-6 seconds of active mismatch at 250ms interval
-              setStatus("failed");
-              loopActiveRef.current = false;
-              stopCamera();
-              return;
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Scan loop error:", err);
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const [coords, res] = await Promise.all([
+        coordsPromise,
+        fetch("/api/employee/face-verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ selfie: selfieBase64 }),
+        }),
+      ]);
+
+      coordsRef.current = coords;
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 404) {
+        throw new Error(
+          "Face profile not found. Please re-register your face photos in Profile Settings."
+        );
+      }
+      if (res.status === 422) {
+        setStatus("failed");
+        setErrorMsg(
+          data.error || "No face detected. Look directly at the camera and try again."
+        );
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(data.error || "Face verification failed.");
       }
 
-      // Check face again in 250ms (more relaxed interval prevents CPU starvation and keeps UI responsive)
-      if (loopActiveRef.current) {
-        setTimeout(scan, 250);
+      if (data.matched) {
+        await finishWithSelfie(selfieBase64);
+      } else {
+        setStatus("failed");
+        setErrorMsg(
+          `Face did not match (similarity ${Math.round((data.similarity ?? 0) * 100)}%). Adjust lighting or distance and retry.`
+        );
       }
-    };
-
-    scan();
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Verification failed.");
+      setStatus("failed");
+    }
   };
+
+  const showLiveFeed = status === "ready" || status === "verifying" || status === "matched";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -168,7 +192,7 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
         <DialogHeader className="pb-4 border-b border-border/40">
           <DialogTitle className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
             <Smile className="h-5 w-5 text-primary" />
-            <span>Facial Recognition Verification</span>
+            <span>Face Verification</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -182,107 +206,90 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
             </span>
           </div>
 
-          {/* Scanner frame */}
-          <div className={`relative w-[280px] h-[280px] rounded-full overflow-hidden border-4 transition-all duration-300 shadow-xl ${
-            status === "matched" 
-              ? "border-emerald-500 shadow-emerald-500/20" 
-              : status === "failed" 
-                ? "border-rose-500 shadow-rose-500/20" 
-                : "border-primary/40 shadow-primary/10"
-          }`}>
-            {/* Live Camera Feed */}
+          <div
+            className={`relative w-[280px] h-[280px] rounded-full overflow-hidden border-4 transition-all duration-300 shadow-xl ${
+              status === "matched"
+                ? "border-emerald-500 shadow-emerald-500/20"
+                : status === "failed"
+                  ? "border-rose-500 shadow-rose-500/20"
+                  : "border-primary/40 shadow-primary/10"
+            }`}
+          >
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
               className={`absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity duration-300 ${
-                status === "scanning" || status === "matched" ? "opacity-100" : "opacity-0 pointer-events-none"
+                showLiveFeed ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             />
 
-            {/* Status overlays */}
             {status === "initializing" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950 text-slate-400 z-10">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <span className="text-xs font-bold text-center px-4">{subStatus}</span>
+              </div>
+            )}
+
+            {status === "ready" && (
+              <div className="absolute inset-4 rounded-[50%] border border-dashed border-white/60 pointer-events-none z-10">
+                <div className="absolute inset-0 rounded-[50%] border-2 border-primary/40" />
+              </div>
+            )}
+
+            {status === "verifying" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950/60 text-slate-200 z-10">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 <span className="text-xs font-bold">{subStatus}</span>
               </div>
             )}
 
-            {status === "fetching" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-slate-950 text-slate-400 z-10">
-                <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                <span className="text-xs font-bold">Downloading face profile...</span>
-              </div>
-            )}
-
-            {status === "scanning" && (
-              <>
-                {/* Dashed alignment ellipse */}
-                <div className="absolute inset-4 rounded-[50%] border border-dashed border-white/60 pointer-events-none z-10 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-[50%] border-2 border-primary/40 animate-pulse" />
-                </div>
-                {/* Laser scan line animation */}
-                <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 animate-bounce top-1/3 z-10" />
-              </>
-            )}
-
             {status === "matched" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/70 text-emerald-400 z-10 animate-fade-in">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/70 text-emerald-400 z-10">
                 <Sparkles className="h-12 w-12 animate-pulse" />
-                <span className="text-sm font-extrabold mt-2.5 tracking-wider uppercase">Face Verified!</span>
+                <span className="text-sm font-extrabold mt-2.5 tracking-wider uppercase">Verified!</span>
               </div>
             )}
 
-            {status === "failed" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950 text-rose-400 z-10">
-                <ShieldAlert className="h-10 w-10 text-rose-500" />
-                <span className="text-xs font-bold text-center px-4">Verification Timeout.<br/>Face does not match profile.</span>
-              </div>
-            )}
-
-            {status === "error" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 text-rose-400 z-10 p-4 text-center">
-                <VideoOff className="h-10 w-10 text-rose-500 mb-2" />
-                <span className="text-xs font-semibold leading-relaxed">{errorMsg}</span>
+            {(status === "failed" || status === "error") && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950 text-rose-400 z-10 p-4">
+                {status === "error" ? (
+                  <VideoOff className="h-10 w-10 text-rose-500" />
+                ) : (
+                  <ShieldAlert className="h-10 w-10 text-rose-500" />
+                )}
+                <span className="text-xs font-bold text-center">{errorMsg}</span>
               </div>
             )}
           </div>
 
-          {/* Subtext info */}
           <div className="text-center px-6 min-h-[40px]">
-            {status === "scanning" && (
-              <span className="text-xs font-bold text-slate-400 animate-pulse">
-                Please look directly into the camera. Checking identity...
-              </span>
-            )}
-            {status === "scanning" && attempts > 4 && (
-              <span className="block text-[11px] font-semibold text-amber-500 mt-1">
-                Tip: Adjust your distance or improve lighting.
-              </span>
+            {status === "ready" && (
+              <span className="text-xs font-bold text-slate-400">{subStatus}</span>
             )}
             {status === "matched" && (
-              <span className="text-xs font-extrabold text-emerald-500">
-                Success! Logging your punch...
-              </span>
+              <span className="text-xs font-extrabold text-emerald-500">Logging your punch...</span>
             )}
           </div>
 
-          {/* Retry buttons */}
+          {status === "ready" && (
+            <Button
+              onClick={handleCapture}
+              className="btn-primary flex items-center gap-2 font-bold py-2.5 px-6 rounded-xl"
+            >
+              <Camera className="h-4 w-4" />
+              Capture & Verify
+            </Button>
+          )}
+
           {(status === "failed" || status === "error") && (
             <div className="flex gap-3">
-              <Button
-                onClick={initScan}
-                className="btn-primary flex items-center gap-2 font-bold py-2.5 px-4"
-              >
+              <Button onClick={initScan} className="btn-primary flex items-center gap-2 font-bold py-2.5 px-4">
                 <RefreshCw className="h-4 w-4" />
-                Retry Verification
+                Retry
               </Button>
-              <Button
-                variant="outline"
-                onClick={onClose}
-                className="text-xs font-bold text-slate-500 hover:bg-slate-50 border-slate-200"
-              >
+              <Button variant="outline" onClick={onClose} className="text-xs font-bold">
                 Cancel
               </Button>
             </div>

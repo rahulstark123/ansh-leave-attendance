@@ -128,7 +128,8 @@
   "attendanceSettings": {
     "shiftStartTime": "09:00 AM",
     "gracePeriod": 15,
-    "workingHours": 9
+    "workingHours": 9,
+    "requireFaceMatch": false
   },
   "billingSettings": {
     "planName": "ANSH HR Premium - Startup Edition",

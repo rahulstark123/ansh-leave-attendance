@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useLeaveStore } from "@/stores/leave-store";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SelfieVerifyDialog } from "@/components/attendance/SelfieVerifyDialog";
+import { CustomSelect, type CustomSelectOption } from "@/components/ui/custom-select";
 import {
   Search,
   Filter,
@@ -36,144 +39,11 @@ import {
   UserRoundCheck,
   Building,
   Check,
-  ChevronsUpDown,
   MoreVertical,
   Copy,
-  PlusCircle
+  PlusCircle,
+  Eye
 } from "lucide-react";
-
-interface CustomSelectOption {
-  value: string;
-  label: string;
-  description?: string;
-}
-
-interface CustomSelectProps {
-  label: string;
-  value: string;
-  options: CustomSelectOption[];
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  allowAddNew?: boolean;
-  addNewLabel?: string;
-  onAddNew?: () => void;
-}
-
-function CustomSelect({
-  label,
-  value,
-  options,
-  onChange,
-  placeholder = "Select option",
-  required = false,
-  allowAddNew = false,
-  addNewLabel = "Add New",
-  onAddNew,
-}: CustomSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div className="relative w-full" ref={selectRef}>
-      {label ? (
-        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-          {label}
-        </label>
-      ) : null}
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-11 w-full items-center justify-between rounded-2xl border border-border bg-card dark:bg-slate-900 px-4 py-3 text-xs outline-none focus:border-primary/45 transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer"
-      >
-        <span className={selectedOption ? "text-slate-700 dark:text-slate-200 font-semibold" : "text-slate-400"}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-      </button>
-
-      {isOpen && (
-        <div className="absolute z-50 mt-1.5 w-full rounded-2xl border border-border bg-card/95 dark:bg-slate-950 shadow-xl backdrop-blur-md overflow-hidden animate-in fade-in slide-in-from-top-1.5 duration-200 max-h-64 overflow-y-auto">
-          <div className="p-1.5 space-y-0.5">
-            {!required && (
-              <button
-                type="button"
-                onClick={() => {
-                  onChange("");
-                  setIsOpen(false);
-                }}
-                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${
-                  value === ""
-                    ? "bg-primary/15 text-primary font-bold"
-                    : "text-slate-600 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800/80"
-                }`}
-              >
-                <span>None / Unassigned</span>
-                {value === "" && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-              </button>
-            )}
-            {options.map((opt) => {
-              const isSelected = opt.value === value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(opt.value);
-                    setIsOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-left text-xs transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-primary/15 text-primary font-bold"
-                      : "text-slate-600 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800/80"
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <span className="block truncate">{opt.label}</span>
-                    {opt.description && (
-                      <span className="block text-[9px] text-slate-400 dark:text-slate-400/90 font-normal mt-0.5 truncate leading-none">
-                        {opt.description}
-                      </span>
-                    )}
-                  </div>
-                  {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                </button>
-              );
-            })}
-            {allowAddNew && onAddNew && (
-              <>
-                <div className="h-px bg-border/50 my-1" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    onAddNew();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3.5 py-2 text-left text-xs font-bold text-primary hover:bg-primary/10 transition-all cursor-pointer"
-                >
-                  <PlusCircle className="h-3.5 w-3.5 shrink-0" />
-                  <span>{addNewLabel}</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function TeamPage() {
   const { employees, currentUser, initialize } = useLeaveStore();
@@ -248,7 +118,7 @@ export default function TeamPage() {
   const [editCurrentStep, setEditCurrentStep] = useState(1);
 
   // Validate step 1 fields
-  const validateStep1 = () => {
+  const validateStep1 = (requirePassword = false) => {
     if (!name.trim()) return "Full Name is required.";
     if (!email.trim()) return "Work Email is required.";
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -256,12 +126,17 @@ export default function TeamPage() {
     if (personalEmail.trim() && !emailRegex.test(personalEmail.trim())) {
       return "Please enter a valid personal email address.";
     }
+    if (requirePassword) {
+      if (!password) return "Login password is required.";
+      if (password.length < 6) return "Password must be at least 6 characters.";
+      if (password !== confirmPassword) return "Passwords do not match.";
+    }
     return null;
   };
 
   const handleNextStep1 = () => {
     setErrorMsg("");
-    const err = validateStep1();
+    const err = validateStep1(true);
     if (err) {
       setErrorMsg(err);
       return;
@@ -330,6 +205,8 @@ export default function TeamPage() {
   // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [department, setDepartment] = useState("Engineering");
   const [role, setRole] = useState("Employee");
   const [status, setStatus] = useState("Active");
@@ -388,6 +265,13 @@ export default function TeamPage() {
   const [detailLeaves, setDetailLeaves] = useState<any[]>([]);
   const [detailPunches, setDetailPunches] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedPunchForMap, setSelectedPunchForMap] = useState<any | null>(null);
+  const [mapTab, setMapTab] = useState<"punch-in" | "punch-out">("punch-in");
+  const [selectedSelfieAudit, setSelectedSelfieAudit] = useState<{
+    punch: any;
+    url: string;
+    type: "Check-in" | "Check-out";
+  } | null>(null);
   const [departmentItems, setDepartmentItems] = useState<string[]>([
     "Engineering",
     "Human Resources",
@@ -460,6 +344,8 @@ export default function TeamPage() {
   const resetForm = () => {
     setName("");
     setEmail("");
+    setPassword("");
+    setConfirmPassword("");
     setDepartment("Engineering");
     setRole("Employee");
     setStatus("Active");
@@ -611,6 +497,11 @@ export default function TeamPage() {
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    const stepErr = validateStep1(true);
+    if (stepErr) {
+      setErrorMsg(stepErr);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -624,6 +515,7 @@ export default function TeamPage() {
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim().toLowerCase(),
+          password,
           department,
           role,
           status,
@@ -1088,6 +980,38 @@ export default function TeamPage() {
                         />
                       </div>
                     </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Login Password *
+                        </label>
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min. 6 characters"
+                          autoComplete="new-password"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                          Confirm Password *
+                        </label>
+                        <input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-enter password"
+                          autoComplete="new-password"
+                          className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Share this password with the member so they can log in using their work email.
+                    </p>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
@@ -2252,16 +2176,61 @@ export default function TeamPage() {
                                     <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                                       <div>
                                         <span className="block text-[9px] uppercase text-slate-400 font-bold">Punch In</span>
-                                        <span className="font-semibold">{punch.punchIn || "N/A"}</span>
+                                        <div className="flex items-center gap-1.5 font-semibold">
+                                          <span>{punch.punchIn || "N/A"}</span>
+                                          {punch.punchInPhoto && (
+                                            <button
+                                              onClick={() => setSelectedSelfieAudit({
+                                                punch: punch,
+                                                url: punch.punchInPhoto!,
+                                                type: "Check-in"
+                                              })}
+                                              title="View & Verify Check-in Selfie"
+                                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                            >
+                                              <Eye className="h-3 w-3" />
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
                                       <div>
                                         <span className="block text-[9px] uppercase text-slate-400 font-bold">Punch Out</span>
-                                        <span className="font-semibold">{punch.punchOut || "Active"}</span>
+                                        <div className="flex items-center gap-1.5 font-semibold">
+                                          <span>{punch.punchOut || "Active"}</span>
+                                          {punch.punchOutPhoto && (
+                                            <button
+                                              onClick={() => setSelectedSelfieAudit({
+                                                punch: punch,
+                                                url: punch.punchOutPhoto!,
+                                                type: "Check-out"
+                                              })}
+                                              title="View & Verify Check-out Selfie"
+                                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                            >
+                                              <Eye className="h-3 w-3" />
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
                                       {punch.duration && (
                                         <div>
                                           <span className="block text-[9px] uppercase text-slate-400 font-bold">Duration</span>
                                           <span className="font-bold text-slate-600 dark:text-slate-300">{punch.duration}</span>
+                                        </div>
+                                      )}
+                                      {(punch.punchInLat != null || punch.punchOutLat != null) && (
+                                        <div>
+                                          <span className="block text-[9px] uppercase text-slate-400 font-bold">Location</span>
+                                          <button
+                                            onClick={() => {
+                                              setSelectedPunchForMap(punch);
+                                              setMapTab(punch.punchInLat ? "punch-in" : "punch-out");
+                                            }}
+                                            className="inline-flex h-4.5 w-4.5 items-center justify-center rounded text-slate-450 hover:text-primary transition-colors cursor-pointer"
+                                            title="View location map"
+                                          >
+                                            <MapPin className="h-3.5 w-3.5" />
+                                          </button>
                                         </div>
                                       )}
                                     </div>
@@ -2281,6 +2250,104 @@ export default function TeamPage() {
           </div>
         </div>
       )}
+      <Dialog open={selectedPunchForMap !== null} onOpenChange={(open) => !open && setSelectedPunchForMap(null)}>
+        <DialogContent className="sm:max-w-[460px] p-6 rounded-3xl border border-border/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <DialogHeader className="pb-4 border-b border-border/40">
+            <DialogTitle className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary animate-pulse" />
+              <span>Punch Geotag Location Map</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedPunchForMap && (
+            <div className="space-y-6 pt-4">
+              {/* Tab selector for punch in/out location */}
+              {selectedPunchForMap.punchInLat && selectedPunchForMap.punchOutLat && (
+                <div className="flex border border-border/60 rounded-xl p-1 bg-slate-50 dark:bg-slate-950 text-xs font-bold gap-1">
+                  <button
+                    onClick={() => setMapTab("punch-in")}
+                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
+                      mapTab === "punch-in"
+                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    Check-in Location
+                  </button>
+                  <button
+                    onClick={() => setMapTab("punch-out")}
+                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
+                      mapTab === "punch-out"
+                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    Check-out Location
+                  </button>
+                </div>
+              )}
+
+              {/* Embed map */}
+              {((mapTab === "punch-in" && selectedPunchForMap.punchInLat) || (mapTab === "punch-out" && selectedPunchForMap.punchOutLat)) ? (
+                <div className="space-y-4">
+                  <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-border bg-slate-50 dark:bg-slate-950 shadow-inner">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) + 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) + 0.005}&layer=mapnik&marker=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat}%2C${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
+                      className="absolute inset-0"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-border/20 text-xs">
+                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
+                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Event Type</span>
+                      <span className="font-bold text-primary capitalize">{mapTab.replace("-", " ")} Location</span>
+                    </div>
+                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
+                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Coordinates</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">
+                        {(mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat)?.toFixed(6)}, {(mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng)?.toFixed(6)}
+                      </span>
+                    </div>
+                    <div className="pt-2.5 flex items-center justify-between gap-4">
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat},${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 inline-flex h-9 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer text-center"
+                      >
+                        Open in Google Maps
+                      </a>
+                      <button
+                        onClick={() => setSelectedPunchForMap(null)}
+                        className="rounded-xl border border-border px-4 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  No location logged for this event.
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <SelfieVerifyDialog
+        isOpen={selectedSelfieAudit !== null}
+        onClose={() => setSelectedSelfieAudit(null)}
+        selfieUrl={selectedSelfieAudit?.url || null}
+        employeeId={selectedMemberForDetail?.id || "unknown"}
+        employeeName={selectedMemberForDetail?.name || "Employee"}
+        punchTime={selectedSelfieAudit?.type === "Check-in" ? selectedSelfieAudit.punch.punchIn : (selectedSelfieAudit?.punch.punchOut || "")}
+        punchDate={selectedSelfieAudit?.punch.date || ""}
+        type={selectedSelfieAudit?.type || "Check-in"}
+      />
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { queuedLocalStorage } from "@/lib/safe-storage";
 
 export interface Channel {
   id: string;
   name: string;
   description: string;
+  isPublic: boolean;
+  createdById: string;
+  memberIds: string[];
+  members: { id: string; name: string; avatarInitials: string }[];
 }
 
 export interface WorkspaceMessage {
@@ -14,15 +16,25 @@ export interface WorkspaceMessage {
   senderId: string;
   senderName: string;
   avatarInitials: string;
-  channelId?: string;    // If sent to a channel
-  receiverId?: string;   // If sent to a DM
-  sentAt: string;        // ISO timestamp
+  channelId?: string;
+  receiverId?: string;
+  sentAt: string;
 }
 
 interface WorkspaceState {
   channels: Channel[];
   messages: WorkspaceMessage[];
-  addChannel: (name: string, description?: string) => string;
+  loading: boolean;
+  messagesLoading: boolean;
+  error: string | null;
+  fetchChannels: () => Promise<void>;
+  createChannel: (
+    name: string,
+    description: string,
+    isPublic: boolean,
+    memberIds: string[]
+  ) => Promise<Channel | null>;
+  fetchMessages: (params: { channelId?: string; receiverId?: string }) => Promise<void>;
   sendMessage: (
     content: string,
     senderId: string,
@@ -30,76 +42,125 @@ interface WorkspaceState {
     initials: string,
     channelId?: string,
     receiverId?: string
-  ) => void;
+  ) => Promise<boolean>;
+  addRealtimeMessage: (message: WorkspaceMessage) => void;
 }
 
-const defaultChannels: Channel[] = [
-  { id: "chan-general", name: "general", description: "Company-wide announcements and updates" },
-  { id: "chan-engineering", name: "engineering", description: "Technical discussions and code check-ins" },
-  { id: "chan-design", name: "design", description: "Figma links, UI/UX feedback, and assets review" },
-  { id: "chan-product", name: "product", description: "Product roadmap and planning discussions" },
-];
+function getHeaders(): Record<string, string> {
+  const token =
+    typeof window !== "undefined" ? sessionStorage.getItem("ansh_auth_token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
-const defaultMessages: WorkspaceMessage[] = [
-  {
-    id: "msg-1",
-    content: "Welcome to ANSH Workspace! This is the start of the #general channel. Company-wide announcements and updates",
-    senderId: "emp-1",
-    senderName: "Rahul Raj",
-    avatarInitials: "RR",
-    channelId: "chan-general",
-    sentAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: "msg-2",
-    content: "Hi everyone! Excited to use this space for our engineering updates.",
-    senderId: "emp-2",
-    senderName: "Priya Sharma",
-    avatarInitials: "PS",
-    channelId: "chan-general",
-    sentAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-];
+export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
+  channels: [],
+  messages: [],
+  loading: false,
+  messagesLoading: false,
+  error: null,
 
-export const useWorkspaceStore = create<WorkspaceState>()(
-  persist(
-    (set) => ({
-      channels: defaultChannels,
-      messages: defaultMessages,
-      addChannel: (name, description = "") => {
-        const cleanName = name.trim().toLowerCase().replace(/\s+/g, "-").replace(/#/g, "");
-        const id = `chan-${Date.now()}`;
-        const newChan: Channel = {
-          id,
-          name: cleanName,
-          description,
-        };
-        set((state) => ({
-          channels: [...state.channels, newChan],
-        }));
-        return id;
-      },
-      sendMessage: (content, senderId, senderName, initials, channelId, receiverId) =>
-        set((state) => ({
-          messages: [
-            ...state.messages,
-            {
-              id: `msg-${Date.now()}`,
-              content: content.trim(),
-              senderId,
-              senderName,
-              avatarInitials: initials,
-              channelId,
-              receiverId,
-              sentAt: new Date().toISOString(),
-            },
-          ],
-        })),
-    }),
-    {
-      name: "ansh-workspace-chat",
-      version: 1,
-      storage: createJSONStorage(() => queuedLocalStorage),
+  fetchChannels: async () => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch("/api/workspace/channels", { headers: getHeaders() });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to load channels");
+      }
+      const data = await res.json();
+      set({ channels: data.channels || [], loading: false });
+    } catch (err: unknown) {
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : "Failed to load channels",
+      });
     }
-  )
-);
+  },
+
+  createChannel: async (name, description, isPublic, memberIds) => {
+    set({ error: null });
+    try {
+      const res = await fetch("/api/workspace/channels", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ name, description, isPublic, memberIds }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create channel");
+      }
+      const channel = data.channel as Channel;
+      set((state) => ({ channels: [...state.channels, channel] }));
+      return channel;
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Failed to create channel" });
+      return null;
+    }
+  },
+
+  fetchMessages: async ({ channelId, receiverId }) => {
+    set({ messagesLoading: true, error: null });
+    try {
+      const query = channelId
+        ? `channelId=${encodeURIComponent(channelId)}`
+        : receiverId
+          ? `receiverId=${encodeURIComponent(receiverId)}`
+          : null;
+      if (!query) {
+        set({ messages: [], messagesLoading: false });
+        return;
+      }
+
+      const res = await fetch(`/api/workspace/messages?${query}`, { headers: getHeaders() });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to load messages");
+      }
+      const data = await res.json();
+      set({ messages: data.messages || [], messagesLoading: false });
+    } catch (err: unknown) {
+      set({
+        messagesLoading: false,
+        error: err instanceof Error ? err.message : "Failed to load messages",
+        messages: [],
+      });
+    }
+  },
+
+  sendMessage: async (content, senderId, senderName, initials, channelId, receiverId) => {
+    try {
+      const res = await fetch("/api/workspace/messages", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ content, channelId, receiverId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      const message = data.message as WorkspaceMessage;
+      set((state) => ({
+        messages: [...state.messages, message],
+      }));
+      return true;
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Failed to send message" });
+      return false;
+    }
+  },
+
+  addRealtimeMessage: (message) => {
+    set((state) => {
+      if (state.messages.some((m) => m.id === message.id)) {
+        return state;
+      }
+      return {
+        messages: [...state.messages, message],
+      };
+    });
+  },
+}));

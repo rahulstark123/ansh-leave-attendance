@@ -18,6 +18,7 @@ import { useGlobalSearchStore } from "@/stores/global-search-store";
 import { useLeaveStore } from "@/stores/leave-store";
 import { useIsMac } from "@/hooks/use-is-mac";
 import { cn } from "@/lib/utils";
+import { LogoutOverlay } from "./logout-overlay";
 
 export function AppHeader() {
   const isMac = useIsMac();
@@ -25,7 +26,19 @@ export function AppHeader() {
   const setSearchOpen = useGlobalSearchStore((s) => s.setOpen);
   const { currentUser, employees, switchUser, leaves } = useLeaveStore();
   const pendingCount = leaves.filter((l) => l.status === "Pending").length;
+  
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    // Let the smooth progress animation play out for a premium experience
+    await new Promise((resolve) => setTimeout(resolve, 1300));
+    const { supabase } = await import("@/lib/supabase/client");
+    await supabase.auth.signOut();
+    sessionStorage.removeItem("ansh_auth_session");
+    sessionStorage.removeItem("ansh_auth_token");
+    router.push("/login");
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center border-b border-border/50 bg-background/80 px-6 backdrop-blur-xl gap-4">
@@ -114,13 +127,7 @@ export function AppHeader() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={async () => {
-                const { supabase } = await import("@/lib/supabase/client");
-                await supabase.auth.signOut();
-                sessionStorage.removeItem("ansh_auth_session");
-                sessionStorage.removeItem("ansh_auth_token");
-                router.push("/login");
-              }}
+              onClick={handleLogout}
               className="gap-2.5 text-rose-500 hover:text-rose-600 focus:text-rose-600 cursor-pointer font-bold"
             >
               <LogOut className="h-4 w-4 shrink-0" />
@@ -134,20 +141,16 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           id="navbar-logout-btn"
-          onClick={async () => {
-            const { supabase } = await import("@/lib/supabase/client");
-            await supabase.auth.signOut();
-            sessionStorage.removeItem("ansh_auth_session");
-            sessionStorage.removeItem("ansh_auth_token");
-            router.push("/login");
-          }}
+          onClick={handleLogout}
           className="h-10 w-10 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-500/10 dark:text-slate-400 dark:hover:bg-rose-950/30 transition-colors"
           title="Log out"
         >
           <LogOut className="h-5 w-5" />
         </Button>
       </div>
-    </header>
-    );
-  }
 
+      {/* Premium logout transition overlay */}
+      {isLoggingOut && <LogoutOverlay />}
+    </header>
+  );
+}
