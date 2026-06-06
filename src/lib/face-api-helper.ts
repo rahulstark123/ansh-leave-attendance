@@ -17,7 +17,6 @@ export async function loadFaceApiModels(): Promise<void> {
     
     try {
       if (faceapi.tf) {
-        await (faceapi.tf as any).setBackend('cpu');
         await (faceapi.tf as any).ready();
       }
     } catch (tfErr) {
