@@ -12,9 +12,40 @@ export async function GET(req: Request) {
     const wid = employee.wid ?? 1;
 
     let leaves;
-    if (employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner") {
+    if (employee.role === "Admin" || employee.role === "Owner") {
       leaves = await prisma.leaveRequest.findMany({
         where: { wid },
+        include: {
+          employee: {
+            select: {
+              name: true,
+              role: true,
+              avatarInitials: true,
+            },
+          },
+        },
+        orderBy: { appliedAt: "desc" },
+      });
+    } else if (employee.role === "Manager" || employee.role === "HR Manager") {
+      const managerName = employee.name.toLowerCase();
+      const reports = await prisma.employee.findMany({
+        where: {
+          wid,
+          OR: [
+            { id: employee.id },
+            { reportingManager: { equals: employee.name, mode: "insensitive" } },
+            { reportingHR: { equals: employee.name, mode: "insensitive" } },
+          ],
+        },
+        select: { id: true },
+      });
+      const accessibleIds = reports.map((r) => r.id);
+
+      leaves = await prisma.leaveRequest.findMany({
+        where: {
+          wid,
+          employeeId: { in: accessibleIds },
+        },
         include: {
           employee: {
             select: {
@@ -141,7 +172,19 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Leave request not found" }, { status: 404 });
     }
 
-    const isAuthorized = existing.employeeId === employee.id || employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner";
+    let isAuthorized = existing.employeeId === employee.id || employee.role === "Admin" || employee.role === "Owner";
+    if (!isAuthorized && (employee.role === "Manager" || employee.role === "HR Manager")) {
+      const requester = await prisma.employee.findUnique({ where: { id: existing.employeeId } });
+      if (requester) {
+        const managerName = employee.name.toLowerCase();
+        if (
+          (requester.reportingManager && requester.reportingManager.toLowerCase() === managerName) ||
+          (requester.reportingHR && requester.reportingHR.toLowerCase() === managerName)
+        ) {
+          isAuthorized = true;
+        }
+      }
+    }
     if (!isAuthorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -219,7 +262,19 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Leave request not found" }, { status: 404 });
     }
 
-    const isAuthorized = existing.employeeId === employee.id || employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner";
+    let isAuthorized = existing.employeeId === employee.id || employee.role === "Admin" || employee.role === "Owner";
+    if (!isAuthorized && (employee.role === "Manager" || employee.role === "HR Manager")) {
+      const requester = await prisma.employee.findUnique({ where: { id: existing.employeeId } });
+      if (requester) {
+        const managerName = employee.name.toLowerCase();
+        if (
+          (requester.reportingManager && requester.reportingManager.toLowerCase() === managerName) ||
+          (requester.reportingHR && requester.reportingHR.toLowerCase() === managerName)
+        ) {
+          isAuthorized = true;
+        }
+      }
+    }
     if (!isAuthorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

@@ -6,7 +6,7 @@ import { isFaceEnrolled } from "@/lib/face-enrollment";
 export type LeaveType = "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity" | "WFH" | string;
 export type LeaveStatus = "Approved" | "Pending" | "Rejected";
 export type EmployeeStatus = "Active" | "On Leave" | "Half-day" | "Off";
-export type EmployeeRole = "Admin" | "HR Manager" | "Employee" | "Owner";
+export type EmployeeRole = "Admin" | "HR Manager" | "Employee" | "Owner" | "Manager";
 
 export interface LeaveRequest {
   id: string;
@@ -323,32 +323,19 @@ export const useLeaveStore = create<LeaveState>()(
         try {
           const headers = getHeaders();
           
-          // 1. Fetch profile
-          const meRes = await fetch("/api/auth/me", { headers });
-          if (!meRes.ok) return;
-          const meData = await meRes.json();
-          if (meData.onboardingRequired || !meData.employee) return;
-          const currentUser = mapDbEmployee(meData.employee);
+          const res = await fetch("/api/dashboard", { headers });
+          if (!res.ok) return;
+          const data = await res.json();
 
-          // 2. Fetch employees
-          const empRes = await fetch("/api/employees", { headers });
-          const empData = await empRes.json();
-          const employees = (empData.employees || []).map(mapDbEmployee);
-
-          // 3. Fetch leaves
-          const leavesRes = await fetch("/api/leaves", { headers });
-          const leavesData = await leavesRes.json();
-          const leaves = leavesData.leaves || [];
-
-          // 4. Fetch punches
-          const punchRes = await fetch("/api/attendance/punch", { headers });
-          const punchData = await punchRes.json();
-          const punchHistory = punchData.punchHistory || [];
-          const currentPunchIn = punchData.currentPunchIn || null;
-          const currentPunchInPhoto = punchData.currentPunchInPhoto || null;
-          const currentPunchInLat = punchData.currentPunchInLat || null;
-          const currentPunchInLng = punchData.currentPunchInLng || null;
-          const faceEnrolled = punchData.faceEnrolled || false;
+          const currentUser = mapDbEmployee(data.currentUser);
+          const employees = (data.employees || []).map(mapDbEmployee);
+          const leaves = data.leaves || [];
+          const punchHistory = data.punchHistory || [];
+          const currentPunchIn = data.currentPunchIn || null;
+          const currentPunchInPhoto = data.currentPunchInPhoto || null;
+          const currentPunchInLat = data.currentPunchInLat || null;
+          const currentPunchInLng = data.currentPunchInLng || null;
+          const faceEnrolled = data.faceEnrolled || false;
 
           set({
             currentUser,

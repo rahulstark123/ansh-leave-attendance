@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const isAuthorized = employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner";
+    const isAuthorized = employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner" || employee.role === "Manager";
     if (!isAuthorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -40,6 +40,24 @@ export async function POST(req: Request) {
 
     if (!request) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    }
+
+    // Verify reporting manager check if they are Manager or HR Manager and not Admin/Owner
+    const isOwnerOrAdmin = employee.role === "Admin" || employee.role === "Owner";
+    if (!isOwnerOrAdmin) {
+      const requester = await prisma.employee.findUnique({
+        where: { id: request.employeeId },
+      });
+      if (!requester) {
+        return NextResponse.json({ error: "Requester not found" }, { status: 404 });
+      }
+      const managerName = employee.name.toLowerCase();
+      const isReportingManager =
+        (requester.reportingManager && requester.reportingManager.toLowerCase() === managerName) ||
+        (requester.reportingHR && requester.reportingHR.toLowerCase() === managerName);
+      if (!isReportingManager) {
+        return NextResponse.json({ error: "Forbidden: You are not authorized to approve/reject regularizations for this employee" }, { status: 403 });
+      }
     }
 
     // Update regularization request status

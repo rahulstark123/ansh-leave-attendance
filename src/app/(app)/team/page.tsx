@@ -281,6 +281,7 @@ export default function TeamPage() {
   ]);
   const [roleItems, setRoleItems] = useState<string[]>([
     "Employee",
+    "Manager",
     "HR Manager",
     "Admin",
     "Owner",
@@ -1134,9 +1135,6 @@ export default function TeamPage() {
                         options={roleOptions}
                         onChange={setRole}
                         required
-                        allowAddNew
-                        addNewLabel="Add New System Role"
-                        onAddNew={() => openAddOptionModal("role")}
                       />
 
                       <CustomSelect
@@ -1481,9 +1479,6 @@ export default function TeamPage() {
                         options={roleOptions}
                         onChange={setRole}
                         required
-                        allowAddNew
-                        addNewLabel="Add New System Role"
-                        onAddNew={() => openAddOptionModal("role")}
                       />
 
                       <CustomSelect

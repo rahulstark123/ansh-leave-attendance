@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const manager = await getAuthEmployee(req);
-    if (!manager || (manager.role !== "Admin" && manager.role !== "HR Manager" && manager.role !== "Owner")) {
+    if (!manager || (manager.role !== "Admin" && manager.role !== "HR Manager" && manager.role !== "Owner" && manager.role !== "Manager")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -27,6 +27,19 @@ export async function POST(req: Request) {
 
     if (leave.wid !== manager.wid) {
       return NextResponse.json({ error: "Forbidden: Cross-workspace access not allowed" }, { status: 403 });
+    }
+
+    // Verify reporting manager check if they are Manager or HR Manager and not Admin/Owner
+    const isOwnerOrAdmin = manager.role === "Admin" || manager.role === "Owner";
+    if (!isOwnerOrAdmin) {
+      const requester = leave.employee;
+      const managerName = manager.name.toLowerCase();
+      const isReportingManager =
+        (requester.reportingManager && requester.reportingManager.toLowerCase() === managerName) ||
+        (requester.reportingHR && requester.reportingHR.toLowerCase() === managerName);
+      if (!isReportingManager) {
+        return NextResponse.json({ error: "Forbidden: You are not authorized to approve/reject leaves for this employee" }, { status: 403 });
+      }
     }
 
     if (leave.status !== "Pending") {
