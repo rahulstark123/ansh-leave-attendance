@@ -22,6 +22,12 @@ export default function LoginPage() {
 
   // Sync session authentication state if needed
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("error");
+    if (authError) {
+      setErrorMsg(decodeURIComponent(authError.replace(/\+/g, " ")));
+    }
+
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -42,7 +48,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + "/dashboard",
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
