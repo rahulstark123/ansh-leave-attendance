@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
-export default function AuthCallbackPage() {
+export default function AuthCompletePage() {
   const router = useRouter();
   const handled = useRef(false);
 
@@ -13,25 +13,9 @@ export default function AuthCallbackPage() {
     if (handled.current) return;
     handled.current = true;
 
-    const completeOAuthSignIn = async () => {
+    const finishSignIn = async () => {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        const oauthError = params.get("error_description") || params.get("error");
-
-        if (oauthError) {
-          router.replace(`/login?error=${encodeURIComponent(oauthError)}`);
-          return;
-        }
-
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            router.replace(`/login?error=${encodeURIComponent(error.message)}`);
-            return;
-          }
-        }
-
+        const supabase = createClient();
         const {
           data: { session },
           error: sessionError,
@@ -57,12 +41,12 @@ export default function AuthCallbackPage() {
 
         router.replace(data.onboardingRequired ? "/onboarding" : "/dashboard");
       } catch (err) {
-        console.error("OAuth callback failed:", err);
+        console.error("Auth complete failed:", err);
         router.replace("/login?error=Google+sign-in+failed");
       }
     };
 
-    void completeOAuthSignIn();
+    void finishSignIn();
   }, [router]);
 
   return (
