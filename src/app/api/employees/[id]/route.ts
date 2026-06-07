@@ -14,9 +14,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Role check (relaxed for testing)
-    const isAuthorized = true;
-
     // Check if target employee exists and belongs to the same workspace
     const targetEmp = await prisma.employee.findUnique({
       where: { id },
@@ -28,6 +25,17 @@ export async function PATCH(
 
     if (targetEmp.wid !== employee.wid) {
       return NextResponse.json({ error: "Forbidden: Cross-workspace modification not allowed" }, { status: 403 });
+    }
+
+    // Role check: Admin, Owner, or designated reporting manager/HR of that person (case-insensitive name check)
+    const isAuthorized =
+      employee.role === "Admin" ||
+      employee.role === "Owner" ||
+      (targetEmp.reportingManager && targetEmp.reportingManager.toLowerCase() === employee.name.toLowerCase()) ||
+      (targetEmp.reportingHR && targetEmp.reportingHR.toLowerCase() === employee.name.toLowerCase());
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Forbidden: You are not authorized to edit this employee" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -113,9 +121,6 @@ export async function DELETE(
     }
 
 
-    // Role check (relaxed for testing)
-    const isAuthorized = true;
-
     // Check if target employee exists and belongs to the same workspace
     const targetEmp = await prisma.employee.findUnique({
       where: { id },
@@ -127,6 +132,17 @@ export async function DELETE(
 
     if (targetEmp.wid !== employee.wid) {
       return NextResponse.json({ error: "Forbidden: Cross-workspace modification not allowed" }, { status: 403 });
+    }
+
+    // Role check: Admin, Owner, or designated reporting manager/HR of that person (case-insensitive name check)
+    const isAuthorized =
+      employee.role === "Admin" ||
+      employee.role === "Owner" ||
+      (targetEmp.reportingManager && targetEmp.reportingManager.toLowerCase() === employee.name.toLowerCase()) ||
+      (targetEmp.reportingHR && targetEmp.reportingHR.toLowerCase() === employee.name.toLowerCase());
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Forbidden: You are not authorized to delete this employee" }, { status: 403 });
     }
 
     await prisma.employee.delete({

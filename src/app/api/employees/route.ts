@@ -26,22 +26,7 @@ export async function GET(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    let scopedEmployees = [];
-    if (employee.role === "Admin" || employee.role === "Owner") {
-      scopedEmployees = allEmployees;
-    } else if (employee.role === "Manager" || employee.role === "HR Manager") {
-      const managerName = employee.name.toLowerCase();
-      scopedEmployees = allEmployees.filter(
-        (emp) =>
-          emp.id === employee.id ||
-          (emp.reportingManager && emp.reportingManager.toLowerCase() === managerName) ||
-          (emp.reportingHR && emp.reportingHR.toLowerCase() === managerName)
-      );
-    } else {
-      scopedEmployees = allEmployees.filter((emp) => emp.id === employee.id);
-    }
-
-    return NextResponse.json({ employees: scopedEmployees });
+    return NextResponse.json({ employees: allEmployees });
   } catch (error) {
     console.error("API /api/employees GET error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

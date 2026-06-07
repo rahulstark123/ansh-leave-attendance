@@ -724,7 +724,7 @@ export default function TeamPage() {
               className="pl-10 h-11 bg-card rounded-xl border border-slate-200 focus-visible:border-primary shadow-sm"
             />
           </div>
-          {isAuthorized && (
+          {((currentUser?.role === "Admin" || currentUser?.role === "Owner" || currentUser?.role === "Manager" || currentUser?.role === "HR Manager")) && (
             <button
               onClick={() => {
                 resetForm();
@@ -783,7 +783,10 @@ export default function TeamPage() {
                   <Tag className="h-3 w-3" />
                   {emp.employeeCode || "No ID Code"}
                 </span>
-                {isAuthorized && (
+                {((currentUser?.role === "Admin" ||
+                  currentUser?.role === "Owner" ||
+                  (emp.reportingManager && emp.reportingManager.toLowerCase() === currentUser?.name.toLowerCase()) ||
+                  (emp.reportingHR && emp.reportingHR.toLowerCase() === currentUser?.name.toLowerCase())) && (
                   <div className="flex gap-2">
                     <button
                       onClick={(e) => {
@@ -806,7 +809,7 @@ export default function TeamPage() {
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                )}
+                ))}
               </div>
 
               <CardContent className="pt-6 flex-1 flex flex-col">
@@ -1869,7 +1872,11 @@ export default function TeamPage() {
                   </div>
                 </div>
                 <div className="relative flex items-center gap-1.5">
-                  {isAuthorized && selectedMemberForDetail.id !== currentUser?.id && (
+                  {((currentUser?.role === "Admin" ||
+                    currentUser?.role === "Owner" ||
+                    (selectedMemberForDetail.reportingManager && selectedMemberForDetail.reportingManager.toLowerCase() === currentUser?.name.toLowerCase()) ||
+                    (selectedMemberForDetail.reportingHR && selectedMemberForDetail.reportingHR.toLowerCase() === currentUser?.name.toLowerCase())) &&
+                    selectedMemberForDetail.id !== currentUser?.id) && (
                     <>
                       <button
                         type="button"
