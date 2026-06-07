@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, ShieldAlert, Sparkles, Smile, VideoOff, RefreshCw, Camera } from "lucide-react";
+import { Loader2, ShieldAlert, Sparkles, Smile, VideoOff, RefreshCw, Camera, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FaceScanDialogProps {
@@ -13,27 +13,27 @@ interface FaceScanDialogProps {
 }
 
 type ScanStatus = "initializing" | "ready" | "verifying" | "matched" | "failed" | "error";
+type LocationStatus = "idle" | "requesting" | "acquired" | "denied" | "unavailable";
 
 export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceScanDialogProps) {
   const [status, setStatus] = useState<ScanStatus>("initializing");
   const [subStatus, setSubStatus] = useState("Opening camera...");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const coordsRef = useRef<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const geoWatchIdRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
-      stopCamera();
-      coordsRef.current = { lat: null, lng: null };
-    } else {
-      initScan();
+  const stopLocationCapture = useCallback(() => {
+    if (geoWatchIdRef.current != null) {
+      navigator.geolocation.clearWatch(geoWatchIdRef.current);
+      geoWatchIdRef.current = null;
     }
-    return () => stopCamera();
-  }, [isOpen]);
+  }, []);
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -41,9 +41,9 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-  };
+  }, []);
 
-  const getCoordinates = (): Promise<{ lat: number | null; lng: number | null }> => {
+  const getGpsCoordinates = (): Promise<{ lat: number | null; lng: number | null }> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
         resolve({ lat: null, lng: null });
@@ -56,10 +56,114 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
             lng: position.coords.longitude,
           }),
         () => resolve({ lat: null, lng: null }),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     });
   };
+
+  const getIpCoordinates = async (): Promise<{ lat: number | null; lng: number | null }> => {
+    try {
+      const res = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return { lat: null, lng: null };
+      const data = (await res.json()) as { success?: boolean; latitude?: number; longitude?: number };
+      if (data.success && typeof data.latitude === "number" && typeof data.longitude === "number") {
+        return { lat: data.latitude, lng: data.longitude };
+      }
+    } catch {
+      /* ignore */
+    }
+    return { lat: null, lng: null };
+  };
+
+  const prefetchIpLocation = useCallback(async () => {
+    const ipCoords = await getIpCoordinates();
+    if (ipCoords.lat != null && ipCoords.lng != null) {
+      if (coordsRef.current.lat == null) {
+        coordsRef.current = ipCoords;
+      }
+      setLocationStatus("acquired");
+      return;
+    }
+    if (coordsRef.current.lat == null) {
+      setLocationStatus((prev) => (prev === "requesting" ? prev : "unavailable"));
+    }
+  }, []);
+
+  const startLocationCapture = useCallback(() => {
+    coordsRef.current = { lat: null, lng: null };
+    setLocationStatus("idle");
+
+    if (!navigator.geolocation) {
+      void prefetchIpLocation();
+      return;
+    }
+
+    setLocationStatus("requesting");
+    stopLocationCapture();
+    void prefetchIpLocation();
+
+    geoWatchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        coordsRef.current = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setLocationStatus("acquired");
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationStatus("denied");
+        } else {
+          setLocationStatus("unavailable");
+        }
+        void prefetchIpLocation();
+      },
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+    );
+  }, [stopLocationCapture, prefetchIpLocation]);
+
+  const resolveCoordinates = async (): Promise<{ lat: number | null; lng: number | null }> => {
+    if (coordsRef.current.lat != null && coordsRef.current.lng != null) {
+      return coordsRef.current;
+    }
+
+    const gps = await getGpsCoordinates();
+    if (gps.lat != null && gps.lng != null) {
+      coordsRef.current = gps;
+      setLocationStatus("acquired");
+      return gps;
+    }
+
+    const ipCoords = await getIpCoordinates();
+    if (ipCoords.lat != null && ipCoords.lng != null) {
+      coordsRef.current = ipCoords;
+      setLocationStatus("acquired");
+      return ipCoords;
+    }
+
+    if (locationStatus === "denied") {
+      setLocationStatus("denied");
+    } else {
+      setLocationStatus("unavailable");
+    }
+
+    return { lat: null, lng: null };
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      stopCamera();
+      stopLocationCapture();
+      coordsRef.current = { lat: null, lng: null };
+      setLocationStatus("idle");
+    } else {
+      initScan();
+    }
+    return () => {
+      stopCamera();
+      stopLocationCapture();
+    };
+  }, [isOpen, stopCamera, stopLocationCapture]);
 
   const captureFrame = (): string | null => {
     if (!videoRef.current) return null;
@@ -88,6 +192,7 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
     setStatus("initializing");
     setSubStatus("Opening camera...");
     setErrorMsg(null);
+    startLocationCapture();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -130,27 +235,24 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
     }
 
     setStatus("verifying");
-    setSubStatus("Allow location if prompted — verifying face...");
+    setSubStatus("Getting your location...");
     setErrorMsg(null);
 
-    // Must request GPS on the Capture click (user gesture) — async face verify breaks permission otherwise.
-    const coordsPromise = getCoordinates();
+    const coords = await resolveCoordinates();
+    coordsRef.current = coords;
+
+    setSubStatus("Verifying face...");
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
-      const [coords, res] = await Promise.all([
-        coordsPromise,
-        fetch("/api/employee/face-verify", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ selfie: selfieBase64 }),
-        }),
-      ]);
-
-      coordsRef.current = coords;
+      const res = await fetch("/api/employee/face-verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ selfie: selfieBase64 }),
+      });
 
       const data = await res.json().catch(() => ({}));
 
@@ -272,6 +374,27 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
               <span className="text-xs font-extrabold text-emerald-500">Logging your punch...</span>
             )}
           </div>
+
+          {status === "ready" && (
+            <div
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${
+                locationStatus === "acquired"
+                  ? "bg-emerald-500/10 text-emerald-600"
+                  : locationStatus === "denied"
+                    ? "bg-amber-500/10 text-amber-600"
+                    : locationStatus === "requesting"
+                      ? "bg-blue-500/10 text-blue-600"
+                      : "bg-slate-500/10 text-slate-500"
+              }`}
+            >
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {locationStatus === "acquired" && "Location captured"}
+              {locationStatus === "requesting" && "Acquiring GPS location..."}
+              {locationStatus === "denied" && "Location blocked — approximate IP location will be used"}
+              {locationStatus === "unavailable" && "GPS unavailable — approximate IP location will be used"}
+              {locationStatus === "idle" && "Location will be captured on punch"}
+            </div>
+          )}
 
           {status === "ready" && (
             <Button

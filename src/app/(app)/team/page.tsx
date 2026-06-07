@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { useLeaveStore } from "@/stores/leave-store";
+import { useLeaveStore, type PunchRecord } from "@/stores/leave-store";
+import { sortByAppliedAtRecentFirst, sortPunchRecordsRecentFirst } from "@/lib/sort-recent-first";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SelfieVerifyDialog } from "@/components/attendance/SelfieVerifyDialog";
+import { PunchLocationMapDialog } from "@/components/attendance/PunchLocationMapDialog";
 import { CustomSelect, type CustomSelectOption } from "@/components/ui/custom-select";
 import {
   Search,
@@ -45,10 +47,22 @@ import {
   Eye
 } from "lucide-react";
 
+const BLOOD_GROUP_OPTIONS: CustomSelectOption[] = [
+  { value: "A+", label: "A+" },
+  { value: "A-", label: "A-" },
+  { value: "B+", label: "B+" },
+  { value: "B-", label: "B-" },
+  { value: "AB+", label: "AB+" },
+  { value: "AB-", label: "AB-" },
+  { value: "O+", label: "O+" },
+  { value: "O-", label: "O-" },
+];
+
 export default function TeamPage() {
   const { employees, currentUser, initialize } = useLeaveStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [scopeFilter, setScopeFilter] = useState<"All" | "My Team">("All");
 
   // Auth check (relaxed to true for sandbox testing so all roles see action buttons)
   const isAuthorized = true;
@@ -239,14 +253,10 @@ export default function TeamPage() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
 
   // Track expanded details card id
   const [expandedEmpId, setExpandedEmpId] = useState<string | null>(null);
-
-  // Additional fields for editing leave balances
-  const [annualBalance, setAnnualBalance] = useState("15");
-  const [sickBalance, setSickBalance] = useState("8");
-  const [casualBalance, setCasualBalance] = useState("6");
 
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [deletingEmpId, setDeletingEmpId] = useState("");
@@ -265,8 +275,7 @@ export default function TeamPage() {
   const [detailLeaves, setDetailLeaves] = useState<any[]>([]);
   const [detailPunches, setDetailPunches] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [selectedPunchForMap, setSelectedPunchForMap] = useState<any | null>(null);
-  const [mapTab, setMapTab] = useState<"punch-in" | "punch-out">("punch-in");
+  const [selectedPunchForMap, setSelectedPunchForMap] = useState<PunchRecord | null>(null);
   const [selectedSelfieAudit, setSelectedSelfieAudit] = useState<{
     punch: any;
     url: string;
@@ -333,8 +342,8 @@ export default function TeamPage() {
       });
 
       const [leaves, punches] = await Promise.all([leavesPromise, punchesPromise]);
-      setDetailLeaves(leaves);
-      setDetailPunches(punches);
+      setDetailLeaves(sortByAppliedAtRecentFirst(leaves));
+      setDetailPunches(sortPunchRecordsRecentFirst(punches));
     } catch (err) {
       console.error("Failed to load employee details for drawer:", err);
     } finally {
@@ -365,9 +374,7 @@ export default function TeamPage() {
     setDateOfBirth("");
     setEmergencyContactName("");
     setEmergencyContactPhone("");
-    setAnnualBalance("15");
-    setSickBalance("8");
-    setCasualBalance("6");
+    setBloodGroup("");
     setErrorMsg("");
     setSuccessMsg("");
     setCurrentStep(1);
@@ -404,9 +411,7 @@ export default function TeamPage() {
     setDateOfBirth(emp.dateOfBirth || "");
     setEmergencyContactName(emp.emergencyContactName || "");
     setEmergencyContactPhone(emp.emergencyContactPhone || "");
-    setAnnualBalance(String(emp.leaveBalance?.Annual ?? 15));
-    setSickBalance(String(emp.leaveBalance?.Sick ?? 8));
-    setCasualBalance(String(emp.leaveBalance?.Casual ?? 6));
+    setBloodGroup(emp.bloodGroup || "");
     setEditCurrentStep(1);
     setIsEditModalOpen(true);
     setIsDetailActionsOpen(false);
@@ -495,12 +500,14 @@ export default function TeamPage() {
     }
   };
 
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddSubmit = async () => {
+    if (currentStep !== 3) return;
+
     setErrorMsg("");
     const stepErr = validateStep1(true);
     if (stepErr) {
       setErrorMsg(stepErr);
+      setCurrentStep(1);
       return;
     }
     setLoading(true);
@@ -534,6 +541,7 @@ export default function TeamPage() {
           dateOfBirth,
           emergencyContactName: emergencyContactName.trim(),
           emergencyContactPhone: emergencyContactPhone.trim(),
+          bloodGroup: bloodGroup || null,
         }),
       });
 
@@ -553,8 +561,9 @@ export default function TeamPage() {
     }
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditSubmit = async () => {
+    if (editCurrentStep !== 3) return;
+
     if (!selectedEmp) return;
     setErrorMsg("");
     setLoading(true);
@@ -572,9 +581,6 @@ export default function TeamPage() {
           department,
           role,
           status,
-          annualBalance,
-          sickBalance,
-          casualBalance,
           employeeCode: employeeCode.trim(),
           phoneNumber: phoneNumber ? phoneNumber.trim() : "",
           joiningDate,
@@ -589,6 +595,7 @@ export default function TeamPage() {
           dateOfBirth,
           emergencyContactName: emergencyContactName.trim(),
           emergencyContactPhone: emergencyContactPhone.trim(),
+          bloodGroup: bloodGroup || null,
         }),
       });
 
@@ -651,7 +658,12 @@ export default function TeamPage() {
 
     const matchesStatus = statusFilter === "All" || emp.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesScope =
+      scopeFilter === "All" ||
+      (emp.reportingManager && emp.reportingManager.toLowerCase() === currentUser?.name.toLowerCase()) ||
+      (emp.reportingHR && emp.reportingHR.toLowerCase() === currentUser?.name.toLowerCase());
+
+    return matchesSearch && matchesStatus && matchesScope;
   });
 
   const filteredShiftOptions = shifts.filter((s: any) => {
@@ -738,23 +750,49 @@ export default function TeamPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {["All", "Active", "On Leave", "Half-day"].map((filter) => {
-            const active = statusFilter === filter;
-            return (
-              <button
-                key={filter}
-                onClick={() => setStatusFilter(filter)}
-                className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all outline-none cursor-pointer ${
-                  active
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-400"
-                }`}
-              >
-                {filter}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Scope Filters: All vs My Team */}
+          <div className="flex bg-slate-105 dark:bg-slate-800/80 rounded-xl p-1 gap-0.5 border border-slate-200/50 dark:border-slate-800/50">
+            {(["All", "My Team"] as const).map((scope) => {
+              const active = scopeFilter === scope;
+              return (
+                <button
+                  key={scope}
+                  type="button"
+                  onClick={() => setScopeFilter(scope)}
+                  className={`rounded-lg px-4.5 py-1.5 text-xs font-extrabold transition-all outline-none cursor-pointer ${
+                    active
+                      ? "bg-white text-slate-800 shadow-sm dark:bg-slate-900 dark:text-white"
+                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {scope}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+
+          {/* Status Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {["All", "Active", "On Leave", "Half-day"].map((filter) => {
+              const active = statusFilter === filter;
+              return (
+                <button
+                  key={filter}
+                  onClick={() => setStatusFilter(filter)}
+                  className={`rounded-xl px-4 py-2.5 text-xs font-bold transition-all outline-none cursor-pointer ${
+                    active
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-500 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-400"
+                  }`}
+                >
+                  {filter}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -943,7 +981,14 @@ export default function TeamPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleAddSubmit}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (currentStep === 3) {
+                  void handleAddSubmit();
+                }
+              }}
+            >
               {renderStepper(currentStep)}
               <CardContent className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 {errorMsg && (
@@ -1230,6 +1275,14 @@ export default function TeamPage() {
                         />
                       </div>
                     </div>
+
+                    <CustomSelect
+                      label="Blood Group"
+                      value={bloodGroup}
+                      options={BLOOD_GROUP_OPTIONS}
+                      onChange={setBloodGroup}
+                      placeholder="Select blood group"
+                    />
                   </div>
                 )}
 
@@ -1282,8 +1335,9 @@ export default function TeamPage() {
                         Back
                       </Button>
                       <Button
-                        type="submit"
+                        type="button"
                         disabled={loading}
+                        onClick={() => void handleAddSubmit()}
                         className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
                       >
                         {loading ? (
@@ -1320,7 +1374,14 @@ export default function TeamPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleEditSubmit}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editCurrentStep === 3) {
+                  void handleEditSubmit();
+                }
+              }}
+            >
               {renderStepper(editCurrentStep)}
               <CardContent className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                 {errorMsg && (
@@ -1575,52 +1636,13 @@ export default function TeamPage() {
                       </div>
                     </div>
 
-                    <div className="border-t border-border/40 pt-4 space-y-4">
-                      <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-                        Adjust Leave Allowance pools
-                      </span>
-                      <div className="grid gap-4 sm:grid-cols-3">
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Annual Leave
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={annualBalance}
-                            onChange={(e) => setAnnualBalance(e.target.value)}
-                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Sick Leave
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={sickBalance}
-                            onChange={(e) => setSickBalance(e.target.value)}
-                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Casual Leave
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={casualBalance}
-                            onChange={(e) => setCasualBalance(e.target.value)}
-                            className="block w-full rounded-2xl border border-border bg-transparent px-4 py-3 text-xs outline-none focus:border-primary/45"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    <CustomSelect
+                      label="Blood Group"
+                      value={bloodGroup}
+                      options={BLOOD_GROUP_OPTIONS}
+                      onChange={setBloodGroup}
+                      placeholder="Select blood group"
+                    />
                   </div>
                 )}
 
@@ -1673,8 +1695,9 @@ export default function TeamPage() {
                         Back
                       </Button>
                       <Button
-                        type="submit"
+                        type="button"
                         disabled={loading}
+                        onClick={() => void handleEditSubmit()}
                         className="btn-primary w-full text-xs font-bold uppercase tracking-wider h-10 cursor-pointer"
                       >
                         {loading ? (
@@ -2023,13 +2046,23 @@ export default function TeamPage() {
                     </div>
 
                     {/* Emergency Contact */}
-                    {(selectedMemberForDetail.emergencyContactName || selectedMemberForDetail.emergencyContactPhone) && (
+                    {(selectedMemberForDetail.emergencyContactName ||
+                      selectedMemberForDetail.emergencyContactPhone ||
+                      selectedMemberForDetail.bloodGroup) && (
                       <div className="rounded-2xl bg-rose-500/5 border border-rose-500/10 p-4 space-y-2">
                         <span className="block text-[10px] font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
                           <ShieldAlert className="h-4 w-4 shrink-0" />
-                          Emergency Contact
+                          Emergency Information
                         </span>
                         <div className="text-xs space-y-1">
+                          {selectedMemberForDetail.bloodGroup && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-400">Blood Group</span>
+                              <span className="font-bold text-slate-700 dark:text-slate-200">
+                                {selectedMemberForDetail.bloodGroup}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400">Name</span>
                             <span className="font-bold text-slate-700 dark:text-slate-200">{selectedMemberForDetail.emergencyContactName || "N/A"}</span>
@@ -2224,10 +2257,7 @@ export default function TeamPage() {
                                         <div>
                                           <span className="block text-[9px] uppercase text-slate-400 font-bold">Location</span>
                                           <button
-                                            onClick={() => {
-                                              setSelectedPunchForMap(punch);
-                                              setMapTab(punch.punchInLat ? "punch-in" : "punch-out");
-                                            }}
+                                            onClick={() => setSelectedPunchForMap(punch)}
                                             className="inline-flex h-4.5 w-4.5 items-center justify-center rounded text-slate-450 hover:text-primary transition-colors cursor-pointer"
                                             title="View location map"
                                           >
@@ -2252,93 +2282,10 @@ export default function TeamPage() {
           </div>
         </div>
       )}
-      <Dialog open={selectedPunchForMap !== null} onOpenChange={(open) => !open && setSelectedPunchForMap(null)}>
-        <DialogContent className="sm:max-w-[460px] p-6 rounded-3xl border border-border/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <DialogHeader className="pb-4 border-b border-border/40">
-            <DialogTitle className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary animate-pulse" />
-              <span>Punch Geotag Location Map</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedPunchForMap && (
-            <div className="space-y-6 pt-4">
-              {/* Tab selector for punch in/out location */}
-              {selectedPunchForMap.punchInLat && selectedPunchForMap.punchOutLat && (
-                <div className="flex border border-border/60 rounded-xl p-1 bg-slate-50 dark:bg-slate-950 text-xs font-bold gap-1">
-                  <button
-                    onClick={() => setMapTab("punch-in")}
-                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
-                      mapTab === "punch-in"
-                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    Check-in Location
-                  </button>
-                  <button
-                    onClick={() => setMapTab("punch-out")}
-                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
-                      mapTab === "punch-out"
-                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    Check-out Location
-                  </button>
-                </div>
-              )}
-
-              {/* Embed map */}
-              {((mapTab === "punch-in" && selectedPunchForMap.punchInLat) || (mapTab === "punch-out" && selectedPunchForMap.punchOutLat)) ? (
-                <div className="space-y-4">
-                  <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-border bg-slate-50 dark:bg-slate-950 shadow-inner">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) + 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) + 0.005}&layer=mapnik&marker=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat}%2C${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
-                      className="absolute inset-0"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-border/20 text-xs">
-                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
-                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Event Type</span>
-                      <span className="font-bold text-primary capitalize">{mapTab.replace("-", " ")} Location</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
-                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Coordinates</span>
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">
-                        {(mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat)?.toFixed(6)}, {(mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng)?.toFixed(6)}
-                      </span>
-                    </div>
-                    <div className="pt-2.5 flex items-center justify-between gap-4">
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat},${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 inline-flex h-9 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer text-center"
-                      >
-                        Open in Google Maps
-                      </a>
-                      <button
-                        onClick={() => setSelectedPunchForMap(null)}
-                        className="rounded-xl border border-border px-4 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-slate-400 text-xs">
-                  No location logged for this event.
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PunchLocationMapDialog
+        punch={selectedPunchForMap}
+        onClose={() => setSelectedPunchForMap(null)}
+      />
 
       <SelfieVerifyDialog
         isOpen={selectedSelfieAudit !== null}

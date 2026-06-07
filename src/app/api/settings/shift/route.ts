@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     // Fetch existing shifts for this workspace
     let shifts = await prisma.shift.findMany({
       where: { wid },
-      orderBy: { createdAt: "asc" }
+      orderBy: { createdAt: "desc" }
     });
 
     // Lazy seed default shifts if none exist in the database for this wid
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
       shifts = await prisma.shift.findMany({
         where: { wid },
-        orderBy: { createdAt: "asc" }
+        orderBy: { createdAt: "desc" }
       });
     }
 

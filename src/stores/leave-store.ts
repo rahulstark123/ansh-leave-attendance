@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { sortByAppliedAtRecentFirst, sortPunchRecordsRecentFirst } from "@/lib/sort-recent-first";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { queuedLocalStorage } from "@/lib/safe-storage";
 import { isFaceEnrolled } from "@/lib/face-enrollment";
@@ -58,11 +59,14 @@ export interface Employee {
   reportingHR?: string;
   facePhotos?: string[];
   faceEnrolled?: boolean;
+  bloodGroup?: string;
 }
 
 interface LeaveState {
   employees: Employee[];
   leaves: LeaveRequest[];
+  dashboardEmployees: Employee[];
+  dashboardLeaves: LeaveRequest[];
   punchHistory: PunchRecord[];
   currentPunchIn: string | null; // ISO String of when user punched in
   currentPunchInPhoto: string | null; // S3 URL of punch-in selfie
@@ -290,6 +294,7 @@ const mapDbEmployee = (dbEmp: any): Employee => {
     reportingHR: dbEmp.reportingHR || undefined,
     facePhotos: dbEmp.facePhotos || [],
     faceEnrolled: isFaceEnrolled(dbEmp.facePhotos, dbEmp.faceEmbedding),
+    bloodGroup: dbEmp.bloodGroup || undefined,
   };
 };
 
@@ -310,6 +315,8 @@ export const useLeaveStore = create<LeaveState>()(
     (set) => ({
       employees: initialEmployees,
       leaves: initialLeaves,
+      dashboardEmployees: initialEmployees,
+      dashboardLeaves: initialLeaves,
       punchHistory: initialPunchHistory,
       currentPunchIn: null,
       currentPunchInPhoto: null,
@@ -318,6 +325,7 @@ export const useLeaveStore = create<LeaveState>()(
       currentUser: initialEmployees[0],
       faceEnrolled: false,
       setFaceEnrolled: (enrolled: boolean) => set({ faceEnrolled: enrolled }),
+
 
       initialize: async () => {
         try {
@@ -329,8 +337,10 @@ export const useLeaveStore = create<LeaveState>()(
 
           const currentUser = mapDbEmployee(data.currentUser);
           const employees = (data.employees || []).map(mapDbEmployee);
-          const leaves = data.leaves || [];
-          const punchHistory = data.punchHistory || [];
+          const leaves = sortByAppliedAtRecentFirst(data.leaves || []) as LeaveRequest[];
+          const dashboardEmployees = (data.dashboardEmployees || []).map(mapDbEmployee);
+          const dashboardLeaves = sortByAppliedAtRecentFirst(data.dashboardLeaves || []) as LeaveRequest[];
+          const punchHistory = sortPunchRecordsRecentFirst(data.punchHistory || []) as PunchRecord[];
           const currentPunchIn = data.currentPunchIn || null;
           const currentPunchInPhoto = data.currentPunchInPhoto || null;
           const currentPunchInLat = data.currentPunchInLat || null;
@@ -341,6 +351,8 @@ export const useLeaveStore = create<LeaveState>()(
             currentUser,
             employees: employees.length ? employees : [currentUser],
             leaves,
+            dashboardEmployees: dashboardEmployees.length ? dashboardEmployees : [currentUser],
+            dashboardLeaves,
             punchHistory,
             currentPunchIn,
             currentPunchInPhoto,
@@ -365,8 +377,9 @@ export const useLeaveStore = create<LeaveState>()(
           const data = await res.json();
           if (data.leave) {
             set((state) => ({
-              leaves: [data.leave, ...state.leaves],
+              leaves: sortByAppliedAtRecentFirst([data.leave, ...state.leaves]),
             }));
+            await useLeaveStore.getState().initialize();
           }
         } catch (error) {
           console.error(error);
@@ -418,6 +431,7 @@ export const useLeaveStore = create<LeaveState>()(
               currentUser: updatedCurrentUser,
             };
           });
+          await useLeaveStore.getState().initialize();
         } catch (error) {
           console.error(error);
         }
@@ -438,6 +452,7 @@ export const useLeaveStore = create<LeaveState>()(
               l.id === id ? { ...l, status: "Rejected" as LeaveStatus } : l
             ),
           }));
+          await useLeaveStore.getState().initialize();
         } catch (error) {
           console.error(error);
         }
@@ -457,9 +472,17 @@ export const useLeaveStore = create<LeaveState>()(
           set({
             currentPunchIn: data.currentPunchIn,
             currentPunchInPhoto: data.currentPunchInPhoto || null,
-            currentPunchInLat: data.currentPunchInLat || null,
-            currentPunchInLng: data.currentPunchInLng || null,
+            currentPunchInLat: data.currentPunchInLat ?? null,
+            currentPunchInLng: data.currentPunchInLng ?? null,
           });
+          if (data.punchRecord) {
+            set((state) => ({
+              punchHistory: sortPunchRecordsRecentFirst([
+                data.punchRecord,
+                ...state.punchHistory.filter((p) => p.id !== data.punchRecord.id),
+              ]),
+            }));
+          }
           set((state) => ({
             currentUser: { ...state.currentUser, status: "Active" },
             employees: state.employees.map((e) =>
@@ -487,18 +510,26 @@ export const useLeaveStore = create<LeaveState>()(
             currentPunchInPhoto: null,
             currentPunchInLat: null,
             currentPunchInLng: null,
-            punchHistory: [data.punchRecord, ...state.punchHistory],
+            punchHistory: data.punchRecord
+              ? sortPunchRecordsRecentFirst(
+                  state.punchHistory.map((p) =>
+                    p.id === data.punchRecord.id ? data.punchRecord : p
+                  )
+                )
+              : state.punchHistory,
           }));
         } catch (error) {
           console.error(error);
         }
       },
 
-      switchUser: (id) =>
+      switchUser: (id) => {
         set((state) => {
           const user = state.employees.find((e) => e.id === id) || state.currentUser;
           return { currentUser: user };
-        }),
+        });
+        useLeaveStore.getState().initialize();
+      },
 
       updateLeave: async (id, req) => {
         try {
@@ -514,6 +545,7 @@ export const useLeaveStore = create<LeaveState>()(
             set((state) => ({
               leaves: state.leaves.map((l) => (l.id === id ? data.leave : l)),
             }));
+            await useLeaveStore.getState().initialize();
           }
         } catch (error) {
           console.error(error);
@@ -531,6 +563,7 @@ export const useLeaveStore = create<LeaveState>()(
           set((state) => ({
             leaves: state.leaves.filter((l) => l.id !== id),
           }));
+          await useLeaveStore.getState().initialize();
         } catch (error) {
           console.error(error);
         }

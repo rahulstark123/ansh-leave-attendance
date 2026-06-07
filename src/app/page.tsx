@@ -933,9 +933,9 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between border-t border-white/5 pt-8 text-[11px] text-slate-500 font-medium">
             <span>© 2026 ANSH HR. All rights reserved.</span>
             <div className="flex gap-4.5 mt-4 sm:mt-0">
-              <a href="#" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-slate-300 transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-slate-300 transition-colors">Contact Us</a>
+              <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms & Conditions</Link>
+              <a href="mailto:hello@anshapps.com" className="hover:text-slate-300 transition-colors">Contact Us</a>
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { PanelLeftClose, PanelLeft, Calendar, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mainNav, getSectionFromPath } from "@/config/navigation";
 import { useUiStore } from "@/stores/ui-store";
+import { useLeaveStore } from "@/stores/leave-store";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
@@ -15,6 +16,7 @@ export function MainSidebar() {
   const activeSection = getSectionFromPath(pathname);
   const isHelpActive = pathname === "/help";
   const { mainSidebarCollapsed, setMainSidebarCollapsed, toggleMainSidebar } = useUiStore();
+  const { currentUser } = useLeaveStore();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1499px)");
@@ -59,6 +61,14 @@ export function MainSidebar() {
 
       <nav className="flex-1 space-y-1.5 px-3 py-6">
         {mainNav.map((item) => {
+          if (item.id === "reports") {
+            const isAllowed = 
+              currentUser?.role === "Admin" ||
+              currentUser?.role === "Owner" ||
+              currentUser?.role === "HR Manager" ||
+              currentUser?.role === "Manager";
+            if (!isAllowed) return null;
+          }
           const isActive = activeSection === item.id;
           const Icon = item.icon;
           return (

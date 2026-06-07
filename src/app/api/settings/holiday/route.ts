@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     // Fetch existing holidays for this workspace
     let holidays = await prisma.companyHoliday.findMany({
       where: { wid },
-      orderBy: { date: "asc" }
+      orderBy: { date: "desc" }
     });
 
     // Lazy seed default holidays if none exist in the database for this wid
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
       holidays = await prisma.companyHoliday.findMany({
         where: { wid },
-        orderBy: { date: "asc" }
+        orderBy: { date: "desc" }
       });
     }
 

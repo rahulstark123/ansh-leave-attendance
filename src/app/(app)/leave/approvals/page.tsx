@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLeaveStore, type LeaveStatus } from "@/stores/leave-store";
+import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   ShieldAlert,
   UserCheck,
@@ -52,7 +53,9 @@ export default function ApprovalsPage() {
     return true;
   });
 
-  const filteredRequests = visibleLeaves.filter((r) => r.status === activeTab);
+  const filteredRequests = sortByAppliedAtRecentFirst(
+    visibleLeaves.filter((r) => r.status === activeTab)
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

@@ -61,6 +61,7 @@ export async function PATCH(
       dateOfBirth,
       emergencyContactName,
       emergencyContactPhone,
+      bloodGroup,
     } = body;
 
     const updateData: any = {};
@@ -95,6 +96,7 @@ export async function PATCH(
     if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth || null;
     if (emergencyContactName !== undefined) updateData.emergencyContactName = emergencyContactName || null;
     if (emergencyContactPhone !== undefined) updateData.emergencyContactPhone = emergencyContactPhone || null;
+    if (bloodGroup !== undefined) updateData.bloodGroup = bloodGroup || null;
 
     const updated = await prisma.employee.update({
       where: { id },

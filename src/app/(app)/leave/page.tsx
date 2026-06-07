@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLeaveStore, type LeaveType } from "@/stores/leave-store";
+import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -389,12 +390,59 @@ export default function LeavePage() {
   // Only display leave requests applied by the current user
   const myRequests = leaves.filter((l) => l.employeeId === currentUser.id);
 
+  const [timeFilter, setTimeFilter] = useState<string>("This Week");
+
+  const isDateWithinRange = (dateInput: string | Date, range: string) => {
+    const d = new Date(dateInput);
+    d.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (range === "Today") {
+      return d.getTime() === today.getTime();
+    }
+
+    if (range === "This Week") {
+      const day = today.getDay();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - day);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      return d >= startOfWeek && d <= endOfWeek;
+    }
+
+    if (range === "This Month") {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      return d >= startOfMonth && d <= endOfMonth;
+    }
+
+    if (range === "Last 3 Months") {
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+      threeMonthsAgo.setHours(0, 0, 0, 0);
+      return d >= threeMonthsAgo && d <= today;
+    }
+
+    return true; // All Time
+  };
+
+  const filteredRequests = sortByAppliedAtRecentFirst(
+    myRequests.filter((req) => isDateWithinRange(req.appliedAt, timeFilter))
+  );
+
   // Pagination logic
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(myRequests.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
   const activePage = Math.min(currentPage, Math.max(1, totalPages));
-  const paginatedRequests = myRequests.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+  const paginatedRequests = filteredRequests.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
 
   // Custom Select Options definition
   const selectOptions: CustomSelectOption[] = [
@@ -402,7 +450,6 @@ export default function LeavePage() {
     { value: "Sick", label: "Sick Leave", description: "Medical leaves with pay", colorPreview: "bg-sky-500" },
     { value: "Casual", label: "Casual Leave", description: "Personal emergencies allowance", colorPreview: "bg-purple-500" },
     { value: "Unpaid", label: "Unpaid Leave", description: "Time off without salary", colorPreview: "bg-slate-400" },
-    { value: "WFH", label: "Work From Home (WFH)", description: "Remote work days", colorPreview: "bg-amber-500" },
     ...customLeaveTypes
       .filter((cat) => {
         if (!cat.branchId || cat.branchId === "All") return true;
@@ -619,6 +666,36 @@ export default function LeavePage() {
           icon: Plus,
           onClick: () => setOpen(true),
         }}
+        toolbar={
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Filter:</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex h-10 w-40 items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/20 cursor-pointer select-none">
+                <span>{timeFilter}</span>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md border border-border dark:border-slate-700/80 p-1 space-y-0.5 select-none z-[100] animate-in fade-in slide-in-from-top-1 duration-150">
+                {["Today", "This Week", "This Month", "Last 3 Months", "All Time"].map((option) => (
+                  <DropdownMenuItem
+                    key={option}
+                    onClick={() => {
+                      setTimeFilter(option);
+                      setCurrentPage(1); // Reset page on filter change
+                    }}
+                    className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-all cursor-pointer outline-none ${
+                      timeFilter === option
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-slate-650 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <span>{option}</span>
+                    {timeFilter === option && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        }
       />
 
       {/* LEAVE BALANCES GRID */}
@@ -708,7 +785,7 @@ export default function LeavePage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {myRequests.length === 0 ? (
+          {filteredRequests.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center">
               <CalendarDays className="h-10 w-10 text-slate-300 mb-4" />
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No leave requests found</p>
@@ -797,8 +874,8 @@ export default function LeavePage() {
               <div className="flex items-center justify-between border-t border-border/40 px-6 py-4 bg-slate-50/30 dark:bg-slate-900/10">
                 <div className="text-xs text-slate-400 font-semibold">
                   Showing <span className="font-bold text-slate-700 dark:text-slate-300">{((activePage - 1) * itemsPerPage) + 1}</span> to{" "}
-                  <span className="font-bold text-slate-700 dark:text-slate-300">{Math.min(activePage * itemsPerPage, myRequests.length)}</span> of{" "}
-                  <span className="font-bold text-slate-700 dark:text-slate-300">{myRequests.length}</span> requests
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{Math.min(activePage * itemsPerPage, filteredRequests.length)}</span> of{" "}
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{filteredRequests.length}</span> requests
                 </div>
                 <div className="flex items-center gap-2">
                   <Button

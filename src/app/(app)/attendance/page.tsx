@@ -4,9 +4,17 @@ import { useState } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useLeaveStore, type PunchRecord } from "@/stores/leave-store";
+import { sortPunchRecordsRecentFirst } from "@/lib/sort-recent-first";
 import { SelfieVerifyDialog } from "@/components/attendance/SelfieVerifyDialog";
+import { PunchLocationMapDialog } from "@/components/attendance/PunchLocationMapDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   CalendarDays,
   Clock,
@@ -17,27 +25,81 @@ import {
   ChevronRight,
   Filter,
   Eye,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 
 export default function AttendancePage() {
   const { punchHistory, currentUser } = useLeaveStore();
   const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [timeFilter, setTimeFilter] = useState<string>("This Week");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedPunchForMap, setSelectedPunchForMap] = useState<PunchRecord | null>(null);
-  const [mapTab, setMapTab] = useState<"punch-in" | "punch-out">("punch-in");
   const [selectedSelfieAudit, setSelectedSelfieAudit] = useState<{
     punch: PunchRecord;
     url: string;
     type: "Check-in" | "Check-out";
   } | null>(null);
 
-  const filteredHistory = punchHistory.filter(
+  const isDateWithinRange = (dateStr: string, range: string) => {
+    const recordDate = new Date(dateStr);
+    recordDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (range === "Today") {
+      return recordDate.getTime() === today.getTime();
+    }
+
+    if (range === "This Week") {
+      const day = today.getDay();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - day);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      return recordDate >= startOfWeek && recordDate <= endOfWeek;
+    }
+
+    if (range === "This Month") {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      return recordDate >= startOfMonth && recordDate <= endOfMonth;
+    }
+
+    if (range === "Last 3 Months") {
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(today.getMonth() - 3);
+      threeMonthsAgo.setHours(0, 0, 0, 0);
+      return recordDate >= threeMonthsAgo && recordDate <= today;
+    }
+
+    return true; // All Time
+  };
+
+  const timeFilteredHistory = sortPunchRecordsRecentFirst(
+    punchHistory.filter((p) => isDateWithinRange(p.date, timeFilter))
+  );
+
+  const filteredHistory = timeFilteredHistory.filter(
     (p) => statusFilter === "All" || p.status === statusFilter
   );
 
+  // Pagination logic
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const activePage = Math.min(currentPage, Math.max(1, totalPages));
+  const paginatedHistory = filteredHistory.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+
   // Statistics calculations
-  const totalDays = punchHistory.length;
-  const lateCount = punchHistory.filter((p) => p.status === "Late").length;
-  const onTimeCount = punchHistory.filter((p) => p.status === "On-time" || p.status === "WFH").length;
+  const totalDays = timeFilteredHistory.length;
+  const lateCount = timeFilteredHistory.filter((p) => p.status === "Late").length;
+  const onTimeCount = timeFilteredHistory.filter((p) => p.status === "On-time" || p.status === "WFH").length;
   const onTimePercentage = totalDays > 0 ? Math.round((onTimeCount / totalDays) * 100) : 100;
 
   return (
@@ -46,6 +108,36 @@ export default function AttendancePage() {
         eyebrow="Time & Attendance Tracking"
         title="Attendance Logs"
         description="Review your monthly punch in/out timestamps, check-in statuses, and cumulative working shift hours."
+        toolbar={
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Filter:</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex h-10 w-40 items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/20 cursor-pointer select-none">
+                <span>{timeFilter}</span>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md border border-border dark:border-slate-700/80 p-1 space-y-0.5 select-none z-[100] animate-in fade-in slide-in-from-top-1 duration-150">
+                {["Today", "This Week", "This Month", "Last 3 Months", "All Time"].map((option) => (
+                  <DropdownMenuItem
+                    key={option}
+                    onClick={() => {
+                      setTimeFilter(option);
+                      setCurrentPage(1);
+                    }}
+                    className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-all cursor-pointer outline-none ${
+                      timeFilter === option
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-slate-650 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <span>{option}</span>
+                    {timeFilter === option && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        }
       />
 
       {/* KPI METRICS OVERVIEW */}
@@ -117,7 +209,10 @@ export default function AttendancePage() {
             return (
               <button
                 key={filter}
-                onClick={() => setStatusFilter(filter)}
+                onClick={() => {
+                  setStatusFilter(filter);
+                  setCurrentPage(1);
+                }}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all outline-none cursor-pointer ${
                   active
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
@@ -146,216 +241,179 @@ export default function AttendancePage() {
                 No attendance punches logged
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                Records appear here after you check in and check out.
+                Records appear here after you check in.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border/40 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    <th className="px-6 py-4">Work Date</th>
-                    <th className="px-6 py-4">Punch In Time</th>
-                    <th className="px-6 py-4">Punch Out Time</th>
-                    <th className="px-6 py-4 text-center">Shift Duration</th>
-                    <th className="px-6 py-4">Status Status</th>
-                    <th className="px-6 py-4 text-center">Location</th>
-                    <th className="px-6 py-4 text-right">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40 text-sm">
-                  {filteredHistory.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-all"
-                    >
-                      <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">
-                        {new Date(p.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">
-                        <div className="flex items-center gap-2">
-                          <span>{p.punchIn}</span>
-                          {p.punchInPhoto && (
-                            <button
-                              onClick={() => setSelectedSelfieAudit({
-                                punch: p,
-                                url: p.punchInPhoto!,
-                                type: "Check-in"
-                              })}
-                              title="View & Verify Check-in Selfie"
-                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">
-                        {p.punchOut ? (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border/40 bg-slate-50/50 dark:bg-slate-900/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      <th className="px-6 py-4">Work Date</th>
+                      <th className="px-6 py-4">Punch In Time</th>
+                      <th className="px-6 py-4">Punch Out Time</th>
+                      <th className="px-6 py-4 text-center">Shift Duration</th>
+                      <th className="px-6 py-4">Status Status</th>
+                      <th className="px-6 py-4 text-center">Location</th>
+                      <th className="px-6 py-4 text-right">Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40 text-sm">
+                    {paginatedHistory.map((p) => (
+                      <tr
+                        key={p.id}
+                        className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-all"
+                      >
+                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">
+                          {new Date(p.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">
                           <div className="flex items-center gap-2">
-                            <span>{p.punchOut}</span>
-                            {p.punchOutPhoto && (
+                            <span>{p.punchIn}</span>
+                            {p.punchInPhoto && (
                               <button
                                 onClick={() => setSelectedSelfieAudit({
                                   punch: p,
-                                  url: p.punchOutPhoto!,
-                                  type: "Check-out"
+                                  url: p.punchInPhoto!,
+                                  type: "Check-in"
                                 })}
-                                title="View & Verify Check-out Selfie"
+                                title="View & Verify Check-in Selfie"
                                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                               >
                                 <Eye className="h-3.5 w-3.5" />
                               </button>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-xs text-primary animate-pulse font-bold">Active...</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-300">
-                        {p.duration || "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        {p.status === "On-time" ? (
-                          <Badge className="bg-emerald-500/10 text-emerald-600 border-0 hover:bg-emerald-500/10">
-                            On-time
-                          </Badge>
-                        ) : p.status === "Late" ? (
-                          <Badge className="bg-amber-500/10 text-amber-600 border-0 hover:bg-amber-500/10">
-                            Late
-                          </Badge>
-                        ) : p.status === "Half-day" ? (
-                          <Badge className="bg-blue-500/10 text-blue-600 border-0 hover:bg-blue-500/10">
-                            Half-day
-                          </Badge>
-                        ) : p.status === "WFH" ? (
-                          <Badge className="bg-indigo-500/10 text-indigo-600 border-0 hover:bg-indigo-500/10">
-                            WFH
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive">Absent</Badge>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {(p.punchInLat != null || p.punchOutLat != null) ? (
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">
+                          {p.punchOut ? (
+                            <div className="flex items-center gap-2">
+                              <span>{p.punchOut}</span>
+                              {p.punchOutPhoto && (
+                                <button
+                                  onClick={() => setSelectedSelfieAudit({
+                                    punch: p,
+                                    url: p.punchOutPhoto!,
+                                    type: "Check-out"
+                                  })}
+                                  title="View & Verify Check-out Selfie"
+                                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-primary animate-pulse font-bold">Active...</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center font-bold text-slate-700 dark:text-slate-300">
+                          {p.duration || "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          {p.status === "On-time" ? (
+                            <Badge className="bg-emerald-500/10 text-emerald-600 border-0 hover:bg-emerald-500/10">
+                              On-time
+                            </Badge>
+                          ) : p.status === "Late" ? (
+                            <Badge className="bg-amber-500/10 text-amber-600 border-0 hover:bg-amber-500/10">
+                              Late
+                            </Badge>
+                          ) : p.status === "Half-day" ? (
+                            <Badge className="bg-blue-500/10 text-blue-600 border-0 hover:bg-blue-500/10">
+                              Half-day
+                            </Badge>
+                          ) : p.status === "WFH" ? (
+                            <Badge className="bg-indigo-500/10 text-indigo-600 border-0 hover:bg-indigo-500/10">
+                              WFH
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">Absent</Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
                           <button
-                            onClick={() => {
-                              setSelectedPunchForMap(p);
-                              setMapTab(p.punchInLat ? "punch-in" : "punch-out");
-                            }}
+                            onClick={() => setSelectedPunchForMap(p)}
                             className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border text-slate-400 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
                             title="View punch location map"
                           >
                             <MapPin className="h-4 w-4" />
                           </button>
-                        ) : (
-                          <span className="text-xs text-slate-300">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right text-xs text-slate-400 font-semibold">
-                        {p.status === "Late" ? "Grace time exceeded" : "Routine logged"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        </td>
+                        <td className="px-6 py-4 text-right text-xs text-slate-400 font-semibold">
+                          {!p.punchOut
+                            ? "Shift in progress"
+                            : p.status === "Late"
+                              ? "Grace time exceeded"
+                              : "Routine logged"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* PAGINATION CONTROLS */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-border/40 px-6 py-4 bg-slate-50/30 dark:bg-slate-900/10">
+                  <div className="text-xs text-slate-400 font-semibold">
+                    Showing <span className="font-bold text-slate-700 dark:text-slate-300">{((activePage - 1) * itemsPerPage) + 1}</span> to{" "}
+                    <span className="font-bold text-slate-700 dark:text-slate-300">{Math.min(activePage * itemsPerPage, filteredHistory.length)}</span> of{" "}
+                    <span className="font-bold text-slate-700 dark:text-slate-300">{filteredHistory.length}</span> logs
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={activePage === 1}
+                      className="h-8 rounded-lg text-xs font-bold px-3 py-1 cursor-pointer select-none"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={activePage === page ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-8 w-8 rounded-lg text-xs font-bold cursor-pointer select-none p-0 ${
+                            activePage === page
+                              ? "bg-primary text-primary-foreground border-0 hover:bg-primary/90"
+                              : "text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={activePage === totalPages}
+                      className="h-8 rounded-lg text-xs font-bold px-3 py-1 cursor-pointer select-none"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
 
-      <Dialog open={selectedPunchForMap !== null} onOpenChange={(open) => !open && setSelectedPunchForMap(null)}>
-        <DialogContent className="sm:max-w-[460px] p-6 rounded-3xl border border-border/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <DialogHeader className="pb-4 border-b border-border/40">
-            <DialogTitle className="text-base font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary animate-pulse" />
-              <span>Punch Geotag Location Map</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedPunchForMap && (
-            <div className="space-y-6 pt-4">
-              {/* Tab selector for punch in/out location */}
-              {selectedPunchForMap.punchInLat && selectedPunchForMap.punchOutLat && (
-                <div className="flex border border-border/60 rounded-xl p-1 bg-slate-50 dark:bg-slate-950 text-xs font-bold gap-1">
-                  <button
-                    onClick={() => setMapTab("punch-in")}
-                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
-                      mapTab === "punch-in"
-                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    Check-in Location
-                  </button>
-                  <button
-                    onClick={() => setMapTab("punch-out")}
-                    className={`flex-1 py-1.5 rounded-lg text-center cursor-pointer transition-colors ${
-                      mapTab === "punch-out"
-                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm border border-border/40"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    Check-out Location
-                  </button>
-                </div>
-              )}
-
-              {/* Embed map */}
-              {((mapTab === "punch-in" && selectedPunchForMap.punchInLat) || (mapTab === "punch-out" && selectedPunchForMap.punchOutLat)) ? (
-                <div className="space-y-4">
-                  <div className="relative w-full h-[280px] rounded-2xl overflow-hidden border border-border bg-slate-50 dark:bg-slate-950 shadow-inner">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) - 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLng! : selectedPunchForMap.punchOutLng!) + 0.005}%2C${(mapTab === "punch-in" ? selectedPunchForMap.punchInLat! : selectedPunchForMap.punchOutLat!) + 0.005}&layer=mapnik&marker=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat}%2C${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
-                      className="absolute inset-0"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-border/20 text-xs">
-                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
-                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Event Type</span>
-                      <span className="font-bold text-primary capitalize">{mapTab.replace("-", " ")} Location</span>
-                    </div>
-                    <div className="flex justify-between items-center py-0.5 border-b border-border/10">
-                      <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Coordinates</span>
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">
-                        {(mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat)?.toFixed(6)}, {(mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng)?.toFixed(6)}
-                      </span>
-                    </div>
-                    <div className="pt-2.5 flex items-center justify-between gap-4">
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${mapTab === "punch-in" ? selectedPunchForMap.punchInLat : selectedPunchForMap.punchOutLat},${mapTab === "punch-in" ? selectedPunchForMap.punchInLng : selectedPunchForMap.punchOutLng}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 inline-flex h-9 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer text-center"
-                      >
-                        Open in Google Maps
-                      </a>
-                      <button
-                        onClick={() => setSelectedPunchForMap(null)}
-                        className="rounded-xl border border-border px-4 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-slate-400 text-xs">
-                  No location logged for this event.
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PunchLocationMapDialog
+        punch={selectedPunchForMap}
+        onClose={() => setSelectedPunchForMap(null)}
+      />
 
       <SelfieVerifyDialog
         isOpen={selectedSelfieAudit !== null}

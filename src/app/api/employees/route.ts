@@ -60,8 +60,9 @@ export async function POST(req: Request) {
       rosterShift,
       personalEmail,
       dateOfBirth,
-      emergencyContactName,
+  emergencyContactName,
       emergencyContactPhone,
+      bloodGroup,
     } = body;
 
     if (!name || !email || !department || !role) {
@@ -161,6 +162,7 @@ export async function POST(req: Request) {
         dateOfBirth: dateOfBirth || null,
         emergencyContactName: emergencyContactName || null,
         emergencyContactPhone: emergencyContactPhone || null,
+        bloodGroup: bloodGroup || null,
       },
     });
 

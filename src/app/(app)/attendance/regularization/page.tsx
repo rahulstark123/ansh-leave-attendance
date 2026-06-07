@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLeaveStore } from "@/stores/leave-store";
+import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   CalendarDays,
   Plus,
@@ -74,7 +75,7 @@ export default function RegularizationPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setRequests(data.requests || []);
+        setRequests(sortByAppliedAtRecentFirst(data.requests || []));
       }
     } catch (err) {
       console.error("Failed to load regularization requests:", err);
@@ -135,7 +136,7 @@ export default function RegularizationPage() {
 
       const data = await res.json();
       if (data.request) {
-        setRequests([data.request, ...requests]);
+        setRequests(sortByAppliedAtRecentFirst([data.request, ...requests]));
         setSuccessMsg("Regularization request submitted successfully!");
         setIsOpen(false);
         setReqDate("");
@@ -173,7 +174,7 @@ export default function RegularizationPage() {
 
       const data = await res.json();
       if (data.request) {
-        setRequests(requests.map((r) => (r.id === id ? { ...r, status } : r)));
+        setRequests(sortByAppliedAtRecentFirst(requests.map((r) => (r.id === id ? { ...r, status } : r))));
         setSuccessMsg(`Request successfully ${status.toLowerCase()}!`);
         setTimeout(() => setSuccessMsg(""), 4000);
 
@@ -188,11 +189,15 @@ export default function RegularizationPage() {
     }
   };
 
-  const myRequests = requests.filter((r) => r.employeeId === currentUser.id);
-  const pendingTeamRequests = requests.filter(
-    (r) => r.status === "Pending" && r.employeeId !== currentUser.id
+  const myRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.employeeId === currentUser.id)
   );
-  const allTeamRequests = requests.filter((r) => r.employeeId !== currentUser.id);
+  const pendingTeamRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.status === "Pending" && r.employeeId !== currentUser.id)
+  );
+  const allTeamRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.employeeId !== currentUser.id)
+  );
 
   if (loading) {
     return (

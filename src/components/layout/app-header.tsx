@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Search, ChevronDown, LogOut } from "lucide-react";
+import { Bell, Search, ChevronDown, LogOut, User, Calendar, Clock, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { useGlobalSearchStore } from "@/stores/global-search-store";
 import { useLeaveStore } from "@/stores/leave-store";
@@ -24,10 +25,35 @@ export function AppHeader() {
   const isMac = useIsMac();
   const router = useRouter();
   const setSearchOpen = useGlobalSearchStore((s) => s.setOpen);
-  const { currentUser, employees, switchUser, leaves } = useLeaveStore();
+  const { currentUser, leaves } = useLeaveStore();
   const pendingCount = leaves.filter((l) => l.status === "Pending").length;
   
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<any>(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+    setHoverTimeout(timeout);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+      }
+    };
+  }, [hoverTimeout]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -82,9 +108,11 @@ export function AppHeader() {
           )}
         </Button>
 
-        {/* User switcher */}
-        <DropdownMenu>
+        {/* User switcher & Shortcuts dropdown */}
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-sm transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
           >
             <Avatar className="h-8 w-8 rounded-lg">
@@ -102,33 +130,67 @@ export function AppHeader() {
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8} className="w-52">
-            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest">
-              Switch User (Demo)
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {employees.map((emp) => (
+          <DropdownMenuContent 
+            align="end" 
+            sideOffset={8} 
+            className="w-56 bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md border border-border dark:border-slate-800 p-1.5 space-y-0.5 select-none animate-in fade-in slide-in-from-top-1 duration-150"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* User Details info */}
+            <div className="px-2.5 py-2 flex items-center gap-2.5 border-b border-border/40 mb-1">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground">
+                {currentUser.avatarInitials}
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                  {currentUser.name}
+                </span>
+                <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-primary leading-none mt-0.5">
+                  {currentUser.role}
+                </span>
+              </div>
+            </div>
+
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2.5 py-1 block">
+                Shortcuts
+              </DropdownMenuLabel>
               <DropdownMenuItem
-                key={emp.id}
-                onClick={() => switchUser(emp.id)}
-                className={cn(
-                  "gap-2.5 cursor-pointer",
-                  emp.id === currentUser.id && "bg-primary/5 text-primary"
-                )}
+                onClick={() => router.push("/settings/profile")}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer outline-none"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
-                  {emp.avatarInitials}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-semibold">{emp.name}</span>
-                  <span className="block truncate text-[10px] text-muted-foreground">{emp.role}</span>
-                </span>
+                <User className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-semibold">My Profile</span>
               </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => router.push("/leave")}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer outline-none"
+              >
+                <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-semibold">Leave Requests</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push("/attendance")}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer outline-none"
+              >
+                <Clock className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-semibold">Attendance Logs</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push("/settings/profile")}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-350 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-all cursor-pointer outline-none"
+              >
+                <Settings className="h-4 w-4 text-slate-400 shrink-0" />
+                <span className="font-semibold">Account Settings</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator className="bg-border/40 dark:bg-slate-800/50 my-1" />
+
             <DropdownMenuItem
               onClick={handleLogout}
-              className="gap-2.5 text-rose-500 hover:text-rose-600 focus:text-rose-600 cursor-pointer font-bold"
+              className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs transition-all text-rose-500 hover:bg-rose-500/10 cursor-pointer outline-none font-bold"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               <span>Log out Session</span>

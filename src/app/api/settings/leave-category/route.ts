@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     // Fetch existing leave categories for this workspace
     let leaveCategories = await prisma.leaveCategory.findMany({
       where: { wid },
-      orderBy: { createdAt: "asc" }
+      orderBy: { createdAt: "desc" }
     });
 
     // Lazy seed default categories if none exist in the database for this wid
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
 
       leaveCategories = await prisma.leaveCategory.findMany({
         where: { wid },
-        orderBy: { createdAt: "asc" }
+        orderBy: { createdAt: "desc" }
       });
     }
 

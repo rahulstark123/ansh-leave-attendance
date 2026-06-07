@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLeaveStore } from "@/stores/leave-store";
+import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   CalendarDays,
   Plus,
@@ -80,7 +81,7 @@ export default function WFHPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setRequests(data.requests || []);
+        setRequests(sortByAppliedAtRecentFirst(data.requests || []));
       }
     } catch (err) {
       console.error("Failed to load WFH requests:", err);
@@ -226,7 +227,7 @@ export default function WFHPage() {
 
       const data = await res.json();
       if (data.request) {
-        setRequests([data.request, ...requests]);
+        setRequests(sortByAppliedAtRecentFirst([data.request, ...requests]));
         setSuccessMsg("WFH request submitted successfully!");
         setIsOpen(false);
         setStartDate("");
@@ -266,7 +267,7 @@ export default function WFHPage() {
 
       const data = await res.json();
       if (data.request) {
-        setRequests(requests.map((r) => (r.id === id ? { ...r, status } : r)));
+        setRequests(sortByAppliedAtRecentFirst(requests.map((r) => (r.id === id ? { ...r, status } : r))));
         setSuccessMsg(`WFH request successfully ${status.toLowerCase()}!`);
         setTimeout(() => setSuccessMsg(""), 4000);
 
@@ -281,11 +282,15 @@ export default function WFHPage() {
     }
   };
 
-  const myRequests = requests.filter((r) => r.employeeId === currentUser?.id);
-  const pendingTeamRequests = requests.filter(
-    (r) => r.status === "Pending" && r.employeeId !== currentUser?.id
+  const myRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.employeeId === currentUser?.id)
   );
-  const allTeamRequests = requests.filter((r) => r.employeeId !== currentUser?.id);
+  const pendingTeamRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.status === "Pending" && r.employeeId !== currentUser?.id)
+  );
+  const allTeamRequests = sortByAppliedAtRecentFirst(
+    requests.filter((r) => r.employeeId !== currentUser?.id)
+  );
 
   const activeDaysCount = calculateTotalDays(startDate, endDate, halfDay);
   const excludedHolidays = getExcludedHolidays(startDate, endDate);

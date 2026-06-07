@@ -3,6 +3,8 @@
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLeaveStore } from "@/stores/leave-store";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   TrendingUp,
   Award,
@@ -12,10 +14,66 @@ import {
   CalendarDays,
   Target,
   AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function ReportsPage() {
-  const { employees, leaves } = useLeaveStore();
+  const { employees: allEmployees, leaves: allLeaves, currentUser } = useLeaveStore();
+
+  const isAllowed = 
+    currentUser?.role === "Admin" ||
+    currentUser?.role === "Owner" ||
+    currentUser?.role === "HR Manager" ||
+    currentUser?.role === "Manager";
+
+  // Filter based on role
+  let employees = allEmployees;
+  let leaves = allLeaves;
+
+  if (currentUser?.role === "Manager") {
+    const managerName = currentUser.name.toLowerCase();
+    employees = allEmployees.filter(
+      (emp) =>
+        emp.id === currentUser.id ||
+        (emp.reportingManager && emp.reportingManager.toLowerCase() === managerName)
+    );
+    const employeeIds = new Set(employees.map((e) => e.id));
+    leaves = allLeaves.filter((l) => employeeIds.has(l.employeeId));
+  } else if (currentUser?.role === "HR Manager") {
+    const hrName = currentUser.name.toLowerCase();
+    employees = allEmployees.filter(
+      (emp) =>
+        emp.id === currentUser.id ||
+        (emp.reportingHR && emp.reportingHR.toLowerCase() === hrName)
+    );
+    const employeeIds = new Set(employees.map((e) => e.id));
+    leaves = allLeaves.filter((l) => employeeIds.has(l.employeeId));
+  }
+
+  if (!isAllowed) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in duration-500">
+        <Card className="crm-card max-w-md p-8 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800">
+          <div className="h-14 w-14 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-6">
+            <ShieldAlert className="h-6 w-6" />
+          </div>
+          <h2 className="text-lg font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+            Access Denied
+          </h2>
+          <p className="text-xs text-slate-400 mt-2.5 leading-relaxed font-semibold">
+            You do not have the required permissions to view organization reports and analytics. This section is restricted to Admins, Owners, Managers, and HR Managers.
+          </p>
+          <div className="mt-6 w-full">
+            <Link href="/dashboard" className="w-full">
+              <Button className="btn-primary w-full h-11 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   // Statistics calculation
   const totalApprovedLeaves = leaves

@@ -41,6 +41,7 @@ model Employee {
   dateOfBirth           String?        // Date of Birth (YYYY-MM-DD)
   emergencyContactName  String?        // Emergency Contact Name
   emergencyContactPhone String?        // Emergency Contact Phone Number
+  bloodGroup            String?        // e.g. A+, B-, O+
   faceEmbedding         Float[]
   facePhotos            String[]
   createdAt             DateTime       @default(now())

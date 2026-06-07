@@ -6,6 +6,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 import { isFaceEnrolled } from "@/lib/face-enrollment";
 import { resolveCoordsFromRequest } from "@/lib/ip-geolocation";
+import { calculatePunchStatus, formatPunchTime } from "@/lib/punch-utils";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hjnqlybokoljhxyzsqqi.supabase.co";
 
@@ -25,8 +26,31 @@ export async function GET(req: Request) {
     const wid = employee.wid ?? 1;
     const punches = await prisma.punchRecord.findMany({
       where: { employeeId: employee.id, wid },
-      orderBy: { date: "desc" },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
     });
+
+    // Backfill open row for employees punched in before create-on-check-in was deployed
+    if (employee.currentPunchIn) {
+      const hasOpenRecord = punches.some((p) => p.punchOut === null);
+      if (!hasOpenRecord) {
+        const pinTime = new Date(employee.currentPunchIn);
+        const backfilled = await prisma.punchRecord.create({
+          data: {
+            employeeId: employee.id,
+            date: pinTime.toISOString().split("T")[0],
+            punchIn: formatPunchTime(pinTime),
+            punchOut: null,
+            duration: null,
+            status: calculatePunchStatus(pinTime),
+            wid,
+            punchInPhoto: employee.currentPunchInPhoto,
+            punchInLat: employee.currentPunchInLat,
+            punchInLng: employee.currentPunchInLng,
+          },
+        });
+        punches.unshift(backfilled);
+      }
+    }
 
     return NextResponse.json({
       currentPunchIn: employee.currentPunchIn,
@@ -97,23 +121,47 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Already punched in" }, { status: 400 });
       }
 
-      const updatedEmployee = await prisma.employee.update({
-        where: { id: employee.id },
-        data: {
-          currentPunchIn: new Date().toISOString(),
-          currentPunchInPhoto: selfieUrl,
-          currentPunchInLat: latitude,
-          currentPunchInLng: longitude,
-          status: "Active",
-        },
+      const pinTime = new Date();
+      const status = calculatePunchStatus(pinTime);
+      const wid = employee.wid ?? 1;
+
+      const result = await prisma.$transaction(async (tx) => {
+        const punchRecord = await tx.punchRecord.create({
+          data: {
+            employeeId: employee.id,
+            date: pinTime.toISOString().split("T")[0],
+            punchIn: formatPunchTime(pinTime),
+            punchOut: null,
+            duration: null,
+            status,
+            wid,
+            punchInPhoto: selfieUrl,
+            punchInLat: latitude,
+            punchInLng: longitude,
+          },
+        });
+
+        const updatedEmployee = await tx.employee.update({
+          where: { id: employee.id },
+          data: {
+            currentPunchIn: pinTime.toISOString(),
+            currentPunchInPhoto: selfieUrl,
+            currentPunchInLat: latitude,
+            currentPunchInLng: longitude,
+            status: "Active",
+          },
+        });
+
+        return { punchRecord, updatedEmployee };
       });
 
       return NextResponse.json({
-        currentPunchIn: updatedEmployee.currentPunchIn,
-        currentPunchInPhoto: updatedEmployee.currentPunchInPhoto,
-        currentPunchInLat: updatedEmployee.currentPunchInLat,
-        currentPunchInLng: updatedEmployee.currentPunchInLng,
-        status: updatedEmployee.status,
+        punchRecord: result.punchRecord,
+        currentPunchIn: result.updatedEmployee.currentPunchIn,
+        currentPunchInPhoto: result.updatedEmployee.currentPunchInPhoto,
+        currentPunchInLat: result.updatedEmployee.currentPunchInLat,
+        currentPunchInLng: result.updatedEmployee.currentPunchInLng,
+        status: result.updatedEmployee.status,
       });
     } else if (action === "punch-out") {
       if (!employee.currentPunchIn) {
@@ -125,52 +173,47 @@ export async function POST(req: Request) {
       const diffMs = poutTime.getTime() - pinTime.getTime();
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
       const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-      const formatTime = (date: Date) => {
-        return date.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
-      };
-
-      const { getSystemSettings } = require("@/lib/settings");
-      const settings = getSystemSettings();
-      const { shiftStartTime, gracePeriod } = settings.attendanceSettings;
-
-      // Parse shiftStartTime e.g. "09:00 AM"
-      const [timeStr, modifier] = shiftStartTime.split(" ");
-      let [hours, minutes] = timeStr.split(":").map(Number);
-      if (modifier === "PM" && hours < 12) hours += 12;
-      if (modifier === "AM" && hours === 12) hours = 0;
-
-      // Create a date object for the shift start time on the check-in day
-      const shiftDate = new Date(pinTime);
-      shiftDate.setHours(hours, minutes, 0, 0);
-
-      // Add grace period in milliseconds
-      const lateThreshold = new Date(shiftDate.getTime() + gracePeriod * 60 * 1000);
-
-      const status = pinTime.getTime() > lateThreshold.getTime() ? "Late" : "On-time";
+      const status = calculatePunchStatus(pinTime);
+      const wid = employee.wid ?? 1;
 
       const punchRecord = await prisma.$transaction(async (tx) => {
-        const record = await tx.punchRecord.create({
-          data: {
-            employeeId: employee.id,
-            date: pinTime.toISOString().split("T")[0],
-            punchIn: formatTime(pinTime),
-            punchOut: formatTime(poutTime),
-            duration: `${diffHrs}h ${diffMins}m`,
-            status: status,
-            wid: employee.wid ?? 1,
-            punchInPhoto: employee.currentPunchInPhoto,
-            punchOutPhoto: selfieUrl,
-            punchInLat: employee.currentPunchInLat,
-            punchInLng: employee.currentPunchInLng,
-            punchOutLat: latitude,
-            punchOutLng: longitude,
-          },
+        const openRecord = await tx.punchRecord.findFirst({
+          where: { employeeId: employee.id, wid, punchOut: null },
+          orderBy: [{ date: "desc" }, { id: "desc" }],
         });
+
+        let record;
+        if (openRecord) {
+          record = await tx.punchRecord.update({
+            where: { id: openRecord.id },
+            data: {
+              punchOut: formatPunchTime(poutTime),
+              duration: `${diffHrs}h ${diffMins}m`,
+              status,
+              punchOutPhoto: selfieUrl,
+              punchOutLat: latitude,
+              punchOutLng: longitude,
+            },
+          });
+        } else {
+          record = await tx.punchRecord.create({
+            data: {
+              employeeId: employee.id,
+              date: pinTime.toISOString().split("T")[0],
+              punchIn: formatPunchTime(pinTime),
+              punchOut: formatPunchTime(poutTime),
+              duration: `${diffHrs}h ${diffMins}m`,
+              status,
+              wid,
+              punchInPhoto: employee.currentPunchInPhoto,
+              punchOutPhoto: selfieUrl,
+              punchInLat: employee.currentPunchInLat,
+              punchInLng: employee.currentPunchInLng,
+              punchOutLat: latitude,
+              punchOutLng: longitude,
+            },
+          });
+        }
 
         await tx.employee.update({
           where: { id: employee.id },
