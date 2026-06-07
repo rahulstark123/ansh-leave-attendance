@@ -300,13 +300,12 @@ const mapDbEmployee = (dbEmp: any): Employee => {
 
 const getHeaders = () => {
   const token = typeof window !== "undefined" ? sessionStorage.getItem("ansh_auth_token") : null;
-  const state = useLeaveStore.getState();
-  const impersonate = state?.currentUser?.id;
+  const impersonateId = typeof window !== "undefined" ? sessionStorage.getItem("ansh_impersonate_user_id") : null;
   
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(impersonate ? { "X-Impersonate-User": impersonate } : {}),
+    ...(impersonateId ? { "X-Impersonate-User": impersonateId } : {}),
   };
 };
 

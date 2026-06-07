@@ -61,9 +61,11 @@ export function AppHeader() {
     await new Promise((resolve) => setTimeout(resolve, 1300));
     const { supabase } = await import("@/lib/supabase/client");
     await supabase.auth.signOut();
+    localStorage.removeItem("ansh-leave-database");
     sessionStorage.removeItem("ansh_auth_session");
     sessionStorage.removeItem("ansh_auth_token");
-    router.push("/login");
+    sessionStorage.removeItem("ansh_impersonate_user_id");
+    window.location.href = "/login";
   };
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, Sparkles, Briefcase, Shield, User, CheckCircle2, Circle, Calendar, Building, MapPin, Users } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Sparkles, Briefcase, Shield, User, CheckCircle2, Circle, Calendar, Building, MapPin, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
 export default function OnboardingPage() {
@@ -17,8 +17,16 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [step, setStep] = useState(1);
 
   const isManagerOrAdmin = role === "Admin" || role === "HR Manager" || role === "Owner";
+
+  useEffect(() => {
+    // If role is employee, ensure we don't end up on step 3
+    if (step === 3 && !isManagerOrAdmin) {
+      setStep(2);
+    }
+  }, [step, isManagerOrAdmin]);
 
   useEffect(() => {
     // Confirm they are authenticated
@@ -54,12 +62,39 @@ export default function OnboardingPage() {
     checkAuth();
   }, [router]);
 
+  const handleNextStep1 = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    if (!name.trim()) {
+      setErrorMsg("Please enter your name.");
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setStep((prev) => Math.max(1, prev - 1));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
     if (!name.trim()) {
       setErrorMsg("Please enter your name.");
+      setStep(1);
+      return;
+    }
+
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+
+    if (step === 2 && isManagerOrAdmin) {
+      setStep(3);
       return;
     }
 
@@ -132,6 +167,33 @@ export default function OnboardingPage() {
     );
   }
 
+  const getStepHeader = () => {
+    switch (step) {
+      case 1:
+        return {
+          title: "Personal Profile",
+          desc: "Verify your pre-filled name and select your department registry."
+        };
+      case 2:
+        return {
+          title: "Account Permission",
+          desc: "Assign an account permission role to determine your workspace privileges."
+        };
+      case 3:
+        return {
+          title: "Workspace Details",
+          desc: "Set up company name, scale size, and address for your organization workspace."
+        };
+      default:
+        return {
+          title: "Workspace Settings",
+          desc: "Set up your profile details, department registry, and workspace role."
+        };
+    }
+  };
+
+  const header = getStepHeader();
+
   return (
     <div className="flex min-h-screen bg-slate-950 font-sans text-slate-100 overflow-hidden select-none">
       
@@ -189,40 +251,66 @@ export default function OnboardingPage() {
             <div className="absolute left-[19px] top-3 bottom-3 w-[2px] bg-slate-800" />
 
             {/* STEP 1 */}
-            <div className="flex gap-4 relative animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                <CheckCircle2 className="h-5.5 w-5.5" />
-              </div>
+            <div className={`flex gap-4 relative transition-all duration-300 ${step < 1 ? "opacity-50" : ""}`}>
+              {step > 1 ? (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                  <CheckCircle2 className="h-5.5 w-5.5" />
+                </div>
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]">
+                  <span className="text-xs font-black">01</span>
+                </div>
+              )}
               <div className="space-y-1 pt-0.5">
-                <h3 className="text-sm font-bold text-white">Step 1: Account Created</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Your credentials have been securely registered and validated with Supabase.
+                <h3 className={`text-sm font-bold ${step === 1 ? "text-sky-400" : "text-white"}`}>Step 1: Personal Profile</h3>
+                <p className={`text-xs leading-relaxed ${step === 1 ? "text-slate-350" : "text-slate-500"}`}>
+                  Tell us your full name and select your department registry.
                 </p>
               </div>
             </div>
 
             {/* STEP 2 */}
-            <div className="flex gap-4 relative animate-in fade-in slide-in-from-bottom-4 duration-400">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]">
-                <span className="text-xs font-black">02</span>
-              </div>
+            <div className={`flex gap-4 relative transition-all duration-300 ${step < 2 ? "opacity-50" : ""}`}>
+              {step > 2 ? (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                  <CheckCircle2 className="h-5.5 w-5.5" />
+                </div>
+              ) : step === 2 ? (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]">
+                  <span className="text-xs font-black">02</span>
+                </div>
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 border border-white/5 text-slate-500">
+                  <Circle className="h-4.5 w-4.5" />
+                </div>
+              )}
               <div className="space-y-1 pt-0.5">
-                <h3 className="text-sm font-bold text-sky-400">Step 2: Profile Mapping</h3>
-                <p className="text-xs text-slate-350 leading-relaxed">
-                  Provide your department registry and company workspace details. Your leave balances will be initialized automatically.
+                <h3 className={`text-sm font-bold ${step === 2 ? "text-sky-400" : step > 2 ? "text-white" : "text-slate-400"}`}>Step 2: Access Permission</h3>
+                <p className={`text-xs leading-relaxed ${step === 2 ? "text-slate-350" : "text-slate-500"}`}>
+                  Assign your role layout. Choose Employee to view/log or administrative for workspace setup.
                 </p>
               </div>
             </div>
 
             {/* STEP 3 */}
-            <div className="flex gap-4 relative opacity-50 animate-in fade-in slide-in-from-bottom-6 duration-500">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 border border-white/5 text-slate-500">
-                <Circle className="h-4.5 w-4.5" />
-              </div>
+            <div className={`flex gap-4 relative transition-all duration-300 ${step < 3 ? "opacity-50" : ""}`}>
+              {step === 3 ? (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.1)]">
+                  <span className="text-xs font-black">03</span>
+                </div>
+              ) : (
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 border border-white/5 text-slate-500">
+                  <Circle className="h-4.5 w-4.5" />
+                </div>
+              )}
               <div className="space-y-1 pt-0.5">
-                <h3 className="text-sm font-bold text-slate-400">Step 3: Launch ANSH HR</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Deploy your workspace database and launch the stateful leave and attendance dashboard.
+                <h3 className={`text-sm font-bold ${step === 3 ? "text-sky-400" : "text-slate-400"}`}>
+                  {role === "Employee" ? "Step 3: Ready to Launch" : "Step 3: Workspace Setup"}
+                </h3>
+                <p className={`text-xs leading-relaxed ${step === 3 ? "text-slate-350" : "text-slate-500"}`}>
+                  {role === "Employee"
+                    ? "Complete profile registration and initialize your leave accounts."
+                    : "Configure company details, team size, and registered physical address."}
                 </p>
               </div>
             </div>
@@ -247,10 +335,10 @@ export default function OnboardingPage() {
               </div>
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">
-              Workspace Settings
+              {header.title}
             </h2>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Verify your pre-filled name, select your department, and assign an account permission role.
+              {header.desc}
             </p>
           </div>
 
@@ -262,177 +350,241 @@ export default function OnboardingPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* FULL NAME */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Full Name
-              </label>
-              <div className="mt-2 relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <User className="h-4.5 w-4.5" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Priya Sharma"
-                  className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all placeholder:text-slate-650 focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40"
-                />
-              </div>
-              <p className="mt-1.5 text-[9px] text-slate-500">
-                * Pre-filled from your signup form. You can adjust it here if needed.
-              </p>
-            </div>
-
-            {/* ROLE SELECTOR */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                Account Permission Role
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { value: "Employee", label: "Employee", desc: "View & log time" },
-                  { value: "HR Manager", label: "HR Manager", desc: "Approve leaves" },
-                  { value: "Admin", label: "Admin", desc: "Full permissions" },
-                  { value: "Owner", label: "Owner", desc: "Full access & billing" }
-                ].map((item) => {
-                  const active = role === item.value;
-                  return (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => setRole(item.value)}
-                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center cursor-pointer ${
-                        active
-                          ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400"
-                          : "bg-slate-950/50 border-white/5 text-slate-500 hover:bg-slate-950/80"
-                      }`}
-                    >
-                      <Shield className={`h-4.5 w-4.5 mb-1.5 ${active ? "text-emerald-400" : "text-slate-600"}`} />
-                      <span className="text-xs font-bold block">{item.label}</span>
-                      <span className="text-[9px] text-slate-500 block mt-0.5 leading-none">{item.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-[9px] text-slate-500 leading-normal">
-                * Account role sets your workspace privileges level. HR Manager & Admins gain access to approvals, settings, and company configurations.
-              </p>
-            </div>
-
-            {/* DEPARTMENT */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Department Registry
-              </label>
-              <div className="mt-2 relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Briefcase className="h-4.5 w-4.5" />
-                </div>
-                <select
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40 appearance-none cursor-pointer"
-                >
-                  <option value="Engineering">Engineering</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Product Design">Product Design</option>
-                  <option value="Data Analytics">Data Analytics</option>
-                  <option value="Executive">Executive</option>
-                  <option value="Marketing">Marketing</option>
-                </select>
-              </div>
-            </div>
-
-            {/* CONDITIONAL COMPANY DETAILS CARD (Admins/HR Managers only) */}
-            {isManagerOrAdmin && (
-              <div className="rounded-2xl border border-sky-500/10 bg-sky-500/5 p-5 space-y-4 animate-in slide-in-from-top-3 duration-300">
-                <div className="flex items-center gap-2 text-sky-400 border-b border-sky-500/10 pb-2">
-                  <Building className="h-4.5 w-4.5" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Company Workspace Setup</span>
-                </div>
-
-                {/* COMPANY NAME */}
+            {/* STEP 1: Personal Info */}
+            {step === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
+                {/* FULL NAME */}
                 <div>
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Company Name
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Full Name
                   </label>
-                  <div className="mt-1.5 relative">
+                  <div className="mt-2 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <User className="h-4.5 w-4.5" />
+                    </div>
                     <input
                       type="text"
                       required
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="e.g. ANSH Solutions"
-                      className="block w-full rounded-xl border border-white/5 bg-slate-950/90 px-3.5 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Priya Sharma"
+                      className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all placeholder:text-slate-650 focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40"
                     />
                   </div>
+                  <p className="mt-1.5 text-[9px] text-slate-500">
+                    * Pre-filled from your signup form. You can adjust it here if needed.
+                  </p>
                 </div>
 
-                {/* EMPLOYEES COUNT */}
+                {/* DEPARTMENT */}
                 <div>
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Company Employee Size
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Department Registry
                   </label>
-                  <div className="mt-1.5 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                      <Users className="h-3.5 w-3.5" />
+                  <div className="mt-2 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Briefcase className="h-4.5 w-4.5" />
                     </div>
                     <select
-                      value={employeeCount}
-                      onChange={(e) => setEmployeeCount(e.target.value)}
-                      className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 appearance-none cursor-pointer"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40 appearance-none cursor-pointer"
                     >
-                      <option value="1-10">1 - 10 employees</option>
-                      <option value="11-50">11 - 50 employees</option>
-                      <option value="51-200">51 - 200 employees</option>
-                      <option value="200+">200+ employees</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Human Resources">Human Resources</option>
+                      <option value="Product Design">Product Design</option>
+                      <option value="Data Analytics">Data Analytics</option>
+                      <option value="Executive">Executive</option>
+                      <option value="Marketing">Marketing</option>
                     </select>
                   </div>
                 </div>
 
-                {/* COMPANY ADDRESS */}
-                <div>
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Company Address
-                  </label>
-                  <div className="mt-1.5 relative">
-                    <div className="absolute top-3 left-3 text-slate-500">
-                      <MapPin className="h-3.5 w-3.5" />
-                    </div>
-                    <textarea
-                      required
-                      rows={2}
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                      placeholder="e.g. 123 Business Park, Mumbai, India"
-                      className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 resize-none"
-                    />
-                  </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleNextStep1}
+                    className="flex w-full justify-center items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/10 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/25 active:scale-[0.98] cursor-pointer"
+                  >
+                    Next Step
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             )}
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full justify-center items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/10 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Completing Setup...
-                  </>
-                ) : (
-                  <>
-                    Complete Workspace Setup
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
+            {/* STEP 2: Role Selector */}
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
+                {/* ROLE SELECTOR */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                    Account Permission Role
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { value: "Employee", label: "Employee", desc: "View & log time" },
+                      { value: "HR Manager", label: "HR Manager", desc: "Approve leaves" },
+                      { value: "Admin", label: "Admin", desc: "Full permissions" },
+                      { value: "Owner", label: "Owner", desc: "Full access & billing" }
+                    ].map((item) => {
+                      const active = role === item.value;
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setRole(item.value)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center cursor-pointer ${
+                            active
+                              ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400"
+                              : "bg-slate-950/50 border-white/5 text-slate-500 hover:bg-slate-950/80"
+                          }`}
+                        >
+                          <Shield className={`h-4.5 w-4.5 mb-1.5 ${active ? "text-emerald-400" : "text-slate-600"}`} />
+                          <span className="text-xs font-bold block">{item.label}</span>
+                          <span className="text-[9px] text-slate-500 block mt-0.5 leading-none">{item.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 text-[9px] text-slate-500 leading-normal">
+                    * Account role sets your workspace privileges level. HR Manager & Admins gain access to approvals, settings, and company configurations.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-slate-800 hover:text-white active:scale-[0.98] cursor-pointer"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex flex-[2] justify-center items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/10 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Completing Setup...
+                      </>
+                    ) : isManagerOrAdmin ? (
+                      <>
+                        Next: Company Setup
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        Complete Setup
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Company Setup (Managers/Admins only) */}
+            {step === 3 && isManagerOrAdmin && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
+                <div className="rounded-2xl border border-sky-500/10 bg-sky-500/5 p-5 space-y-4">
+                  <div className="flex items-center gap-2 text-sky-400 border-b border-sky-500/10 pb-2">
+                    <Building className="h-4.5 w-4.5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Company Workspace Setup</span>
+                  </div>
+
+                  {/* COMPANY NAME */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      Company Name
+                    </label>
+                    <div className="mt-1.5 relative">
+                      <input
+                        type="text"
+                        required
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="e.g. ANSH Solutions"
+                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 px-3.5 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* EMPLOYEES COUNT */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      Company Employee Size
+                    </label>
+                    <div className="mt-1.5 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <Users className="h-3.5 w-3.5" />
+                      </div>
+                      <select
+                        value={employeeCount}
+                        onChange={(e) => setEmployeeCount(e.target.value)}
+                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 appearance-none cursor-pointer"
+                      >
+                        <option value="1-10">1 - 10 employees</option>
+                        <option value="11-50">11 - 50 employees</option>
+                        <option value="51-200">51 - 200 employees</option>
+                        <option value="200+">200+ employees</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* COMPANY ADDRESS */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      Company Address
+                    </label>
+                    <div className="mt-1.5 relative">
+                      <div className="absolute top-3 left-3 text-slate-500">
+                        <MapPin className="h-3.5 w-3.5" />
+                      </div>
+                      <textarea
+                        required
+                        rows={2}
+                        value={companyAddress}
+                        onChange={(e) => setCompanyAddress(e.target.value)}
+                        placeholder="e.g. 123 Business Park, Mumbai, India"
+                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-slate-800 hover:text-white active:scale-[0.98] cursor-pointer"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex flex-[2] justify-center items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/10 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Completing Setup...
+                      </>
+                    ) : (
+                      <>
+                        Complete Workspace Setup
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>

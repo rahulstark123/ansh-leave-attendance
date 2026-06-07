@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLeaveStore } from "@/stores/leave-store";
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 
 export default function ReportsPage() {
-  const { employees: allEmployees, leaves: allLeaves, currentUser } = useLeaveStore();
+  const { currentUser } = useLeaveStore();
 
   const isAllowed = 
     currentUser?.role === "Admin" ||
@@ -26,29 +27,37 @@ export default function ReportsPage() {
     currentUser?.role === "HR Manager" ||
     currentUser?.role === "Manager";
 
-  // Filter based on role
-  let employees = allEmployees;
-  let leaves = allLeaves;
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loading, setLoading] = useState(isAllowed);
+  const [error, setError] = useState<string | null>(null);
 
-  if (currentUser?.role === "Manager") {
-    const managerName = currentUser.name.toLowerCase();
-    employees = allEmployees.filter(
-      (emp) =>
-        emp.id === currentUser.id ||
-        (emp.reportingManager && emp.reportingManager.toLowerCase() === managerName)
-    );
-    const employeeIds = new Set(employees.map((e) => e.id));
-    leaves = allLeaves.filter((l) => employeeIds.has(l.employeeId));
-  } else if (currentUser?.role === "HR Manager") {
-    const hrName = currentUser.name.toLowerCase();
-    employees = allEmployees.filter(
-      (emp) =>
-        emp.id === currentUser.id ||
-        (emp.reportingHR && emp.reportingHR.toLowerCase() === hrName)
-    );
-    const employeeIds = new Set(employees.map((e) => e.id));
-    leaves = allLeaves.filter((l) => employeeIds.has(l.employeeId));
-  }
+  useEffect(() => {
+    if (!isAllowed) return;
+
+    const fetchAnalytics = async () => {
+      try {
+        const token = sessionStorage.getItem("ansh_auth_token");
+        const res = await fetch("/api/analytics", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to load reports data.");
+        }
+        const json = await res.json();
+        setAnalyticsData(json);
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "An unexpected error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [isAllowed]);
 
   if (!isAllowed) {
     return (
@@ -75,48 +84,95 @@ export default function ReportsPage() {
     );
   }
 
-  // Statistics calculation
-  const totalApprovedLeaves = leaves
-    .filter((l) => l.status === "Approved")
-    .reduce((sum, curr) => sum + curr.totalDays, 0);
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-pulse select-none">
+        <div className="space-y-3">
+          <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        </div>
 
-  const annualLeavesTaken = leaves
-    .filter((l) => l.status === "Approved" && l.type === "Annual")
-    .reduce((sum, curr) => sum + curr.totalDays, 0);
+        {/* KPI cards skeleton */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="crm-card border border-slate-200/50 dark:border-slate-800/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-4 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="h-8 w-16 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-  const sickLeavesTaken = leaves
-    .filter((l) => l.status === "Approved" && l.type === "Sick")
-    .reduce((sum, curr) => sum + curr.totalDays, 0);
+        {/* Charts layout skeleton */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <Card key={i} className="crm-card border border-slate-200/50 dark:border-slate-800/50">
+              <CardHeader className="border-b border-border/40 pb-4">
+                <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                {[1, 2, 3, 4, 5].map((j) => (
+                  <div key={j} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                      <div className="h-3 w-12 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                    </div>
+                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  const casualLeavesTaken = leaves
-    .filter((l) => l.status === "Approved" && l.type === "Casual")
-    .reduce((sum, curr) => sum + curr.totalDays, 0);
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in duration-500">
+        <Card className="crm-card max-w-md p-8 flex flex-col items-center justify-center border border-rose-250 dark:border-rose-900/30 bg-rose-500/5">
+          <div className="h-14 w-14 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-6">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <h2 className="text-lg font-extrabold text-rose-500 uppercase tracking-wider">
+            Failed to Load Analytics
+          </h2>
+          <p className="text-xs text-rose-400 mt-2.5 leading-relaxed font-semibold">
+            {error}
+          </p>
+          <div className="mt-6 w-full">
+            <Button
+              onClick={() => window.location.reload()}
+              className="btn-primary w-full h-11 rounded-xl text-xs font-bold uppercase tracking-wider bg-rose-500 hover:bg-rose-600 border-0 text-white cursor-pointer"
+            >
+              Retry Request
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
-  const unpaidOrOtherLeaves = leaves
-    .filter(
-      (l) =>
-        l.status === "Approved" &&
-        (l.type === "Unpaid" || l.type === "Maternity/Paternity")
-    )
-    .reduce((sum, curr) => sum + curr.totalDays, 0);
+  const {
+    absenceRate,
+    totalApprovedLeaves,
+    annualLeavesTaken,
+    sickLeavesTaken,
+    casualLeavesTaken,
+    unpaidOrOtherLeaves,
+    punctualityRate,
+    resourceAvailability,
+    departments,
+  } = analyticsData;
 
-  const totalPossibleBalance = employees.reduce(
-    (sum, curr) =>
-      sum +
-      curr.leaveBalance.Annual +
-      curr.leaveBalance.Sick +
-      curr.leaveBalance.Casual,
-    0
-  );
 
-  // Department ratios (hardcoded standard seeds representing standard distributions)
-  const departments = [
-    { name: "Engineering", attendance: 96, leaves: 5.5, color: "var(--primary)" },
-    { name: "Product Design", attendance: 92, leaves: 4.0, color: "oklch(0.58 0.18 230)" },
-    { name: "Human Resources", attendance: 100, leaves: 3.0, color: "oklch(0.55 0.24 260)" },
-    { name: "Data Analytics", attendance: 88, leaves: 6.5, color: "oklch(0.65 0.24 260)" },
-    { name: "QA Testing", attendance: 94, leaves: 2.0, color: "oklch(0.25 0.02 260)" },
-  ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -137,7 +193,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold text-slate-800 dark:text-white">
-              2.4%
+              {absenceRate}%
             </div>
             <p className="mt-1 text-xs text-emerald-500 font-semibold flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
@@ -166,16 +222,16 @@ export default function ReportsPage() {
         <Card className="crm-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Remaining Pool Balance
+              Punctuality Index
             </CardTitle>
-            <Target className="h-4 w-4 text-purple-500" />
+            <Clock className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold text-slate-800 dark:text-white">
-              {totalPossibleBalance} days
+              {punctualityRate}%
             </div>
             <p className="mt-1 text-xs text-slate-400">
-              Allocated team balance pool
+              Punches logged on-time
             </p>
           </CardContent>
         </Card>
@@ -189,7 +245,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold text-slate-800 dark:text-white">
-              97.6%
+              {resourceAvailability}%
             </div>
             <p className="mt-1 text-xs text-slate-400">
               Daily capacity threshold index
@@ -300,7 +356,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
-            {departments.map((dept) => (
+            {departments.map((dept: any) => (
               <div key={dept.name} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-700 dark:text-slate-300">

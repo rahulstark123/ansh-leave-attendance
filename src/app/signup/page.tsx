@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -54,12 +55,32 @@ export default function SignupPage() {
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("Passwords do not match.");
+      setErrorMsg("Passwords do not match. Please verify your passwords.");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters.");
+      setErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setErrorMsg("Password must contain at least one uppercase letter.");
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setErrorMsg("Password must contain at least one lowercase letter.");
+      return;
+    }
+
+    if (!/\d/.test(password)) {
+      setErrorMsg("Password must contain at least one number.");
+      return;
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setErrorMsg("Password must contain at least one special character (e.g. !, @, #, $, %, etc.).");
       return;
     }
 
@@ -222,15 +243,26 @@ export default function SignupPage() {
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Confirm Password
                 </label>
-                <div className="mt-2">
+                <div className="mt-2 relative">
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat password"
-                    className="block w-full rounded-xl border border-slate-250 bg-white px-4 py-3.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)] outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="block w-full rounded-xl border border-slate-250 bg-white pl-4 pr-10 py-3.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)] outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 outline-none"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4.5 w-4.5" />
+                    ) : (
+                      <Eye className="h-4.5 w-4.5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
