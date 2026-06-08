@@ -60,6 +60,7 @@ export interface Employee {
   facePhotos?: string[];
   faceEnrolled?: boolean;
   bloodGroup?: string;
+  phoneNumber?: string;
 }
 
 interface LeaveState {

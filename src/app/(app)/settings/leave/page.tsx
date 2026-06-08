@@ -1178,14 +1178,14 @@ export default function LeaveSettingPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn w-full cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={loading || !newTypeName.trim()}
-                    className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                   >
                     {loading ? "Adding..." : "Add Leave Type"}
                   </Button>
@@ -1297,7 +1297,7 @@ export default function LeaveSettingPage() {
                     <Button
                       type="button"
                       onClick={() => setPreviewLeaveType(null)}
-                      className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                      className="modal-action-btn w-full cursor-pointer"
                     >
                       Close Details
                     </Button>
@@ -1429,14 +1429,14 @@ export default function LeaveSettingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setEditLeaveType(null)}
-                      className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                      className="modal-action-btn w-full cursor-pointer"
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
                       disabled={loading || !editLeaveType.name.trim()}
-                      className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                      className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                     >
                       {loading ? "Saving..." : "Save Changes"}
                     </Button>
@@ -1630,14 +1630,14 @@ export default function LeaveSettingPage() {
                     setEditPolicy(null);
                     setEditPolicyName("");
                   }}
-                  className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  className="modal-action-btn cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !editPolicyName.trim()}
-                  className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  className="modal-action-btn btn-primary border-0 cursor-pointer"
                 >
                   {loading ? "Renaming..." : "Save Changes"}
                 </Button>
@@ -1682,7 +1682,7 @@ export default function LeaveSettingPage() {
                 variant="outline"
                 onClick={() => setPolicyToDelete(null)}
                 disabled={loading}
-                className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                className="modal-action-btn cursor-pointer"
               >
                 Cancel
               </Button>
@@ -1690,7 +1690,7 @@ export default function LeaveSettingPage() {
                 type="button"
                 onClick={() => handleDeletePolicy(policyToDelete.id)}
                 disabled={loading}
-                className="bg-rose-600 hover:bg-rose-700 text-white border-0 text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer flex items-center gap-2"
+                className="modal-action-btn bg-rose-600 hover:bg-rose-700 text-white border-0 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -1794,14 +1794,14 @@ export default function LeaveSettingPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsAddPolicyModalOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={uploading || !uploadFileName.trim() || !selectedFile}
-                    className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn btn-primary border-0 cursor-pointer"
                   >
                     {uploading ? (
                       <>
@@ -1981,14 +1981,14 @@ export default function LeaveSettingPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsHolidayModalOpen(false)}
-                    className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn w-full cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={loading || !newHolidayName.trim() || !newHolidayDate}
-                    className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                   >
                     {loading ? "Adding..." : "Add Holiday"}
                   </Button>
@@ -2073,14 +2073,14 @@ export default function LeaveSettingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setEditHoliday(null)}
-                      className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                      className="modal-action-btn w-full cursor-pointer"
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
                       disabled={loading || !editHoliday.name.trim() || !editHoliday.date}
-                      className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                      className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                     >
                       {loading ? "Saving..." : "Save Changes"}
                     </Button>

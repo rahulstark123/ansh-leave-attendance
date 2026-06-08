@@ -11,14 +11,20 @@ import { useUiStore } from "@/stores/ui-store";
 import { Loader2 } from "lucide-react";
 
 import { useLeaveStore } from "@/stores/leave-store";
+import { usePlanStore } from "@/stores/plan-store";
+import { PlanUpgradeModal } from "@/components/billing/plan-upgrade-modal";
+import { TrialBanner } from "@/components/billing/trial-banner";
+import { usePlanRouteGuard } from "@/hooks/use-plan-route-guard";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   useGlobalSearchShortcut();
+  usePlanRouteGuard();
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileSize, setIsMobileSize] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const initialize = useLeaveStore((s) => s.initialize);
+  const fetchPlan = usePlanStore((s) => s.fetchPlan);
   const hasChecked = useRef(false);
 
   // Authenticated route protection — runs ONCE on mount only.
@@ -58,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        await initialize();
+        await Promise.all([initialize(), fetchPlan()]);
         setCheckingAuth(false);
       } catch (err) {
         console.error("Auth check failed:", err);
@@ -126,6 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MainSidebar />
       <SubSidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <TrialBanner />
         <AppHeader />
         <main className={isWorkspace ? "mesh-gradient flex-1 flex flex-col overflow-hidden" : "mesh-gradient flex-1 overflow-y-auto"}>
           {isWorkspace ? (
@@ -139,6 +146,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </main>
         <GlobalSearchModal />
+        <PlanUpgradeModal />
       </div>
     </div>
   );

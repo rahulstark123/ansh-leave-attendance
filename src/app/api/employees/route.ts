@@ -3,6 +3,8 @@ import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { getSystemSettings } from "@/lib/settings";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getWorkspaceAccess } from "@/lib/billing/workspace-access";
+import { FREE_MAX_USERS } from "@/lib/billing/plans";
 
 export async function GET(req: Request) {
   try {
@@ -84,6 +86,18 @@ export async function POST(req: Request) {
         where: { id: employee.id },
         data: { wid },
       });
+    }
+
+    const access = await getWorkspaceAccess(wid);
+    const teamCount = await prisma.employee.count({ where: { wid } });
+    if (!access.hasProAccess && teamCount >= access.effectiveMaxUsers) {
+      return NextResponse.json(
+        {
+          error: `Free plan allows up to ${FREE_MAX_USERS} team members. Upgrade to Pro to add more.`,
+          code: "TEAM_LIMIT_REACHED",
+        },
+        { status: 403 }
+      );
     }
 
     // Check if email already exists

@@ -7,6 +7,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { isFaceEnrolled } from "@/lib/face-enrollment";
 import { resolveCoordsFromRequest } from "@/lib/ip-geolocation";
 import { calculatePunchStatus, formatPunchTime } from "@/lib/punch-utils";
+import { canWorkspacePunchIn } from "@/lib/billing/workspace-access";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hjnqlybokoljhxyzsqqi.supabase.co";
 
@@ -121,9 +122,22 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Already punched in" }, { status: 400 });
       }
 
+      const wid = employee.wid ?? 1;
+      const punchCheck = await canWorkspacePunchIn(wid);
+      if (!punchCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: punchCheck.reason,
+            code: "PUNCH_LIMIT_REACHED",
+            punchesUsed: punchCheck.used,
+            punchesLimit: punchCheck.limit,
+          },
+          { status: 403 }
+        );
+      }
+
       const pinTime = new Date();
       const status = calculatePunchStatus(pinTime);
-      const wid = employee.wid ?? 1;
 
       const result = await prisma.$transaction(async (tx) => {
         const punchRecord = await tx.punchRecord.create({

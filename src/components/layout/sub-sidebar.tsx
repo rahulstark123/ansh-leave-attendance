@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { GatedNavLink } from "@/components/billing/gated-nav-link";
+import type { PlanFeatureId } from "@/lib/billing/features";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -22,6 +24,13 @@ export function SubSidebar() {
   const pendingCount = leaves.filter(l => l.status === "Pending").length;
 
   if (!subNav?.length || !section) return null;
+
+  const gatedSubNavFeatures: Record<string, PlanFeatureId> = {
+    holidays: "holidays",
+    policies: "policies",
+    "leave-settings": "leave-categories",
+    "attendance-settings": "shift-roster",
+  };
 
   return (
     <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-border/50 bg-slate-50/50 dark:bg-slate-900/30">
@@ -51,17 +60,15 @@ export function SubSidebar() {
           // Display actual count of pending requests for the approvals tab
           const displayBadge = item.id === "approvals" ? (pendingCount > 0 ? String(pendingCount) : undefined) : item.badge;
 
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={cn(
-                "flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200",
-                isActive
-                  ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-              )}
-            >
+          const featureId = gatedSubNavFeatures[item.id];
+          const itemClassName = cn(
+            "flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200",
+            isActive
+              ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+              : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          );
+          const itemContent = (
+            <>
               <span className="flex items-center gap-2.5">
                 <Icon className={cn("h-4 w-4 shrink-0 transition-opacity", isActive ? "opacity-100" : "opacity-60")} aria-hidden />
                 {item.label}
@@ -77,6 +84,25 @@ export function SubSidebar() {
                   {displayBadge}
                 </Badge>
               )}
+            </>
+          );
+
+          if (featureId) {
+            return (
+              <GatedNavLink
+                key={item.id}
+                href={item.href}
+                featureId={featureId}
+                className={itemClassName}
+              >
+                {itemContent}
+              </GatedNavLink>
+            );
+          }
+
+          return (
+            <Link key={item.id} href={item.href} className={itemClassName}>
+              {itemContent}
             </Link>
           );
         })}

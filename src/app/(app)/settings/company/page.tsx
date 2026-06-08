@@ -972,14 +972,14 @@ export default function CompanySettingPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsAddBranchModalOpen(false)}
-                    className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={branchLoading || !newBranchName.trim() || !newBranchAddress.trim() || !selectedMapLocation}
-                    className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn btn-primary border-0 cursor-pointer"
                   >
                     {branchLoading ? "Saving..." : "Add Office Branch"}
                   </Button>
@@ -1134,7 +1134,7 @@ export default function CompanySettingPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsMapModalOpen(false)}
-                className="text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                className="modal-action-btn cursor-pointer"
               >
                 Cancel
               </Button>
@@ -1159,7 +1159,7 @@ export default function CompanySettingPage() {
                   setIsMapModalOpen(false);
                 }}
                 disabled={!tempAddress}
-                className="btn-primary text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                className="modal-action-btn btn-primary border-0 cursor-pointer"
               >
                 Confirm Location
               </Button>

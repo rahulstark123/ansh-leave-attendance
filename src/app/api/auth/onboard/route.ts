@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
+import { createWorkspaceWithTrial } from "@/lib/billing/workspace-billing";
 
 export async function POST(req: Request) {
   try {
@@ -27,9 +28,9 @@ export async function POST(req: Request) {
     if (existingEmployee && existingEmployee.wid) {
       newWid = existingEmployee.wid;
     } else if (isManagerOrAdmin) {
-      const workspace = await prisma.workspace.create({
-        data: { name: companyName || "New Workspace" }
-      });
+      const workspace = await createWorkspaceWithTrial(
+        companyName || "New Workspace"
+      );
       newWid = workspace.id;
     } else {
       newWid = 1;

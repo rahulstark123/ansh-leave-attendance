@@ -134,13 +134,13 @@ export function FaceManageModal({ employee, onClose, onUpdateComplete, onDeleteC
               </div>
 
               <div className="flex flex-col gap-2.5 pt-4 border-t border-border/40">
-                <div className="flex gap-3">
+                <div className="flex gap-2.5">
                   <Button
                     variant="outline"
                     onClick={() => setIsUpdating(true)}
-                    className="flex-1 text-xs font-bold uppercase tracking-wider h-10 rounded-xl cursor-pointer flex items-center justify-center gap-1.5 border-slate-200 text-slate-600 hover:bg-slate-50"
+                    className="modal-action-btn flex-1 border-slate-200 text-slate-600 hover:bg-slate-50"
                   >
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className="h-4 w-4 shrink-0" />
                     Upload New Photos
                   </Button>
                   
@@ -148,7 +148,7 @@ export function FaceManageModal({ employee, onClose, onUpdateComplete, onDeleteC
                     variant="destructive"
                     onClick={handleDeleteFace}
                     disabled={isDeleting}
-                    className="flex-1 text-xs font-bold uppercase tracking-wider h-10 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                    className="modal-action-btn flex-1 border-0"
                   >
                     {isDeleting ? (
                       <>

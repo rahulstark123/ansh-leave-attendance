@@ -16,11 +16,16 @@ import {
   type GlobalSearchItem,
 } from "@/lib/global-search-index";
 import { cn } from "@/lib/utils";
+import { getFeatureForPath } from "@/lib/billing/features";
+import { usePlanStore } from "@/stores/plan-store";
 
 export function GlobalSearchModal() {
   const router = useRouter();
   const open = useGlobalSearchStore((s) => s.open);
   const setOpen = useGlobalSearchStore((s) => s.setOpen);
+  const hasProAccess = usePlanStore((s) => s.hasProAccess);
+  const loaded = usePlanStore((s) => s.loaded);
+  const requestUpgrade = usePlanStore((s) => s.requestUpgrade);
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -51,9 +56,14 @@ export function GlobalSearchModal() {
   const navigateTo = useCallback(
     (item: GlobalSearchItem) => {
       close();
+      const feature = getFeatureForPath(item.href);
+      if (loaded && feature && !hasProAccess) {
+        requestUpgrade(feature.id);
+        return;
+      }
       router.push(item.href);
     },
-    [close, router]
+    [close, router, loaded, hasProAccess, requestUpgrade]
   );
 
   useEffect(() => {

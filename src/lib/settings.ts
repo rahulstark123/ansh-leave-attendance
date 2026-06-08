@@ -154,7 +154,7 @@ const defaultSettings: SystemSettings = {
   },
   billingSettings: {
     planName: "ANSH HR Premium - Startup Edition",
-    maxUsers: 50,
+    maxUsers: 3,
     price: 0,
     currency: "INR",
   },

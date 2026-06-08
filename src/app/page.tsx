@@ -607,7 +607,7 @@ export default function LandingPage() {
               Flexible Plans Tailored for Your Scale
             </h2>
             <p className="text-xs sm:text-sm text-slate-400">
-              Start logging punches for free, then upgrade as your team expands to access persistent storage logs and advanced reports.
+              Start with core leave and attendance for free. Compare what each plan includes — you can manage billing inside your workspace when you are ready.
             </p>
           </div>
 
@@ -629,42 +629,41 @@ export default function LandingPage() {
                 <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Up to 5 team members</span>
+                    <span>Up to 3 teammates</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>30 punch-ins per month</span>
+                    <span>50 punch-ins per month</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Basic leave request dialogs</span>
+                    <span>Punch in/out attendance tracking</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>3 Face scan registrations</span>
+                    <span>Default annual, sick, and casual leave</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Basic leave requests and approvals</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Employee directory and leave balances</span>
                   </li>
                 </ul>
               </div>
-              <Link href="/signup" className="block w-full">
-                <button className="w-full h-10 border border-slate-800 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
-                  Start Free
-                </button>
-              </Link>
             </div>
 
             {/* Pro Plan */}
             <div className="rounded-3xl border border-emerald-500/25 bg-[#070D14] p-8 flex flex-col justify-between space-y-6 relative hover:border-emerald-500/40 transition-all shadow-xl shadow-emerald-950/20">
-              <div className="absolute top-0 right-8 -translate-y-1/2 bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                Recommended
-              </div>
-              
               <div className="space-y-4">
                 <div className="inline-flex rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
                   Best for MSMEs
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-white">Pro Plan</h3>
-                  <p className="text-[10px] text-slate-500 leading-normal">Complete collaboration, reports, and logs.</p>
+                  <p className="text-[10px] text-slate-500 leading-normal">Per-user pricing that scales with every teammate you add.</p>
                 </div>
                 <div className="flex items-baseline text-white">
                   <span className="text-3xl font-black tracking-tight">₹199</span>
@@ -673,27 +672,38 @@ export default function LandingPage() {
                 <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Unlimited team members</span>
+                    <span>Per-user pricing — scales with your team size</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Unlimited biometric check-ins</span>
+                    <span>Unlimited punch-ins</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Supabase S3 storage archives</span>
+                    <span>Team Space messaging and channels</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Advanced reports & history exports</span>
+                    <span>Shift roster manager with custom timings</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Custom leave categories and rules</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Company holiday calendar by branch</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Policy document hub and handbook uploads</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <span>Team analytics, punctuality, and reports</span>
                   </li>
                 </ul>
               </div>
-              <Link href="/signup" className="block w-full">
-                <button className="w-full h-10 bg-emerald-500 hover:opacity-90 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
-                  Upgrade Workspace
-                </button>
-              </Link>
             </div>
           </div>
         </div>
@@ -782,24 +792,28 @@ export default function LandingPage() {
         <div className="space-y-4">
           {[
             {
-              q: "How does ANSH HR benefit MSMEs compared to traditional biometric devices?",
-              a: "Traditional systems require expensive physical installation, lack dynamic software tracking, and suffer from synchronization lag. ANSH HR runs facial scanning client-side directly in the user's browser, updating shift stopwatch logs instantly with zero device cost."
+              q: "What is included in the Free plan?",
+              a: "Free workspaces include up to 3 teammates and 50 punch-ins per month. You get punch in/out attendance tracking, default Annual, Sick, and Casual leave pools, basic leave requests with manager approvals, and an employee directory with live leave balances. Team Space, custom shifts, leave categories, holidays, policies, and reports are not included on Free."
+            },
+            {
+              q: "What does the Pro plan unlock?",
+              a: "Pro is billed per user per month based on your current team size — you pay ₹199 for each teammate when you subscribe. You get unlimited punch-ins plus Team Space messaging and channels, shift roster manager with custom timings, custom leave categories and rules, company holiday calendars by branch, policy document uploads, and team analytics with punctuality reports. CSV/PDF exports and audit trails are planned and marked as coming soon."
+            },
+            {
+              q: "Do new workspaces get a Pro trial?",
+              a: "Yes. Every new workspace starts with a 14-day Pro trial with full access to all Pro modules. After the trial ends, your workspace continues on the Free plan unless you upgrade from Settings → Billing inside the app."
             },
             {
               q: "Is the client-side facial recognition scan safe and private?",
-              a: "Yes, 100%. We process landmark vectors client-side in the browser using face-api.js. Raw images are scaled to 800px and stored securely in a private Supabase S3 bucket. You can delete your biometric signature at any time, clearing all stored files."
-            },
-            {
-              q: "Can I customize the design system and theme accent colors?",
-              a: "Absolutely! ANSH HR includes personal styling preferences. You can toggle the active workspace accent color between Indigo, Sapphire, Emerald, and Graphite dynamically, which adapts the entire system dashboard theme."
+              a: "Yes. Face landmark matching runs entirely in your browser using face-api.js — live camera frames are not sent to our servers for verification. Reference photos are downscaled to 800px before upload and stored in a private Supabase S3 bucket. You can delete your biometric profile at any time, which clears all stored face data."
             },
             {
               q: "Are leave deductions automatic upon manager approval?",
-              a: "Yes. When an employee requests leave, managers approve or reject via a guarded pipeline. Once approved, the system automatically deducts the requested duration from the employee's respective Annual, Sick, or Casual leave balance."
+              a: "Yes. When a manager approves a leave request, the requested days are deducted immediately from the employee's Annual, Sick, or Casual balance. Rejected requests do not affect balances."
             },
             {
-              q: "What database and hosting technologies support ANSH HR?",
-              a: "ANSH HR runs on Next.js 16 (Turbopack) and React 19. It uses Prisma Client to interact with a high-performance Supabase PostgreSQL database, and hosts uploads using S3 file bucket APIs for premium durability."
+              q: "Can I customize the workspace accent color?",
+              a: "Yes. Each user can switch their dashboard accent between Emerald, Indigo, Sapphire, and Graphite from profile settings. The selected color updates buttons, badges, and highlights across the workspace UI."
             }
           ].map((faq, idx) => {
             const isOpen = openFaq === idx;
@@ -820,7 +834,7 @@ export default function LandingPage() {
                 
                 <div
                   className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isOpen ? "max-h-40 border-t border-slate-800 bg-slate-950/20" : "max-h-0"
+                    isOpen ? "max-h-80 border-t border-slate-800 bg-slate-950/20" : "max-h-0"
                   }`}
                 >
                   <p className="px-6 py-4 text-xs text-slate-400 leading-relaxed font-semibold">
@@ -922,7 +936,7 @@ export default function LandingPage() {
               </p>
               <a
                 href="mailto:hello@anshapps.com"
-                className="text-emerald-400 hover:underline inline-block pt-1 font-bold animate-pulse"
+                className="text-emerald-400 hover:text-emerald-300 hover:underline inline-block pt-1 font-bold transition-colors"
               >
                 hello@anshapps.com
               </a>

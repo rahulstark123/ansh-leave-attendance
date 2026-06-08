@@ -32,6 +32,20 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { leaveSettings, attendanceSettings, billingSettings, branches } = body;
 
+    // Billing plan changes must go through Razorpay checkout — block direct upgrades
+    if (billingSettings) {
+      const current = getSystemSettings().billingSettings;
+      const isPaidUpgrade =
+        (billingSettings.price ?? 0) > 0 &&
+        (billingSettings.price ?? 0) > (current.price ?? 0);
+      if (isPaidUpgrade) {
+        return NextResponse.json(
+          { error: "Use the billing page to upgrade via Razorpay checkout" },
+          { status: 400 }
+        );
+      }
+    }
+
     const updated = saveSystemSettings({
       leaveSettings,
       attendanceSettings,

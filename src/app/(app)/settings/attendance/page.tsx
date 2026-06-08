@@ -858,14 +858,14 @@ export default function AttendanceSettingPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsAddShiftOpen(false)}
-                  className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  className="modal-action-btn w-full cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !newShiftName.trim()}
-                  className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                  className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                 >
                   {loading ? "Adding..." : "Add Shift"}
                 </Button>
@@ -947,14 +947,14 @@ export default function AttendanceSettingPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setEditShift(null)}
-                    className="w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn w-full cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={loading || !editShift.name.trim()}
-                    className="btn-primary w-full text-xs font-bold uppercase tracking-wider !h-9 rounded-xl cursor-pointer"
+                    className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
                   >
                     {loading ? "Saving..." : "Save Changes"}
                   </Button>

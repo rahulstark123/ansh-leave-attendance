@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Search, ChevronDown, LogOut, User, Calendar, Clock, Settings } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, Calendar, Clock, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 import { useGlobalSearchStore } from "@/stores/global-search-store";
 import { useLeaveStore } from "@/stores/leave-store";
+import { usePlanStore } from "@/stores/plan-store";
 import { useIsMac } from "@/hooks/use-is-mac";
 import { cn } from "@/lib/utils";
 import { LogoutOverlay } from "./logout-overlay";
@@ -25,9 +27,10 @@ export function AppHeader() {
   const isMac = useIsMac();
   const router = useRouter();
   const setSearchOpen = useGlobalSearchStore((s) => s.setOpen);
-  const { currentUser, leaves } = useLeaveStore();
-  const pendingCount = leaves.filter((l) => l.status === "Pending").length;
-  
+  const { currentUser } = useLeaveStore();
+  const planLoaded = usePlanStore((s) => s.loaded);
+  const hasProAccess = usePlanStore((s) => s.hasProAccess);
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<any>(null);
@@ -95,21 +98,20 @@ export function AppHeader() {
       <div className="flex-1" />
 
       <div className="flex shrink-0 items-center gap-3">
-        {/* Notifications Bell */}
-        <Button
-          variant="ghost"
-          size="icon"
-          id="notifications-btn"
-          className="relative h-10 w-10 rounded-xl text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <Bell className="h-5 w-5" />
-          {pendingCount > 0 && (
-            <span className="absolute right-2.5 top-2.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-primary text-[9px] font-bold text-primary-foreground ring-2 ring-primary/20 dark:border-slate-950">
-              {pendingCount}
-            </span>
-          )}
-        </Button>
-
+        {planLoaded && (
+          <Link
+            href="/settings/billing"
+            className={cn(
+              "hidden sm:inline-flex items-center rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest transition-colors hover:opacity-90",
+              hasProAccess
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            )}
+            title="View billing & plan"
+          >
+            {hasProAccess ? "PRO" : "FREE"}
+          </Link>
+        )}
         {/* User switcher & Shortcuts dropdown */}
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger

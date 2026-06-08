@@ -399,7 +399,7 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
           {status === "ready" && (
             <Button
               onClick={handleCapture}
-              className="btn-primary flex items-center gap-2 font-bold py-2.5 px-6 rounded-xl"
+              className="modal-action-btn btn-primary border-0 w-full max-w-xs"
             >
               <Camera className="h-4 w-4" />
               Capture & Verify
@@ -407,12 +407,12 @@ export function FaceScanDialog({ isOpen, onClose, onSuccess, actionName }: FaceS
           )}
 
           {(status === "failed" || status === "error") && (
-            <div className="flex gap-3">
-              <Button onClick={initScan} className="btn-primary flex items-center gap-2 font-bold py-2.5 px-4">
-                <RefreshCw className="h-4 w-4" />
+            <div className="flex gap-2.5">
+              <Button onClick={initScan} className="modal-action-btn btn-primary border-0">
+                <RefreshCw className="h-4 w-4 shrink-0" />
                 Retry
               </Button>
-              <Button variant="outline" onClick={onClose} className="text-xs font-bold">
+              <Button variant="outline" onClick={onClose} className="modal-action-btn">
                 Cancel
               </Button>
             </div>

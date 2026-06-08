@@ -170,20 +170,20 @@ export function SelfieVerifyDialog({
           )}
 
           <p className="text-slate-500">HR can confirm or override the AI result:</p>
-          <div className="flex gap-2">
+          <div className="flex gap-2.5">
             <Button
               onClick={() => setManualResult("approved")}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-xs"
+              className="modal-action-btn flex-1 bg-emerald-600 hover:bg-emerald-700 text-white border-0"
             >
-              <UserCheck className="h-4 w-4 mr-1" />
+              <UserCheck className="h-4 w-4 shrink-0" />
               Same person
             </Button>
             <Button
               onClick={() => setManualResult("rejected")}
               variant="outline"
-              className="flex-1 text-rose-600 text-xs"
+              className="modal-action-btn flex-1 text-rose-600"
             >
-              <UserX className="h-4 w-4 mr-1" />
+              <UserX className="h-4 w-4 shrink-0" />
               Mismatch
             </Button>
           </div>

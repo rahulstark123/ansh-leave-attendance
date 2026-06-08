@@ -822,19 +822,17 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-2 gap-2.5 pt-2">
             <Button
               variant="outline"
               type="button"
               onClick={() => setIsFaceRequiredAlertOpen(false)}
-              className="rounded-xl font-bold text-xs uppercase tracking-wider h-11 w-full border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+              className="modal-action-btn w-full border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
             >
               Cancel
             </Button>
             <Link href="/settings/profile" className="w-full block">
-              <Button
-                className="btn-primary rounded-xl font-bold text-xs uppercase tracking-wider h-11 border-0 w-full flex items-center justify-center"
-              >
+              <Button className="modal-action-btn btn-primary w-full border-0">
                 Go to Face Setup
               </Button>
             </Link>
@@ -957,19 +955,19 @@ export default function DashboardPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/40">
+            <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-border/40">
               <Button
                 variant="outline"
                 type="button"
                 onClick={() => setIsLeaveModalOpen(false)}
-                className="rounded-xl font-bold text-xs uppercase tracking-wider h-11 w-full border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
+                className="modal-action-btn w-full border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={applying}
-                className="btn-primary rounded-xl font-bold text-xs uppercase tracking-wider h-11 border-0 w-full flex items-center justify-center cursor-pointer"
+                className="modal-action-btn btn-primary w-full border-0 cursor-pointer"
               >
                 {applying ? (
                   <>

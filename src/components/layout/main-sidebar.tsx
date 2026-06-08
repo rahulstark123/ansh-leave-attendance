@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GatedNavLink } from "@/components/billing/gated-nav-link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { PanelLeftClose, PanelLeft, Calendar, HelpCircle } from "lucide-react";
@@ -14,7 +15,7 @@ import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 export function MainSidebar() {
   const pathname = usePathname();
   const activeSection = getSectionFromPath(pathname);
-  const isHelpActive = pathname === "/help";
+  const isHelpActive = pathname === "/help" || pathname.startsWith("/help/");
   const { mainSidebarCollapsed, setMainSidebarCollapsed, toggleMainSidebar } = useUiStore();
   const { currentUser } = useLeaveStore();
 
@@ -71,18 +72,15 @@ export function MainSidebar() {
           }
           const isActive = activeSection === item.id;
           const Icon = item.icon;
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-semibold transition-all duration-200",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-              )}
-              title={mainSidebarCollapsed ? item.label : undefined}
-            >
+          const linkClassName = cn(
+            "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-semibold transition-all duration-200",
+            isActive
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
+              : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          );
+          const linkTitle = mainSidebarCollapsed ? item.label : undefined;
+          const linkContent = (
+            <>
               <Icon
                 className={cn(
                   "h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110",
@@ -91,6 +89,31 @@ export function MainSidebar() {
                 aria-hidden
               />
               {!mainSidebarCollapsed && <span>{item.label}</span>}
+            </>
+          );
+
+          if (item.id === "reports" || item.id === "workspace") {
+            return (
+              <GatedNavLink
+                key={item.id}
+                href={item.href}
+                featureId={item.id === "reports" ? "reports" : "team-space"}
+                className={linkClassName}
+                title={linkTitle}
+              >
+                {linkContent}
+              </GatedNavLink>
+            );
+          }
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={linkClassName}
+              title={linkTitle}
+            >
+              {linkContent}
             </Link>
           );
         })}

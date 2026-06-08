@@ -6,6 +6,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 model Employee {
@@ -53,6 +54,7 @@ model Employee {
   channelMemberships    ChannelMember[]
   sentMessages          WorkspaceMessage[]         @relation("MessageSender")
   receivedMessages      WorkspaceMessage[]         @relation("MessageReceiver")
+  supportTickets        SupportTicket[]
 }
 
 model LeaveRequest {
@@ -89,9 +91,55 @@ model PunchRecord {
 }
 
 model Workspace {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  createdAt DateTime @default(now())
+  id            Int            @id @default(autoincrement())
+  name          String?
+  plan          String         @default("free") // "free" | "pro"
+  planExpiresAt DateTime?
+  trialEndsAt   DateTime?      // 14-day Pro trial for new workspaces
+  maxUsers      Int            @default(5)
+  createdAt     DateTime       @default(now())
+  subscriptions Subscription[]
+  transactions  Transaction[]
+}
+
+model Subscription {
+  id              String        @id @default(cuid())
+  workspaceId     Int
+  workspace       Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  employeeId      String?
+  status          String        // "PENDING" | "ACTIVE" | "CANCELLED"
+  plan            String        // "pro"
+  seatsCount      Int           @default(1)
+  billingCycle    String        // "monthly" | "yearly"
+  amountPaisa     Int
+  currency        String        @default("INR")
+  razorpayOrderId String?
+  startsAt        DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime      @default(now())
+  transactions    Transaction[]
+
+  @@index([workspaceId])
+  @@index([razorpayOrderId])
+}
+
+model Transaction {
+  id                String        @id @default(cuid())
+  workspaceId       Int
+  workspace         Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  status            String        // "CREATED" | "SUCCESS" | "FAILED"
+  amountPaisa       Int
+  currency          String        @default("INR")
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  description       String?
+  createdAt         DateTime      @default(now())
+
+  @@index([workspaceId])
+  @@index([subscriptionId])
 }
 
 model LeaveCategory {
@@ -210,5 +258,19 @@ model WorkspaceMessage {
   @@index([channelId, sentAt])
   @@index([senderId, receiverId, sentAt])
   @@index([wid])
+}
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  category    String   // "Leave Issue" | "Attendance Correction" | "IT Support" | "Profile Update" | "Other"
+  subject     String
+  description String
+  status      String   // "Open" | "In_Progress" | "Resolved"
+  priority    String   // "Low" | "Medium" | "High"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  wid         Int      @default(1)
 }
 
