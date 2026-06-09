@@ -21,6 +21,14 @@ const getDatesInRange = (startDateStr: string, endDateStr: string) => {
 };
 
 export async function POST(req: Request) {
+  return handleWFHStatusUpdate(req);
+}
+
+export async function PATCH(req: Request) {
+  return handleWFHStatusUpdate(req);
+}
+
+async function handleWFHStatusUpdate(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
     if (!employee) {

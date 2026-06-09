@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
 import { useLeaveStore } from "@/stores/leave-store";
 import { FaceScanDialog } from "@/components/attendance/FaceScanDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -297,22 +298,15 @@ export default function DashboardPage() {
       totalDays = Math.max(0, calendarDays - excluded.length);
     }
 
-    // Validate if WFH is allowed for user's branch
     if (leaveType === "WFH") {
-      const userBranchName = currentUser.branch;
-      if (!userBranchName) {
-        setErrorMsg("You are not assigned to any office branch. WFH requests are restricted.");
-        return;
-      }
-      const userBranch = branches.find(
-        (b) => b.name.toLowerCase() === userBranchName.toLowerCase()
+      const branchError = getWFHBranchError(
+        resolveEmployeeBranch(
+          { branch: currentUser.branch, workLocation: currentUser.workLocation },
+          branches
+        )
       );
-      if (!userBranch) {
-        setErrorMsg(`Your assigned branch "${userBranchName}" was not found in system settings.`);
-        return;
-      }
-      if (userBranch.allowWFH === false) {
-        setErrorMsg(`Work From Home is not allowed for your branch: ${userBranchName}`);
+      if (branchError) {
+        setErrorMsg(branchError);
         return;
       }
     }

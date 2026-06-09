@@ -59,12 +59,17 @@ export async function POST(req: Request) {
     }
 
     if (transaction.status === "SUCCESS") {
+      const existingSub = transaction.subscription;
+      const scheduled = existingSub?.status === "SCHEDULED";
       return NextResponse.json({
         success: true,
         alreadyVerified: true,
-        plan: "pro",
-        planName: planDisplayName("pro"),
+        scheduled,
+        plan: scheduled ? "free" : "pro",
+        planName: scheduled ? "ANSH HR Pro Trial" : planDisplayName("pro"),
         maxUsers: PRO_MAX_USERS,
+        proStartsAt: existingSub?.startsAt?.toISOString() ?? null,
+        expiresAt: existingSub?.expiresAt?.toISOString() ?? null,
       });
     }
 
@@ -82,17 +87,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
-    const { expiresAt } = await activateProSubscription({
+    const { expiresAt, startsAt, scheduled } = await activateProSubscription({
       workspaceId,
       billingCycle: subscription.billingCycle as "monthly" | "yearly",
       subscriptionId: subscription.id,
     });
 
+    if (scheduled) {
+      return NextResponse.json({
+        success: true,
+        scheduled: true,
+        plan: "free",
+        planName: "ANSH HR Pro Trial",
+        maxUsers: PRO_MAX_USERS,
+        proStartsAt: startsAt.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        billingCycle: subscription.billingCycle,
+      });
+    }
+
     return NextResponse.json({
       success: true,
+      scheduled: false,
       plan: "pro",
       planName: planDisplayName("pro"),
       maxUsers: PRO_MAX_USERS,
+      proStartsAt: startsAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
       billingCycle: subscription.billingCycle,
     });

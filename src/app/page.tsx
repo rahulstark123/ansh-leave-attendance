@@ -801,7 +801,7 @@ export default function LandingPage() {
             },
             {
               q: "Do new workspaces get a Pro trial?",
-              a: "Yes. Every new workspace starts with a 14-day Pro trial with full access to all Pro modules. After the trial ends, your workspace continues on the Free plan unless you upgrade from Settings → Billing inside the app."
+              a: "Yes. Every new workspace starts with a 14-day Pro trial with full access to all Pro modules. You can subscribe to Pro anytime during the trial — billing starts when the trial ends. If you don't subscribe, your workspace continues on the Free plan after the trial."
             },
             {
               q: "Is the client-side facial recognition scan safe and private?",

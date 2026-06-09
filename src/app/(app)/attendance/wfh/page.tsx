@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLeaveStore } from "@/stores/leave-store";
+import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
 import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   CalendarDays,
@@ -118,9 +119,11 @@ export default function WFHPage() {
   };
 
   useEffect(() => {
-    fetchRequests();
-    fetchSystemData();
-  }, []);
+    initialize().finally(() => {
+      fetchRequests();
+      fetchSystemData();
+    });
+  }, [initialize]);
 
   // Helper to count Gazetted holidays overlapping in selected range that apply to user's branch
   const getExcludedHolidays = (startStr: string, endStr: string) => {
@@ -187,18 +190,17 @@ export default function WFHPage() {
       return;
     }
 
-    // Validate if WFH is allowed for user's branch
-    const userBranchName = currentUser?.branch;
-    if (!userBranchName) {
-      setErrorMsg("You are not assigned to any office branch. WFH requests are restricted.");
-      return;
-    }
-
-    const userBranch = branches.find(
-      (b) => b.name.toLowerCase() === userBranchName.toLowerCase()
+    const branchError = getWFHBranchError(
+      resolveEmployeeBranch(
+        {
+          branch: currentUser?.branch,
+          workLocation: currentUser?.workLocation,
+        },
+        branches
+      )
     );
-    if (userBranch && userBranch.allowWFH === false) {
-      setErrorMsg(`Work From Home (WFH) is not allowed for your branch: ${userBranchName}`);
+    if (branchError) {
+      setErrorMsg(branchError);
       return;
     }
 

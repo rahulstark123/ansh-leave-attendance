@@ -7,6 +7,8 @@ import { usePlanStore } from "@/stores/plan-store";
 
 export function TrialBanner() {
   const isTrialActive = usePlanStore((s) => s.isTrialActive);
+  const hasScheduledPro = usePlanStore((s) => s.hasScheduledPro);
+  const scheduledProStartsAt = usePlanStore((s) => s.scheduledProStartsAt);
   const trialDaysRemaining = usePlanStore((s) => s.trialDaysRemaining);
   const [dismissed, setDismissed] = useState(false);
 
@@ -16,6 +18,14 @@ export function TrialBanner() {
     trialDaysRemaining === 1
       ? "1 day left"
       : `${trialDaysRemaining ?? 14} days left`;
+
+  const scheduledLabel = scheduledProStartsAt
+    ? new Date(scheduledProStartsAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   return (
     <div className="border-b border-primary/20 bg-primary/5 px-4 py-2.5">
@@ -27,6 +37,9 @@ export function TrialBanner() {
             <span className="text-slate-500 dark:text-slate-400">
               {" "}
               — all features unlocked · {daysLabel}
+              {hasScheduledPro && scheduledLabel
+                ? ` · Pro subscription starts ${scheduledLabel}`
+                : ""}
             </span>
           </p>
         </div>

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { getEmployeeWorkspaceId } from "@/lib/billing/auth";
-import { ensureWorkspaceBilling } from "@/lib/billing/workspace-billing";
+import {
+  ensureWorkspaceBilling,
+  getScheduledProSubscription,
+} from "@/lib/billing/workspace-billing";
 import { formatMajorAmount } from "@/lib/billing/charge-region";
 import { resolveWorkspaceAccess } from "@/lib/billing/access";
 import { FREE_MAX_PUNCHES_PER_MONTH } from "@/lib/billing/plans";
@@ -18,6 +21,7 @@ export async function GET(req: Request) {
     const workspaceId = getEmployeeWorkspaceId(employee);
     const workspace = await ensureWorkspaceBilling(workspaceId);
 
+    const scheduledSubscription = await getScheduledProSubscription(workspaceId);
     const activeSubscription = await prisma.subscription.findFirst({
       where: {
         workspaceId,
@@ -26,6 +30,7 @@ export async function GET(req: Request) {
       },
       orderBy: { createdAt: "desc" },
     });
+    const billingSubscription = activeSubscription ?? scheduledSubscription;
 
     const transactions = await prisma.transaction.findMany({
       where: { workspaceId, status: "SUCCESS" },
@@ -46,12 +51,12 @@ export async function GET(req: Request) {
       maxUsers: workspace.maxUsers,
     });
 
-    const billingCycle = activeSubscription?.billingCycle || null;
+    const billingCycle = billingSubscription?.billingCycle || null;
     const monthlyPrice =
-      activeSubscription && activeSubscription.billingCycle === "yearly"
-        ? Math.round(activeSubscription.amountPaisa / 12 / (activeSubscription.currency === "INR" ? 100 : 100))
-        : activeSubscription
-          ? activeSubscription.amountPaisa / 100
+      billingSubscription && billingSubscription.billingCycle === "yearly"
+        ? Math.round(billingSubscription.amountPaisa / 12 / (billingSubscription.currency === "INR" ? 100 : 100))
+        : billingSubscription
+          ? billingSubscription.amountPaisa / 100
           : 0;
 
     return NextResponse.json({
@@ -65,9 +70,12 @@ export async function GET(req: Request) {
       isProActive: access.isProActive,
       hasProAccess: access.hasProAccess,
       trialDaysRemaining: access.trialDaysRemaining,
+      hasScheduledPro: Boolean(scheduledSubscription),
+      scheduledProStartsAt: scheduledSubscription?.startsAt?.toISOString() ?? null,
+      scheduledBillingCycle: scheduledSubscription?.billingCycle ?? null,
       billingCycle,
-      price: access.isProActive ? monthlyPrice : 0,
-      currency: activeSubscription?.currency || "INR",
+      price: access.isProActive || scheduledSubscription ? monthlyPrice : 0,
+      currency: billingSubscription?.currency || "INR",
       employeeCount,
       punchesUsedThisMonth,
       punchesLimit: access.hasProAccess ? null : FREE_MAX_PUNCHES_PER_MONTH,

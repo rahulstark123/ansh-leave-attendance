@@ -53,6 +53,8 @@ export function ProCheckoutModal({
 
   const [resolvedWorkspaceId, setResolvedWorkspaceId] = useState(workspaceId);
   const [resolvedCanManage, setResolvedCanManage] = useState(canManageBilling);
+  const [isTrialActive, setIsTrialActive] = useState(false);
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -61,6 +63,8 @@ export function ProCheckoutModal({
     setBillingCycle("monthly");
     setResolvedWorkspaceId(workspaceId);
     setResolvedCanManage(canManageBilling);
+    setIsTrialActive(false);
+    setTrialEndsAt(null);
 
     const token = sessionStorage.getItem("ansh_auth_token");
     Promise.all([
@@ -73,6 +77,8 @@ export function ProCheckoutModal({
           const status = await statusRes.json();
           setResolvedWorkspaceId(status.workspaceId ?? workspaceId);
           setResolvedCanManage(Boolean(status.canManageBilling));
+          setIsTrialActive(Boolean(status.isTrialActive));
+          setTrialEndsAt(status.trialEndsAt ?? null);
         }
       })
       .catch(() => setFx(null));
@@ -298,6 +304,20 @@ export function ProCheckoutModal({
               {cycleLabel} · {billedLabel}
             </p>
           </div>
+
+          {isTrialActive && trialEndsAt && (
+            <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+              Your free trial runs until{" "}
+              <span className="font-bold text-primary">
+                {new Date(trialEndsAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+              . Pro billing starts after the trial ends.
+            </p>
+          )}
 
           {errorMsg && (
             <p className="text-xs font-semibold text-rose-500">{errorMsg}</p>

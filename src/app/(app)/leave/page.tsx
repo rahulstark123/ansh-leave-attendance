@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLeaveStore, type LeaveType } from "@/stores/leave-store";
+import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
 import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   DropdownMenu,
@@ -492,22 +493,15 @@ export default function LeavePage() {
       totalDays = Math.max(0, calendarDays - excluded.length);
     }
 
-    // Validate if WFH is allowed for user's branch
     if (type === "WFH") {
-      const userBranchName = currentUser.branch;
-      if (!userBranchName) {
-        setErrorMsg("You are not assigned to any office branch. WFH requests are restricted.");
-        return;
-      }
-      const userBranch = branches.find(
-        (b) => b.name.toLowerCase() === userBranchName.toLowerCase()
+      const branchError = getWFHBranchError(
+        resolveEmployeeBranch(
+          { branch: currentUser.branch, workLocation: currentUser.workLocation },
+          branches
+        )
       );
-      if (!userBranch) {
-        setErrorMsg(`Your assigned branch "${userBranchName}" was not found in system settings.`);
-        return;
-      }
-      if (userBranch.allowWFH === false) {
-        setErrorMsg(`Work From Home is not allowed for your branch: ${userBranchName}`);
+      if (branchError) {
+        setErrorMsg(branchError);
         return;
       }
     }
@@ -585,22 +579,15 @@ export default function LeavePage() {
       totalDays = Math.max(0, calendarDays - excluded.length);
     }
 
-    // Validate if WFH is allowed for user's branch
     if (editType === "WFH") {
-      const userBranchName = currentUser.branch;
-      if (!userBranchName) {
-        setEditErrorMsg("You are not assigned to any office branch. WFH requests are restricted.");
-        return;
-      }
-      const userBranch = branches.find(
-        (b) => b.name.toLowerCase() === userBranchName.toLowerCase()
+      const branchError = getWFHBranchError(
+        resolveEmployeeBranch(
+          { branch: currentUser.branch, workLocation: currentUser.workLocation },
+          branches
+        )
       );
-      if (!userBranch) {
-        setEditErrorMsg(`Your assigned branch "${userBranchName}" was not found in system settings.`);
-        return;
-      }
-      if (userBranch.allowWFH === false) {
-        setEditErrorMsg(`Work From Home is not allowed for your branch: ${userBranchName}`);
+      if (branchError) {
+        setEditErrorMsg(branchError);
         return;
       }
     }

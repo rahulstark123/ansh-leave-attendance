@@ -3,7 +3,10 @@ import { getBillingAuthorizedEmployee, getEmployeeWorkspaceId } from "@/lib/bill
 import { resolveCheckoutFromRequest } from "@/lib/billing/checkout-region";
 import { computeUpgradeCheckoutMinor } from "@/lib/billing/charge-region";
 import { getRazorpayConfig, getRazorpayInstance } from "@/lib/billing/razorpay";
-import { ensureWorkspaceBilling } from "@/lib/billing/workspace-billing";
+import {
+  ensureWorkspaceBilling,
+  getScheduledProSubscription,
+} from "@/lib/billing/workspace-billing";
 import { prisma } from "@/lib/db";
 import type { BillingCycle } from "@/lib/billing/plans";
 
@@ -40,6 +43,14 @@ export async function POST(req: Request) {
     if (workspace.plan === "pro" && workspace.planExpiresAt && workspace.planExpiresAt > new Date()) {
       return NextResponse.json(
         { error: "Workspace already has an active Pro plan" },
+        { status: 400 }
+      );
+    }
+
+    const scheduledPro = await getScheduledProSubscription(workspaceId);
+    if (scheduledPro) {
+      return NextResponse.json(
+        { error: "Pro is already purchased and will start when your trial ends" },
         { status: 400 }
       );
     }

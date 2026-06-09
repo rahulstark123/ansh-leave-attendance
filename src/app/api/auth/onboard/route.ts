@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { createWorkspaceWithTrial } from "@/lib/billing/workspace-billing";
+import { getSystemSettings } from "@/lib/settings";
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +37,9 @@ export async function POST(req: Request) {
       newWid = 1;
     }
 
+    const defaultBranch =
+      getSystemSettings().branches?.[0]?.name ?? "Main HQ";
+
     let employee;
     const avatarInitials = name
       .split(" ")
@@ -63,6 +67,7 @@ export async function POST(req: Request) {
             companyAddress: isManagerOrAdmin ? companyAddress : null,
             employeeCount: isManagerOrAdmin ? employeeCount : null,
             wid: newWid,
+            branch: isManagerOrAdmin ? defaultBranch : null,
           },
         });
 
@@ -102,6 +107,7 @@ export async function POST(req: Request) {
           companyAddress: isManagerOrAdmin ? companyAddress : null,
           employeeCount: isManagerOrAdmin ? employeeCount : null,
           wid: newWid,
+          branch: isManagerOrAdmin ? defaultBranch : null,
         },
       });
     }

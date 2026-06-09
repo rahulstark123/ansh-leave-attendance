@@ -172,7 +172,7 @@ export default function ProfileSettingPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1.5"><Building className="h-3.5 w-3.5" /> Office Branch</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.branch || "Main HQ"}</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-350 uppercase">{currentUserAny?.branch || "Not assigned"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" /> Employee Code</span>

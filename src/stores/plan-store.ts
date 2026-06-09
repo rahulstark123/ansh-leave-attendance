@@ -6,6 +6,8 @@ interface PlanState {
   loaded: boolean;
   hasProAccess: boolean;
   isTrialActive: boolean;
+  hasScheduledPro: boolean;
+  scheduledProStartsAt: string | null;
   trialDaysRemaining: number | null;
   trialEndsAt: string | null;
   plan: string;
@@ -25,6 +27,8 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   loaded: false,
   hasProAccess: true,
   isTrialActive: false,
+  hasScheduledPro: false,
+  scheduledProStartsAt: null,
   trialDaysRemaining: null,
   trialEndsAt: null,
   plan: "free",
@@ -50,6 +54,8 @@ export const usePlanStore = create<PlanState>((set, get) => ({
         loaded: true,
         hasProAccess: Boolean(data.hasProAccess),
         isTrialActive: Boolean(data.isTrialActive),
+        hasScheduledPro: Boolean(data.hasScheduledPro),
+        scheduledProStartsAt: data.scheduledProStartsAt ?? null,
         trialDaysRemaining: data.trialDaysRemaining ?? null,
         trialEndsAt: data.trialEndsAt ?? null,
         plan: data.plan ?? "free",

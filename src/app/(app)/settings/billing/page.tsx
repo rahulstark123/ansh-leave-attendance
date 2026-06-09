@@ -37,6 +37,8 @@ interface BillingStatus {
   planExpiresAt: string | null;
   trialEndsAt: string | null;
   isTrialActive: boolean;
+  hasScheduledPro: boolean;
+  scheduledProStartsAt: string | null;
   trialDaysRemaining: number | null;
   billingCycle: string | null;
   price: number;
@@ -84,6 +86,8 @@ export default function BillingSettingPage() {
   const [billingCycle, setBillingCycle] = useState<string | null>(null);
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
   const [isTrialActive, setIsTrialActive] = useState(false);
+  const [hasScheduledPro, setHasScheduledPro] = useState(false);
+  const [scheduledProStartsAt, setScheduledProStartsAt] = useState<string | null>(null);
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
@@ -115,6 +119,8 @@ export default function BillingSettingPage() {
       setBillingCycle(data.billingCycle);
       setPlanExpiresAt(data.planExpiresAt);
       setIsTrialActive(Boolean(data.isTrialActive));
+      setHasScheduledPro(Boolean(data.hasScheduledPro));
+      setScheduledProStartsAt(data.scheduledProStartsAt ?? null);
       setTrialEndsAt(data.trialEndsAt ?? null);
       setTrialDaysRemaining(data.trialDaysRemaining ?? null);
       setInvoices(data.invoices);
@@ -174,7 +180,18 @@ export default function BillingSettingPage() {
     setIsPlansModalOpen(false);
     openCheckoutModal(async () => {
       await Promise.all([initialize(), loadBilling(), fetchPlan()]);
-      setSuccessMsg("Payment successful! Your workspace is now on Pro.");
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const statusRes = await fetch("/api/billing/status", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const status = statusRes.ok ? await statusRes.json() : null;
+      if (status?.hasScheduledPro) {
+        setSuccessMsg(
+          `Payment successful! Pro will start on ${formatRenewalDate(status.scheduledProStartsAt)} when your trial ends.`
+        );
+      } else {
+        setSuccessMsg("Payment successful! Your workspace is now on Pro.");
+      }
       setTimeout(() => setSuccessMsg(""), 5000);
     });
   };
@@ -204,6 +221,7 @@ export default function BillingSettingPage() {
   const utilizationPercentage = Math.round((activeEmployeeCount / maxUsers) * 100);
   const hasPaidPro = plan === "pro";
   const isPro = hasPaidPro || isTrialActive;
+  const canPurchasePro = !hasPaidPro && !hasScheduledPro && canManageBilling;
   const displayCurrency = fx?.chargeCurrency || currency;
   const monthlyListPrice = fx?.monthlyPriceMajor ?? (displayCurrency === "USD" ? 2 : 199);
   const yearlyListPrice = fx?.yearlyMonthlyEquivalentMajor ?? (displayCurrency === "USD" ? 1.62 : 161);
@@ -219,14 +237,14 @@ export default function BillingSettingPage() {
         title="Billing Page"
         description="Review your active ANSH HR subscription plan, check seat allocation thresholds, and view payment invoices."
         toolbar={
-          !isPro ? (
+          canPurchasePro ? (
             <Button
               type="button"
               className="btn-primary shrink-0 gap-2 border-0"
               onClick={startProCheckout}
             >
               <ArrowUpRight className="h-4 w-4" />
-              Upgrade
+              {isTrialActive ? "Subscribe to Pro" : "Upgrade"}
             </Button>
           ) : undefined
         }
@@ -272,11 +290,13 @@ export default function BillingSettingPage() {
                     : "bg-slate-500/10 border-slate-500/20 text-slate-400"
               )}>
                 <ShieldCheck className="h-3.5 w-3.5" />
-                {isTrialActive
-                  ? `Trial · ${trialDaysRemaining ?? 14}d left`
-                  : isPro
-                    ? "Active"
-                    : "Free"}
+                {hasScheduledPro
+                  ? "Pro scheduled"
+                  : isTrialActive
+                    ? `Trial · ${trialDaysRemaining ?? 14}d left`
+                    : isPro
+                      ? "Active"
+                      : "Free"}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -302,9 +322,11 @@ export default function BillingSettingPage() {
                     Next Renewal Date
                   </p>
                   <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1.5">
-                    {isTrialActive
-                      ? formatRenewalDate(trialEndsAt)
-                      : formatRenewalDate(planExpiresAt)}
+                    {hasScheduledPro
+                      ? formatRenewalDate(scheduledProStartsAt ?? trialEndsAt)
+                      : isTrialActive
+                        ? formatRenewalDate(trialEndsAt)
+                        : formatRenewalDate(planExpiresAt)}
                   </p>
                 </div>
               </div>
@@ -588,7 +610,11 @@ export default function BillingSettingPage() {
                 ? "border-emerald-500/30 bg-emerald-500/5 ring-1 ring-emerald-500/15"
                 : "border-border hover:shadow-md"
             )}>
-              {isPro ? (
+              {hasScheduledPro ? (
+                <div className="absolute top-4 right-4 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[8.5px] font-black text-primary uppercase tracking-wider">
+                  Scheduled
+                </div>
+              ) : isPro ? (
                 <div className="absolute top-4 right-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[8.5px] font-black text-emerald-500 uppercase tracking-wider">
                   Active
                 </div>
@@ -627,19 +653,24 @@ export default function BillingSettingPage() {
                 <div className="pt-2 border-t border-border/30">
                   <button
                     type="button"
-                    disabled={hasPaidPro || !canManageBilling}
+                    disabled={!canPurchasePro}
                     onClick={() => handlePlanChange("Pro")}
                     className={cn(
                       "w-full text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer transition-all",
-                      isPro
-                        ? "bg-slate-100 dark:bg-slate-850 text-slate-400 cursor-not-allowed border border-border"
-                        : "btn-primary shadow-lg shadow-primary/15 flex items-center justify-center gap-1.5"
+                      canPurchasePro
+                        ? "btn-primary shadow-lg shadow-primary/15 flex items-center justify-center gap-1.5"
+                        : "bg-slate-100 dark:bg-slate-850 text-slate-400 cursor-not-allowed border border-border"
                     )}
                   >
                     {hasPaidPro ? (
                       "Current Plan"
+                    ) : hasScheduledPro ? (
+                      `Starts ${formatRenewalDate(scheduledProStartsAt ?? trialEndsAt)}`
                     ) : isTrialActive ? (
-                      "Upgrade before trial ends"
+                      <>
+                        Subscribe — starts after trial
+                        <ArrowUpRight className="h-4 w-4" />
+                      </>
                     ) : (
                       <>
                         Upgrade to Pro
@@ -754,13 +785,13 @@ export default function BillingSettingPage() {
           {/* Footer inside Modal */}
           <div className="border-t border-border/40 pt-4 mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] text-slate-400">
             <span>SSL encrypted · 99.9% uptime SLA · Secured by Razorpay</span>
-            {!hasPaidPro && canManageBilling && (
+            {canPurchasePro && (
               <button
                 type="button"
                 onClick={startProCheckout}
                 className="btn-primary self-end sm:self-auto text-xs font-black uppercase tracking-wider py-2 px-5 rounded-xl flex items-center gap-1 cursor-pointer"
               >
-                Upgrade to Pro
+                {isTrialActive ? "Subscribe to Pro" : "Upgrade to Pro"}
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
             )}
