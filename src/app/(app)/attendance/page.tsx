@@ -99,7 +99,9 @@ export default function AttendancePage() {
   // Statistics calculations
   const totalDays = timeFilteredHistory.length;
   const lateCount = timeFilteredHistory.filter((p) => p.status === "Late").length;
-  const onTimeCount = timeFilteredHistory.filter((p) => p.status === "On-time" || p.status === "WFH").length;
+  const onTimeCount = timeFilteredHistory.filter(
+    (p) => p.status === "On-time" || p.status === "WFH" || p.status === "Regularized"
+  ).length;
   const onTimePercentage = totalDays > 0 ? Math.round((onTimeCount / totalDays) * 100) : 100;
 
   return (
@@ -204,7 +206,7 @@ export default function AttendancePage() {
       {/* FILTER BUTTONS BAR */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div className="flex gap-2.5">
-          {["All", "On-time", "Late", "Half-day", "WFH"].map((filter) => {
+          {["All", "On-time", "Late", "Regularized", "Half-day", "WFH"].map((filter) => {
             const active = statusFilter === filter;
             return (
               <button
@@ -333,6 +335,10 @@ export default function AttendancePage() {
                             <Badge className="bg-indigo-500/10 text-indigo-600 border-0 hover:bg-indigo-500/10">
                               WFH
                             </Badge>
+                          ) : p.status === "Regularized" ? (
+                            <Badge className="bg-sky-500/10 text-sky-600 border-0 hover:bg-sky-500/10">
+                              Regularized
+                            </Badge>
                           ) : (
                             <Badge variant="destructive">Absent</Badge>
                           )}
@@ -349,9 +355,11 @@ export default function AttendancePage() {
                         <td className="px-6 py-4 text-right text-xs text-slate-400 font-semibold">
                           {!p.punchOut
                             ? "Shift in progress"
-                            : p.status === "Late"
-                              ? "Grace time exceeded"
-                              : "Routine logged"}
+                            : p.status === "Regularized"
+                              ? "Manager-approved correction"
+                              : p.status === "Late"
+                                ? "Grace time exceeded"
+                                : "Routine logged"}
                         </td>
                       </tr>
                     ))}

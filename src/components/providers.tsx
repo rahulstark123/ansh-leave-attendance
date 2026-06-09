@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useUiStore } from "@/stores/ui-store";
+import { AuthRecoveryRedirect } from "@/components/auth/auth-recovery-redirect";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -43,6 +44,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthRecoveryRedirect />
       {children}
     </QueryClientProvider>
   );

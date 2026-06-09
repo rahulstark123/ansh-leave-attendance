@@ -11,37 +11,51 @@ export async function GET(req: Request) {
 
     const wid = employee.wid ?? 1;
 
+    const employeeInclude = {
+      employee: {
+        select: {
+          name: true,
+          role: true,
+          avatarInitials: true,
+          branch: true,
+        },
+      },
+    };
+
     let requests;
-    if (employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner") {
-      // Admins and HR Managers see all regularization requests in the workspace
+    if (
+      employee.role === "Admin" ||
+      employee.role === "HR Manager" ||
+      employee.role === "Owner"
+    ) {
       requests = await prisma.attendanceRegularization.findMany({
         where: { wid },
-        include: {
-          employee: {
-            select: {
-              name: true,
-              role: true,
-              avatarInitials: true,
-              branch: true,
-            },
-          },
+        include: employeeInclude,
+        orderBy: { appliedAt: "desc" },
+      });
+    } else if (employee.role === "Manager") {
+      const reports = await prisma.employee.findMany({
+        where: {
+          wid,
+          OR: [
+            { id: employee.id },
+            { reportingManager: { equals: employee.name, mode: "insensitive" } },
+            { reportingHR: { equals: employee.name, mode: "insensitive" } },
+          ],
         },
+        select: { id: true },
+      });
+      const accessibleIds = reports.map((r) => r.id);
+
+      requests = await prisma.attendanceRegularization.findMany({
+        where: { wid, employeeId: { in: accessibleIds } },
+        include: employeeInclude,
         orderBy: { appliedAt: "desc" },
       });
     } else {
-      // Regular employees only see their own requests
       requests = await prisma.attendanceRegularization.findMany({
         where: { employeeId: employee.id, wid },
-        include: {
-          employee: {
-            select: {
-              name: true,
-              role: true,
-              avatarInitials: true,
-              branch: true,
-            },
-          },
-        },
+        include: employeeInclude,
         orderBy: { appliedAt: "desc" },
       });
     }
@@ -80,6 +94,22 @@ export async function POST(req: Request) {
 
     if (!date || !requestedIn || !requestedOut || !reason) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const wid = employee.wid ?? 1;
+    const existingPending = await prisma.attendanceRegularization.findFirst({
+      where: {
+        employeeId: employee.id,
+        wid,
+        date,
+        status: "Pending",
+      },
+    });
+    if (existingPending) {
+      return NextResponse.json(
+        { error: "You already have a pending regularization request for this date" },
+        { status: 400 }
+      );
     }
 
     const request = await prisma.attendanceRegularization.create({

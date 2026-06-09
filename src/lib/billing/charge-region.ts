@@ -76,8 +76,8 @@ export function getFxDisplay(cfg: RazorpayConfig, countryCode: string) {
     yearlyTotalMajor: yearly.amountMinor / 100,
     disclaimer:
       currency === "USD"
-        ? "International pricing in USD per user per month. Razorpay International must be enabled on your merchant account."
-        : "Pricing in INR per user per month for India.",
+        ? "International pricing: $2 per user per month (detected outside India)."
+        : "India pricing: ₹199 per user per month (detected from your IP region).",
     priceUnit: "user" as const,
   };
 }

@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useLeaveStore } from "@/stores/leave-store";
+import { useLeaveStore, type Employee } from "@/stores/leave-store";
+
+type ProfileFields = Pick<
+  Employee,
+  | "name"
+  | "phoneNumber"
+  | "personalEmail"
+  | "dateOfBirth"
+  | "emergencyContactName"
+  | "emergencyContactPhone"
+>;
 import { FaceUploadEnrollment } from "@/components/attendance/FaceUploadEnrollment";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { 
   Loader2, User, Mail, Shield, Briefcase, CheckCircle, 
-  Phone, Calendar, MapPin, Building, UserCheck, CreditCard, Clock, HeartHandshake
+  Phone, Calendar, MapPin, Building, UserCheck, CreditCard, Clock, HeartHandshake, Pencil
 } from "lucide-react";
 
 export default function ProfileSettingPage() {
@@ -25,20 +35,52 @@ export default function ProfileSettingPage() {
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [fetchingProfile, setFetchingProfile] = useState(true);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const applyProfileFields = useCallback((emp: ProfileFields) => {
+    setName(emp.name || "");
+    setPhoneNumber(emp.phoneNumber || "");
+    setPersonalEmail(emp.personalEmail || "");
+    setDateOfBirth(emp.dateOfBirth || "");
+    setEmergencyContactName(emp.emergencyContactName || "");
+    setEmergencyContactPhone(emp.emergencyContactPhone || "");
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
-      const emp = currentUser as any;
-      setName(emp.name || "");
-      setPhoneNumber(emp.phoneNumber || "");
-      setPersonalEmail(emp.personalEmail || "");
-      setDateOfBirth(emp.dateOfBirth || "");
-      setEmergencyContactName(emp.emergencyContactName || "");
-      setEmergencyContactPhone(emp.emergencyContactPhone || "");
+      applyProfileFields(currentUser);
     }
-  }, [currentUser]);
+  }, [currentUser, applyProfileFields]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        await initialize();
+        const token = sessionStorage.getItem("ansh_auth_token");
+        const res = await fetch("/api/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profile) applyProfileFields(data.profile);
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      } finally {
+        setFetchingProfile(false);
+      }
+    };
+    loadProfile();
+  }, [applyProfileFields, initialize]);
+
+  const scrollToEditForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const nameInput = formRef.current?.querySelector<HTMLInputElement>('input[type="text"]');
+    nameInput?.focus();
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +96,7 @@ export default function ProfileSettingPage() {
 
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
-      const res = await fetch(`/api/employees/${currentUser.id}`, {
+      const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -71,7 +113,8 @@ export default function ProfileSettingPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to update profile");
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update profile");
       }
 
       await initialize();
@@ -79,7 +122,7 @@ export default function ProfileSettingPage() {
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error(err);
-      setErrorMsg("Failed to update profile settings.");
+      setErrorMsg(err instanceof Error ? err.message : "Failed to update profile settings.");
     } finally {
       setLoading(false);
     }
@@ -99,8 +142,18 @@ export default function ProfileSettingPage() {
           <Card className="crm-card h-fit w-full">
             <CardContent className="pt-8 text-center space-y-5">
               <div className="flex justify-center">
-                <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-3xl shadow-xl shadow-primary/5">
-                  {currentUser?.avatarInitials}
+                <div className="relative">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary font-black text-3xl shadow-xl shadow-primary/5">
+                    {currentUser?.avatarInitials}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={scrollToEditForm}
+                    title="Edit profile details"
+                    className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-md transition-transform hover:scale-105 cursor-pointer"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
               <div>
@@ -134,13 +187,19 @@ export default function ProfileSettingPage() {
         </div>
 
         {/* Edit Form */}
-        <Card className="crm-card lg:col-span-2">
+        <Card className="crm-card lg:col-span-2" id="profile-edit-section">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400">
               Personal & Contact Information
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {fetchingProfile && (
+              <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Loading profile...
+              </div>
+            )}
             {successMsg && (
               <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-4 text-xs font-bold text-emerald-400 mb-6 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-400" />
@@ -153,7 +212,7 @@ export default function ProfileSettingPage() {
               </div>
             )}
 
-            <form onSubmit={handleSave} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSave} className="space-y-6">
               {/* Personal Section */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 border-b border-border/40 pb-2">

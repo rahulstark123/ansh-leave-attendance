@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const countryOverride = searchParams.get("country");
     const countryCode = (
-      countryOverride?.toUpperCase() || detectCountryFromRequest(req)
+      countryOverride?.toUpperCase() || (await detectCountryFromRequest(req))
     ).slice(0, 2);
 
     return NextResponse.json(getFxDisplay(cfg, countryCode));

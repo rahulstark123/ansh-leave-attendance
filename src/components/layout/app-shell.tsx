@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { useLeaveStore } from "@/stores/leave-store";
 import { usePlanStore } from "@/stores/plan-store";
 import { PlanUpgradeModal } from "@/components/billing/plan-upgrade-modal";
+import { ProCheckoutModal } from "@/components/billing/pro-checkout-modal";
 import { TrialBanner } from "@/components/billing/trial-banner";
 import { usePlanRouteGuard } from "@/hooks/use-plan-route-guard";
 
@@ -22,9 +23,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileSize, setIsMobileSize] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !sessionStorage.getItem("ansh_auth_token");
+  });
   const initialize = useLeaveStore((s) => s.initialize);
   const fetchPlan = usePlanStore((s) => s.fetchPlan);
+  const checkoutModalOpen = usePlanStore((s) => s.checkoutModalOpen);
+  const checkoutOnSuccess = usePlanStore((s) => s.checkoutOnSuccess);
+  const closeCheckoutModal = usePlanStore((s) => s.closeCheckoutModal);
+  const employees = useLeaveStore((s) => s.employees);
   const hasChecked = useRef(false);
 
   // Authenticated route protection — runs ONCE on mount only.
@@ -43,6 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         router.push("/login");
         return;
       }
+
+      // Already logged in — show the app immediately; refresh data in the background.
+      setCheckingAuth(false);
 
       try {
         const res = await fetch("/api/auth/me", {
@@ -65,10 +76,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
 
         await Promise.all([initialize(), fetchPlan()]);
-        setCheckingAuth(false);
       } catch (err) {
         console.error("Auth check failed:", err);
-        setCheckingAuth(false);
       }
     };
 
@@ -147,6 +156,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
         <GlobalSearchModal />
         <PlanUpgradeModal />
+        <ProCheckoutModal
+          open={checkoutModalOpen}
+          onOpenChange={(open) => !open && closeCheckoutModal()}
+          minSeats={Math.max(employees.length, 1)}
+          onSuccess={async () => {
+            await Promise.all([initialize(), fetchPlan(), checkoutOnSuccess?.()]);
+          }}
+        />
       </div>
     </div>
   );

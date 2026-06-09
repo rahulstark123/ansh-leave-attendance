@@ -28,6 +28,10 @@ export default function LoginPage() {
       setErrorMsg(decodeURIComponent(authError.replace(/\+/g, " ")));
     }
 
+    if (params.get("reset") === "success") {
+      setSuccessMsg("Password updated successfully. Sign in with your new password.");
+    }
+
     // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();

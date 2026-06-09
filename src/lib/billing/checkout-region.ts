@@ -7,13 +7,13 @@ export interface CheckoutRegion {
   currency: ChargeCurrency;
 }
 
-export function resolveCheckoutFromRequest(
+export async function resolveCheckoutFromRequest(
   request: Request,
   billingCountryOverride?: string | null
-): CheckoutRegion {
+): Promise<CheckoutRegion> {
   const countryCode = (
     billingCountryOverride?.trim().toUpperCase() ||
-    detectCountryFromRequest(request)
+    (await detectCountryFromRequest(request))
   ).slice(0, 2);
 
   const currency: ChargeCurrency = countryCode === "IN" ? "INR" : "USD";

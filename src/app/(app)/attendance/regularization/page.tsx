@@ -47,7 +47,8 @@ export default function RegularizationPage() {
   const isAuthorized =
     currentUser?.role === "HR Manager" ||
     currentUser?.role === "Admin" ||
-    currentUser?.role === "Owner";
+    currentUser?.role === "Owner" ||
+    currentUser?.role === "Manager";
 
   const [activeTab, setActiveTab] = useState<"my" | "team">("my");
   const [requests, setRequests] = useState<RegularizationRequest[]>([]);
@@ -64,6 +65,83 @@ export default function RegularizationPage() {
   const [reqInTime, setReqInTime] = useState("09:00");
   const [reqOutTime, setReqOutTime] = useState("18:00");
   const [reqReason, setReqReason] = useState("");
+  const [shiftHint, setShiftHint] = useState("");
+
+  const loadDefaultShiftTimes = async () => {
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const [settingsRes, shiftRes, meRes] = await Promise.all([
+        fetch("/api/settings", { headers }),
+        fetch("/api/settings/shift", { headers }),
+        fetch("/api/auth/me", { headers }),
+      ]);
+
+      let punchIn = "09:00 AM";
+      let punchOut = "06:00 PM";
+      let hint = "Using default attendance shift timings.";
+
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        const att = data.settings?.attendanceSettings;
+        if (att?.shiftStartTime) {
+          punchIn = att.shiftStartTime;
+          const startMins = parseAmPmToMinutes(att.shiftStartTime);
+          const workingHours = att.workingHours ?? 9;
+          punchOut = minutesToAmPm(startMins + workingHours * 60);
+        }
+      }
+
+      if (shiftRes.ok && meRes.ok) {
+        const shiftData = await shiftRes.json();
+        const meData = await meRes.json();
+        const rosterShift = meData.employee?.rosterShift;
+        const matched = (shiftData.shifts || []).find(
+          (s: { name: string }) => s.name === rosterShift
+        );
+        if (matched) {
+          punchIn = matched.startTime;
+          punchOut = matched.endTime;
+          hint = `Pre-filled from your assigned shift: ${matched.name}.`;
+        }
+      }
+
+      setReqInTime(ampmToInput(punchIn));
+      setReqOutTime(ampmToInput(punchOut));
+      setShiftHint(hint);
+    } catch (err) {
+      console.error("Failed to load shift defaults:", err);
+    }
+  };
+
+  const parseAmPmToMinutes = (timeStr: string) => {
+    const parts = timeStr.split(" ");
+    if (parts.length !== 2) return 0;
+    const [time, modifier] = parts;
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  };
+
+  const minutesToAmPm = (totalMinutes: number) => {
+    const endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    const mod = endH >= 12 ? "PM" : "AM";
+    const disp = endH % 12 || 12;
+    return `${String(disp).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${mod}`;
+  };
+
+  const ampmToInput = (timeStr: string) => {
+    if (!timeStr) return "09:00";
+    const parts = timeStr.split(" ");
+    if (parts.length !== 2) return "09:00";
+    const [time, modifier] = parts;
+    let [hours, minutes] = time.split(":").map(Number);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  };
 
   const fetchRequests = async () => {
     try {
@@ -217,11 +295,14 @@ export default function RegularizationPage() {
       <PageHeader
         eyebrow="Attendance Regularization"
         title="Punch Adjustments"
-        description="Submit corrections for missed checks, late check-ins, or incorrect shift logging."
+        description="If you were late or missed a punch, submit the correct in/out times. Your HR Manager or reporting manager can approve — once accepted, that day's attendance log is updated to your requested times."
         action={{
           label: "Request Correction",
           icon: Plus,
-          onClick: () => setIsOpen(true),
+          onClick: () => {
+            loadDefaultShiftTimes();
+            setIsOpen(true);
+          },
         }}
       />
 
@@ -495,8 +576,11 @@ export default function RegularizationPage() {
               Request Attendance Correction
             </DialogTitle>
             <DialogDescription className="text-slate-500">
-              Submit a request to regularize punch timings for a missed or incorrect shift checking.
+              Enter the correct punch-in and punch-out times for the day. Defaults are pulled from your assigned shift roster or attendance settings. Once approved, your attendance log for that date will reflect these times.
             </DialogDescription>
+            {shiftHint && (
+              <p className="text-[10px] font-semibold text-primary/80">{shiftHint}</p>
+            )}
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">

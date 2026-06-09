@@ -1,17 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
-
-// Helper to parse time string e.g. "09:05 AM" into minutes from midnight
-const parseTimeStr = (timeStr: string) => {
-  const parts = timeStr.split(" ");
-  if (parts.length !== 2) return 0;
-  const [time, modifier] = parts;
-  let [hours, minutes] = time.split(":").map(Number);
-  if (modifier === "PM" && hours < 12) hours += 12;
-  if (modifier === "AM" && hours === 12) hours = 0;
-  return hours * 60 + minutes;
-};
+import { calculateShiftDuration } from "@/lib/regularization-utils";
 
 export async function POST(req: Request) {
   try {
@@ -42,9 +32,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
 
-    // Verify reporting manager check if they are Manager or HR Manager and not Admin/Owner
-    const isOwnerOrAdmin = employee.role === "Admin" || employee.role === "Owner";
-    if (!isOwnerOrAdmin) {
+    if (request.status !== "Pending") {
+      return NextResponse.json({ error: "Regularization request already processed" }, { status: 400 });
+    }
+
+    // Admin, Owner, and HR Manager can approve any workspace request.
+    // Managers may only approve their direct reports.
+    const canApproveAny =
+      employee.role === "Admin" ||
+      employee.role === "Owner" ||
+      employee.role === "HR Manager";
+    if (!canApproveAny) {
       const requester = await prisma.employee.findUnique({
         where: { id: request.employeeId },
       });
@@ -66,27 +64,12 @@ export async function POST(req: Request) {
       data: { status },
     });
 
-    // If approved, update or insert the corresponding PunchRecord
+    // If approved, set that day's punch log to the employee's requested times.
     if (status === "Approved") {
-      const { getSystemSettings } = require("@/lib/settings");
-      const settings = getSystemSettings();
-      const { shiftStartTime, gracePeriod } = settings.attendanceSettings;
+      const duration = calculateShiftDuration(request.requestedIn, request.requestedOut);
+      const punchStatus = "Regularized";
 
-      // 1. Determine Late / On-time status
-      const checkInMinutes = parseTimeStr(request.requestedIn);
-      const shiftStartMinutes = parseTimeStr(shiftStartTime);
-      const lateThresholdMinutes = shiftStartMinutes + gracePeriod;
-
-      const punchStatus = checkInMinutes > lateThresholdMinutes ? "Late" : "On-time";
-
-      // 2. Calculate duration
-      const checkOutMinutes = parseTimeStr(request.requestedOut);
-      const diffMinutes = Math.max(0, checkOutMinutes - checkInMinutes);
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      const duration = `${hours}h ${minutes.toString().padStart(2, "0")}m`;
-
-      // 3. Find if punch record already exists for that employee on that date
+      // Find if punch record already exists for that employee on that date
       const existingPunch = await prisma.punchRecord.findFirst({
         where: {
           employeeId: request.employeeId,

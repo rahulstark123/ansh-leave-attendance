@@ -31,7 +31,7 @@ export interface PunchRecord {
   punchIn: string;
   punchOut: string | null;
   duration: string | null; // e.g. "8h 15m"
-  status: "On-time" | "Late" | "Half-day" | "Absent" | "WFH";
+  status: "On-time" | "Late" | "Half-day" | "Absent" | "WFH" | "Regularized";
   employeeId?: string;
   punchInPhoto?: string | null;
   punchOutPhoto?: string | null;
@@ -61,6 +61,15 @@ export interface Employee {
   faceEnrolled?: boolean;
   bloodGroup?: string;
   phoneNumber?: string;
+  personalEmail?: string;
+  dateOfBirth?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  employeeCode?: string;
+  designation?: string;
+  employmentType?: string;
+  workLocation?: string;
+  joiningDate?: string;
 }
 
 interface LeaveState {
@@ -296,6 +305,16 @@ const mapDbEmployee = (dbEmp: any): Employee => {
     facePhotos: dbEmp.facePhotos || [],
     faceEnrolled: isFaceEnrolled(dbEmp.facePhotos, dbEmp.faceEmbedding),
     bloodGroup: dbEmp.bloodGroup || undefined,
+    phoneNumber: dbEmp.phoneNumber || undefined,
+    personalEmail: dbEmp.personalEmail || undefined,
+    dateOfBirth: dbEmp.dateOfBirth || undefined,
+    emergencyContactName: dbEmp.emergencyContactName || undefined,
+    emergencyContactPhone: dbEmp.emergencyContactPhone || undefined,
+    employeeCode: dbEmp.employeeCode || undefined,
+    designation: dbEmp.designation || undefined,
+    employmentType: dbEmp.employmentType || undefined,
+    workLocation: dbEmp.workLocation || undefined,
+    joiningDate: dbEmp.joiningDate || undefined,
   };
 };
 

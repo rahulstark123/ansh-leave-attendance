@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +12,10 @@ import { ArrowUpRight, Lock, Zap } from "lucide-react";
 import { usePlanStore } from "@/stores/plan-store";
 
 export function PlanUpgradeModal() {
-  const router = useRouter();
   const modalOpen = usePlanStore((s) => s.modalOpen);
   const blockedFeature = usePlanStore((s) => s.blockedFeature);
   const closeModal = usePlanStore((s) => s.closeModal);
+  const openCheckoutModal = usePlanStore((s) => s.openCheckoutModal);
 
   const moduleName = blockedFeature?.moduleName ?? "This module";
   const message =
@@ -24,8 +23,7 @@ export function PlanUpgradeModal() {
     "This module is not included in your current plan.";
 
   const handleUpgrade = () => {
-    closeModal();
-    router.push("/settings/billing");
+    openCheckoutModal();
   };
 
   return (

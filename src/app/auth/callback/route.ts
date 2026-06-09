@@ -10,6 +10,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(oauthError)}`);
   }
 
+  const nextPath = searchParams.get("next");
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -19,5 +21,6 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/complete`);
+  const destination = nextPath?.startsWith("/") ? nextPath : "/auth/complete";
+  return NextResponse.redirect(`${origin}${destination}`);
 }

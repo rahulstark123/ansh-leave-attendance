@@ -19,8 +19,6 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buildRazorpayPrefill } from "@/lib/billing/razorpay-prefill";
-import { getCheckoutLogoUrl, openRazorpayCheckout } from "@/lib/billing/checkout-client";
 import { usePlanStore } from "@/stores/plan-store";
 
 interface BillingInvoice {
@@ -49,6 +47,7 @@ interface BillingStatus {
 }
 
 interface FxPricing {
+  countryCode: string;
   chargeCurrency: "INR" | "USD";
   monthlyPriceMajor: number;
   yearlyMonthlyEquivalentMajor: number;
@@ -73,8 +72,9 @@ function formatRenewalDate(iso: string | null) {
 }
 
 export default function BillingSettingPage() {
-  const { currentUser, employees, initialize } = useLeaveStore();
+  const { employees, initialize } = useLeaveStore();
   const fetchPlan = usePlanStore((s) => s.fetchPlan);
+  const openCheckoutModal = usePlanStore((s) => s.openCheckoutModal);
 
   const [planName, setPlanName] = useState("ANSH HR Free Edition");
   const [plan, setPlan] = useState("free");
@@ -169,107 +169,21 @@ export default function BillingSettingPage() {
     }
   };
 
-  const handleProceedToPay = async () => {
-    if (!canManageBilling) {
-      setErrorMsg("Only Admin, HR Manager, or Owner can manage billing.");
-      return;
-    }
-
-    setIsUpgrading(true);
+  const startProCheckout = () => {
     setErrorMsg("");
-    setSuccessMsg("");
-
-    try {
-      const token = sessionStorage.getItem("ansh_auth_token");
-      if (!token) throw new Error("Please sign in again.");
-
-      const cycle = isYearly ? "yearly" : "monthly";
-      const orderRes = await fetch("/api/billing/checkout/order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ billingCycle: cycle }),
-      });
-
-      if (!orderRes.ok) {
-        const data = await orderRes.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to create payment order");
-      }
-
-      const { orderId, amount, currency: orderCurrency, keyId, seats } = await orderRes.json();
-      const { prefill, readonly } = buildRazorpayPrefill({
-        name: currentUser?.name,
-        email: currentUser?.email,
-        phoneNumber: currentUser?.phoneNumber,
-      });
-
-      const displayCurrency = orderCurrency as "INR" | "USD";
-      const monthlyDisplay = isYearly
-        ? fx?.yearlyMonthlyEquivalentMajor ?? price
-        : fx?.monthlyPriceMajor ?? price;
-
-      await openRazorpayCheckout({
-        key: keyId,
-        order_id: orderId,
-        amount,
-        currency: orderCurrency,
-        name: "ANSH HR",
-        description: `Pro Plan — ${isYearly ? "Yearly" : "Monthly"} (${formatPrice(monthlyDisplay, displayCurrency)}/user/mo × ${seats ?? 1} users)`,
-        image: getCheckoutLogoUrl(),
-        prefill,
-        readonly,
-        theme: { color: "#0d9488" },
-        handler: async (response) => {
-          const verifyRes = await fetch("/api/billing/checkout/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              workspaceId,
-            }),
-          });
-
-          if (!verifyRes.ok) {
-            const data = await verifyRes.json().catch(() => ({}));
-            throw new Error(data.error || "Payment verification failed");
-          }
-
-          const verified = await verifyRes.json();
-          setPlan(verified.plan);
-          setPlanName(verified.planName);
-          setMaxUsers(verified.maxUsers);
-          setBillingCycle(verified.billingCycle);
-          setPlanExpiresAt(verified.expiresAt);
-          await Promise.all([initialize(), loadBilling(), fetchPlan()]);
-          setSuccessMsg("Payment successful! Your workspace is now on Pro.");
-          setIsPlansModalOpen(false);
-          setTimeout(() => setSuccessMsg(""), 5000);
-        },
-      });
-    } catch (err) {
-      if (err instanceof Error && err.message === "Payment cancelled") {
-        setErrorMsg("Payment was cancelled.");
-      } else {
-        console.error(err);
-        setErrorMsg(err instanceof Error ? err.message : "Payment failed. Please try again.");
-      }
-    } finally {
-      setIsUpgrading(false);
-    }
+    setIsPlansModalOpen(false);
+    openCheckoutModal(async () => {
+      await Promise.all([initialize(), loadBilling(), fetchPlan()]);
+      setSuccessMsg("Payment successful! Your workspace is now on Pro.");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    });
   };
 
   const handlePlanChange = async (target: "Free" | "Pro") => {
     if (target === "Free") {
       await handleDowngrade();
     } else {
-      await handleProceedToPay();
+      startProCheckout();
     }
   };
 
@@ -291,9 +205,12 @@ export default function BillingSettingPage() {
   const hasPaidPro = plan === "pro";
   const isPro = hasPaidPro || isTrialActive;
   const displayCurrency = fx?.chargeCurrency || currency;
-  const monthlyListPrice = fx?.monthlyPriceMajor ?? 199;
-  const yearlyListPrice = fx?.yearlyMonthlyEquivalentMajor ?? 161;
+  const monthlyListPrice = fx?.monthlyPriceMajor ?? (displayCurrency === "USD" ? 2 : 199);
+  const yearlyListPrice = fx?.yearlyMonthlyEquivalentMajor ?? (displayCurrency === "USD" ? 1.62 : 161);
+  const yearlyTotalPrice = fx?.yearlyTotalMajor ?? (displayCurrency === "USD" ? 19.44 : 1931);
   const priceSymbol = displayCurrency === "USD" ? "$" : "₹";
+  const listPrice = (yearly: boolean) =>
+    formatPrice(yearly ? yearlyListPrice : monthlyListPrice, displayCurrency);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -301,6 +218,18 @@ export default function BillingSettingPage() {
         eyebrow="Financial Settings"
         title="Billing Page"
         description="Review your active ANSH HR subscription plan, check seat allocation thresholds, and view payment invoices."
+        toolbar={
+          !isPro ? (
+            <Button
+              type="button"
+              className="btn-primary shrink-0 gap-2 border-0"
+              onClick={startProCheckout}
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              Upgrade
+            </Button>
+          ) : undefined
+        }
         action={{
           label: "Check our Plans",
           onClick: () => setIsPlansModalOpen(true)
@@ -473,7 +402,7 @@ export default function BillingSettingPage() {
                 )}
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-extrabold text-slate-700 dark:text-slate-200">Free</span>
-                  <span className="font-black text-slate-800 dark:text-white">₹0</span>
+                  <span className="font-black text-slate-800 dark:text-white">{formatPrice(0, displayCurrency)}</span>
                 </div>
                 <p className="text-[10px] text-slate-400">
                   Core leave + attendance for small teams — 3 teammates, 50 punch-ins/month.
@@ -529,6 +458,12 @@ export default function BillingSettingPage() {
             <DialogDescription className="text-xs text-slate-400">
               Compare our plans and upgrade to unlock Team Space, unlimited punch-ins, and more teammates.
             </DialogDescription>
+            {fx?.disclaimer && (
+              <p className="text-[10px] font-semibold text-primary/90 mt-2">
+                {fx.disclaimer}
+                {fx.countryCode ? ` · Detected region: ${fx.countryCode}` : ""}
+              </p>
+            )}
           </DialogHeader>
 
           {/* Monthly / Yearly Toggle */}
@@ -592,7 +527,7 @@ export default function BillingSettingPage() {
 
                 <div>
                   <p className="text-3xl font-black text-slate-800 dark:text-white">
-                    ₹0
+                    {formatPrice(0, displayCurrency)}
                   </p>
                   <p className="text-[10px] text-slate-450 dark:text-slate-400 mt-1">Forever free · no credit card required.</p>
                 </div>
@@ -676,13 +611,13 @@ export default function BillingSettingPage() {
 
                 <div>
                   <p className="text-3xl font-black text-slate-800 dark:text-white">
-                    {priceSymbol}{isYearly ? yearlyListPrice : monthlyListPrice}
+                    {listPrice(isYearly)}
                     <span className="text-xs font-semibold text-slate-400"> / user / month</span>
                   </p>
                   <p className="text-[10px] text-slate-450 dark:text-slate-400 mt-1">
                     {isYearly
-                      ? `${priceSymbol}${yearlyListPrice}/user/mo billed yearly (${priceSymbol}${fx?.yearlyTotalMajor ?? yearlyListPrice * 12}/user/year)`
-                      : `${priceSymbol}${monthlyListPrice}/user/month`}
+                      ? `${listPrice(true)}/user/mo billed yearly (${formatPrice(yearlyTotalPrice, displayCurrency)}/user/year)`
+                      : `${listPrice(false)}/user/month`}
                   </p>
                   <p className="text-[9px] text-slate-400 mt-0.5">
                     {isYearly ? "Switch to monthly anytime." : "Switch to yearly to save 19%."}
@@ -692,7 +627,7 @@ export default function BillingSettingPage() {
                 <div className="pt-2 border-t border-border/30">
                   <button
                     type="button"
-                    disabled={hasPaidPro || isUpgrading || !canManageBilling}
+                    disabled={hasPaidPro || !canManageBilling}
                     onClick={() => handlePlanChange("Pro")}
                     className={cn(
                       "w-full text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer transition-all",
@@ -701,12 +636,7 @@ export default function BillingSettingPage() {
                         : "btn-primary shadow-lg shadow-primary/15 flex items-center justify-center gap-1.5"
                     )}
                   >
-                    {isUpgrading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : hasPaidPro ? (
+                    {hasPaidPro ? (
                       "Current Plan"
                     ) : isTrialActive ? (
                       "Upgrade before trial ends"
@@ -827,12 +757,11 @@ export default function BillingSettingPage() {
             {!hasPaidPro && canManageBilling && (
               <button
                 type="button"
-                onClick={() => handlePlanChange("Pro")}
-                disabled={isUpgrading}
+                onClick={startProCheckout}
                 className="btn-primary self-end sm:self-auto text-xs font-black uppercase tracking-wider py-2 px-5 rounded-xl flex items-center gap-1 cursor-pointer"
               >
-                {isUpgrading ? "Processing..." : "Upgrade to Pro"}
-                {!isUpgrading && <ArrowUpRight className="h-3.5 w-3.5" />}
+                Upgrade to Pro
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
             )}
           </div>

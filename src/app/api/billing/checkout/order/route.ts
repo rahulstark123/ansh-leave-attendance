@@ -47,10 +47,30 @@ export async function POST(req: Request) {
     const seatsCount = await prisma.employee.count({
       where: { wid: workspaceId },
     });
-    const billableSeats = Math.max(seatsCount, 1);
+    const minSeats = Math.max(seatsCount, 1);
 
-    const { countryCode, currency } = resolveCheckoutFromRequest(req, billingCountry);
-    const { amountMinor } = computeUpgradeCheckoutMinor({
+    const requestedSeats =
+      typeof body.seats === "number"
+        ? Math.floor(body.seats)
+        : typeof body.seats === "string"
+          ? Math.floor(Number(body.seats))
+          : minSeats;
+
+    if (!Number.isFinite(requestedSeats) || requestedSeats < 1) {
+      return NextResponse.json({ error: "Invalid seat count" }, { status: 400 });
+    }
+
+    if (requestedSeats < minSeats) {
+      return NextResponse.json(
+        { error: `Seat count must be at least ${minSeats} for your current team size` },
+        { status: 400 }
+      );
+    }
+
+    const billableSeats = Math.min(requestedSeats, 500);
+
+    const { countryCode, currency } = await resolveCheckoutFromRequest(req, billingCountry);
+    const { amountMinor, monthlyEquivalentMajor } = computeUpgradeCheckoutMinor({
       currency,
       billingCycle,
       cfg,
@@ -102,8 +122,11 @@ export async function POST(req: Request) {
       orderId: order.id,
       amount: amountMinor,
       currency,
+      countryCode,
       keyId: cfg.keyId,
       seats: billableSeats,
+      perUserMonthlyMajor: monthlyEquivalentMajor,
+      billingCycle,
     });
   } catch (error) {
     console.error("POST /api/billing/checkout/order error:", error);

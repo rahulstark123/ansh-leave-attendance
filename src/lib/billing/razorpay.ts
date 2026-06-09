@@ -29,7 +29,7 @@ export function getRazorpayConfig(): RazorpayConfig | null {
       10
     ),
     proMonthlyUsdCents: parseInt(
-      process.env.RAZORPAY_PRO_PLAN_AMOUNT_CENTS || "499",
+      process.env.RAZORPAY_PRO_PLAN_AMOUNT_CENTS || "200",
       10
     ),
   };

@@ -11,10 +11,14 @@ interface PlanState {
   plan: string;
   planName: string;
   modalOpen: boolean;
+  checkoutModalOpen: boolean;
+  checkoutOnSuccess: (() => void | Promise<void>) | null;
   blockedFeature: PlanFeature | null;
   fetchPlan: () => Promise<void>;
   requestUpgrade: (featureId: PlanFeatureId) => void;
   closeModal: () => void;
+  openCheckoutModal: (onSuccess?: () => void | Promise<void>) => void;
+  closeCheckoutModal: () => void;
 }
 
 export const usePlanStore = create<PlanState>((set, get) => ({
@@ -26,6 +30,8 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   plan: "free",
   planName: "ANSH HR Free Edition",
   modalOpen: false,
+  checkoutModalOpen: false,
+  checkoutOnSuccess: null,
   blockedFeature: null,
 
   fetchPlan: async () => {
@@ -64,5 +70,18 @@ export const usePlanStore = create<PlanState>((set, get) => ({
 
   closeModal: () => {
     set({ modalOpen: false, blockedFeature: null });
+  },
+
+  openCheckoutModal: (onSuccess) => {
+    set({
+      checkoutModalOpen: true,
+      checkoutOnSuccess: onSuccess ?? null,
+      modalOpen: false,
+      blockedFeature: null,
+    });
+  },
+
+  closeCheckoutModal: () => {
+    set({ checkoutModalOpen: false, checkoutOnSuccess: null });
   },
 }));

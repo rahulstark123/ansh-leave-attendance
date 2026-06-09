@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLeaveStore } from "@/stores/leave-store";
 import { compressImage } from "@/lib/image-compress";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,13 @@ interface UploadedPhoto {
 }
 
 export function FaceUploadEnrollment({ employeeId, onEnrollComplete }: FaceUploadEnrollmentProps) {
-  const { currentUser, setFaceEnrolled } = useLeaveStore();
+  const { currentUser, faceEnrolled, setFaceEnrolled } = useLeaveStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [frontPhoto, setFrontPhoto] = useState<UploadedPhoto | null>(null);
   const [leftPhoto, setLeftPhoto] = useState<UploadedPhoto | null>(null);
@@ -33,6 +36,65 @@ export function FaceUploadEnrollment({ employeeId, onEnrollComplete }: FaceUploa
   const fileInputRefFront = useRef<HTMLInputElement>(null);
   const fileInputRefLeft = useRef<HTMLInputElement>(null);
   const fileInputRefRight = useRef<HTMLInputElement>(null);
+
+  const applyEnrollment = (photos: string[]) => {
+    if (Array.isArray(photos) && photos.length >= 3) {
+      setExistingPhotos(photos);
+      setIsEnrolled(true);
+      setIsUpdating(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadEnrollmentStatus = async () => {
+      setLoadingStatus(true);
+      try {
+        const token = sessionStorage.getItem("ansh_auth_token");
+        const query = employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : "";
+        const res = await fetch(`/api/employee/face-embedding${query}`, {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          applyEnrollment(data.facePhotos ?? []);
+          return;
+        }
+
+        const isSelf = !employeeId || employeeId === currentUser.id;
+        if (!isSelf) return;
+
+        // Fallback 1: profile API (includes facePhotos from DB)
+        const profileRes = await fetch("/api/profile", {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          const photos = profileData.facePhotos;
+          if (
+            Array.isArray(photos) &&
+            photos.length >= 3 &&
+            (profileData.faceEnrolled || profileData.hasFacePhotos)
+          ) {
+            applyEnrollment(photos);
+            return;
+          }
+        }
+
+        // Fallback 2: in-memory store from dashboard initialize
+        const photos = currentUser.facePhotos ?? [];
+        if (photos.length >= 3) {
+          applyEnrollment(photos);
+        }
+      } catch (err) {
+        console.error("Failed to load face enrollment status:", err);
+      } finally {
+        setLoadingStatus(false);
+      }
+    };
+
+    loadEnrollmentStatus();
+  }, [employeeId, currentUser.id, currentUser.facePhotos, faceEnrolled]);
 
   const handleFileChange = async (slot: PhotoSlot, file: File | null) => {
     if (!file) return;
@@ -109,14 +171,15 @@ export function FaceUploadEnrollment({ employeeId, onEnrollComplete }: FaceUploa
 
       const responseData = await res.json();
 
+      const photos = responseData.employee?.facePhotos ?? [];
+      applyEnrollment(photos);
+
       if (!employeeId || employeeId === currentUser.id) {
         setFaceEnrolled(true);
       }
 
-      setSuccess(true);
-
-      if (onEnrollComplete && responseData.employee?.facePhotos) {
-        onEnrollComplete(responseData.employee.facePhotos);
+      if (onEnrollComplete && photos.length > 0) {
+        onEnrollComplete(photos);
       }
     } catch (err: unknown) {
       console.error("Register face error:", err);
@@ -234,28 +297,58 @@ export function FaceUploadEnrollment({ employeeId, onEnrollComplete }: FaceUploa
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        {success ? (
-          <div className="w-full text-center space-y-4 py-4">
-            <div className="flex justify-center">
-              <CheckCircle2 className="h-12 w-12 text-emerald-500 animate-bounce" />
+        {loadingStatus ? (
+          <div className="flex items-center justify-center gap-2 py-8 text-xs text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            Checking enrollment status...
+          </div>
+        ) : isEnrolled && !isUpdating ? (
+          <div className="w-full space-y-4 py-2">
+            <div className="flex items-center gap-2 justify-center">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <h4 className="text-sm font-extrabold text-slate-800 dark:text-white">
+                Selfie attendance is active
+              </h4>
             </div>
-            <div className="space-y-1">
-              <h4 className="text-sm font-extrabold text-slate-800 dark:text-white">Photos registered!</h4>
-              <p className="text-xs text-slate-400">You can now punch in/out with a quick selfie capture.</p>
+            <p className="text-xs text-slate-400 text-center">
+              Your face profile is registered. You can punch in/out with a quick selfie.
+            </p>
+
+            <div className="grid grid-cols-3 gap-3">
+              {existingPhotos.slice(0, 3).map((url, idx) => {
+                const label = idx === 0 ? "Front" : idx === 1 ? "Left" : "Right";
+                return (
+                  <div key={`${url}-${idx}`} className="space-y-1.5 text-center">
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border bg-slate-900">
+                      <img
+                        src={url}
+                        alt={`${label} profile`}
+                        className="w-full h-full object-cover scale-x-[-1]"
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSuccess(false);
-                setFrontPhoto(null);
-                setLeftPhoto(null);
-                setRightPhoto(null);
-                setGlobalError(null);
-              }}
-              className="mt-2 text-xs font-bold"
-            >
-              Update Photos
-            </Button>
+
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsUpdating(true);
+                  setFrontPhoto(null);
+                  setLeftPhoto(null);
+                  setRightPhoto(null);
+                  setGlobalError(null);
+                }}
+                className="text-xs font-bold"
+              >
+                Update Photos
+              </Button>
+            </div>
           </div>
         ) : (
           <>
