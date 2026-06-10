@@ -60,6 +60,15 @@ export function buildGlobalSearchIndex(): GlobalSearchItem[] {
       icon: Clock,
     },
     {
+      id: "nav-attend-cal",
+      group: "navigation",
+      label: "Navigation",
+      title: "My Calendar",
+      subtitle: "Your monthly attendance, leave and holidays",
+      href: "/calendar",
+      icon: Calendar,
+    },
+    {
       id: "nav-team",
       group: "navigation",
       label: "Navigation",

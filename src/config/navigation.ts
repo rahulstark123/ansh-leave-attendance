@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Calendar,
+  CalendarDays,
   CheckSquare,
   Clock,
   UsersRound,
@@ -20,6 +21,7 @@ export type NavSectionId =
   | "dashboard"
   | "leave"
   | "attendance"
+  | "calendar"
   | "team"
   | "reports"
   | "settings"
@@ -76,6 +78,12 @@ export const mainNav: MainNavItem[] = [
       { id: "regularization", label: "Regularization", href: "/attendance/regularization", icon: Calendar },
       { id: "wfh", label: "Work From Home", href: "/attendance/wfh", icon: Home },
     ],
+  },
+  {
+    id: "calendar",
+    label: "My Calendar",
+    href: "/calendar",
+    icon: CalendarDays,
   },
   {
     id: "team",
