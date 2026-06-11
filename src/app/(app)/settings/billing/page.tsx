@@ -478,7 +478,7 @@ export default function BillingSettingPage() {
               Upgrade Subscription Plan
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-400">
-              Compare our plans and upgrade to unlock Team Space, unlimited punch-ins, and more teammates.
+              Compare our plans and upgrade to unlock unlimited punch-ins and more teammates.
             </DialogDescription>
             {fx?.disclaimer && (
               <p className="text-[10px] font-semibold text-primary/90 mt-2">
@@ -597,7 +597,7 @@ export default function BillingSettingPage() {
                   </li>
                   <li className="flex items-center gap-2 text-slate-400 dark:text-slate-550 italic">
                     <X className="h-3.5 w-3.5 text-slate-300 dark:text-slate-700 shrink-0" />
-                    <span>No Team Space, custom shifts, leave categories, or holidays</span>
+                    <span>No custom shifts, leave categories, or holidays</span>
                   </li>
                 </ul>
               </div>
@@ -685,10 +685,7 @@ export default function BillingSettingPage() {
                     <Check className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span>Per-user pricing — scales with your team size</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>Team Space messaging & channels</span>
-                  </li>
+
                   <li className="flex items-center gap-2">
                     <Check className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span>Unlimited punch-ins</span>
@@ -744,7 +741,6 @@ export default function BillingSettingPage() {
                   {[
                     { name: "Teammates", free: "Up to 3", pro: "Per user (subscription)" },
                     { name: "Punch-ins per month", free: "50", pro: "Unlimited" },
-                    { name: "Team Space", free: false, pro: true },
                     { name: "Attendance punch tracking", free: true, pro: true },
                     { name: "Leave requests & approvals", free: true, pro: true },
                     { name: "Shift roster manager", free: false, pro: true },

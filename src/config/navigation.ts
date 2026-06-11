@@ -14,7 +14,9 @@ import {
   CreditCard,
   MessagesSquare,
   FileText,
-  Home
+  Home,
+  Megaphone,
+  Activity
 } from "lucide-react";
 
 export type NavSectionId =
@@ -25,6 +27,8 @@ export type NavSectionId =
   | "team"
   | "reports"
   | "settings"
+  | "announcements"
+  | "activity"
   | "workspace";
 
 export interface SubNavItem {
@@ -49,12 +53,6 @@ export const mainNav: MainNavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-  },
-  {
-    id: "workspace",
-    label: "Team Space",
-    href: "/workspace",
-    icon: MessagesSquare,
   },
   {
     id: "leave",
@@ -96,6 +94,18 @@ export const mainNav: MainNavItem[] = [
     label: "Reports & Analytics",
     href: "/reports",
     icon: BarChart3,
+  },
+  {
+    id: "announcements",
+    label: "Announcements",
+    href: "/announcements",
+    icon: Megaphone,
+  },
+  {
+    id: "activity",
+    label: "Activity Feed",
+    href: "/activity",
+    icon: Activity,
   },
   {
     id: "settings",

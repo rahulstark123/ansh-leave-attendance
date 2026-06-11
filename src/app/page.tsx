@@ -23,7 +23,9 @@ import {
   Camera,
   Trash2,
   Upload,
-  Info
+  Info,
+  Megaphone,
+  Bell
 } from "lucide-react";
 
 type MockTab = "punch" | "leaves" | "team";
@@ -219,15 +221,15 @@ export default function LandingPage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-              <Link href="/login" className="w-full sm:w-auto">
+              <Link href="/signup" className="w-full sm:w-auto">
                 <button className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl bg-emerald-500 px-8 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/15 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
-                  Launch ANSH HR
+                  Start your 14 days Free trial
                   <Play className="ml-2 h-4 w-4 fill-current" />
                 </button>
               </Link>
-              <a href="#features" className="w-full sm:w-auto">
+              <a href="https://anshapps.com/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <button className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-8 text-sm font-bold text-slate-200 hover:bg-white/10 hover:text-white transition-all cursor-pointer">
-                  Explore Products
+                  Visit ANSH
                 </button>
               </a>
             </div>
@@ -596,6 +598,143 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 4.5. LIVE ACTIVITY FEED & ANNOUNCEMENTS SECTION */}
+      <section id="announcements" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
+        <div className="mx-auto max-w-7xl px-6 space-y-16">
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+              Live Activity Feed & Broadcast Announcements
+            </h2>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Keep your entire workforce synchronized with dynamic organization-wide events and corporate bulletins. Build trust and alignment through real-time communication.
+            </p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
+            
+            {/* Column 1: Live Activity Feed */}
+            <div className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-[#0A1016]/40 p-8 space-y-6 hover:border-emerald-500/25 transition-all group">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Real-Time Updates</span>
+                    <h3 className="text-lg font-bold text-slate-200">Organization Activity Logs</h3>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Watch shift check-ins, leave requests, and status changes propagate across your team directory instantly.
+                </p>
+
+                <div className="space-y-3 pt-2">
+                  {/* Event 1 */}
+                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-emerald-500/20 transition-all">
+                    <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 text-xs font-black">
+                      RR
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-xs font-bold text-slate-200">Rahul Raj</span>
+                        <span className="text-[9px] text-slate-500 font-mono">09:02 AM</span>
+                      </div>
+                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Punched in at Mumbai Office (Selfie verified)</p>
+                    </div>
+                  </div>
+
+                  {/* Event 2 */}
+                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-sky-500/20 transition-all">
+                    <div className="h-7 w-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 text-xs font-black">
+                      AP
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-xs font-bold text-slate-200">Amit Patel</span>
+                        <span className="text-[9px] text-slate-500 font-mono">Yesterday</span>
+                      </div>
+                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Requested 1-day Sick Leave (Awaiting HR Review)</p>
+                    </div>
+                  </div>
+
+                  {/* Event 3 */}
+                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-purple-500/20 transition-all">
+                    <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 text-xs font-black">
+                      SYS
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <span className="text-xs font-bold text-slate-200">System Accrual</span>
+                        <span className="text-[9px] text-slate-500 font-mono">1st Jun</span>
+                      </div>
+                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Credited monthly leave allowances (+1.5 Annual Days)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Pinned Announcements */}
+            <div className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-[#0A1016]/40 p-8 space-y-6 hover:border-emerald-500/25 transition-all group">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
+                    <Megaphone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest block">Notice Board</span>
+                    <h3 className="text-lg font-bold text-slate-200">Active Announcements</h3>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Pin company-wide notices for holiday updates, policy changes, office announcements, or safety guidelines.
+                </p>
+
+                <div className="space-y-3.5 pt-2">
+                  {/* Announcement 1 */}
+                  <div className="p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl relative overflow-hidden group hover:border-sky-500/25 transition-all">
+                    <div className="absolute top-0 right-0 bg-sky-500/10 text-sky-400 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-bl-xl border-l border-b border-sky-500/15">
+                      Important
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                      <Bell className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                      <span>Q3 General Strategy Meeting</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+                      All employees are requested to attend the Q3 townhall town hall session scheduled for Friday, June 19th at 3:00 PM IST.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-2.5 text-[9px] text-slate-500 font-semibold">
+                      <span>HR Department</span>
+                      <span>·</span>
+                      <span>2 hours ago</span>
+                    </div>
+                  </div>
+
+                  {/* Announcement 2 */}
+                  <div className="p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl relative overflow-hidden group hover:border-emerald-500/25 transition-all">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                      <CalendarDays className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                      <span>Independence Day Holiday Calendar</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+                      Please note that August 15th will be observed as a national holiday across all registered branch offices.
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-2.5 text-[9px] text-slate-500 font-semibold">
+                      <span>HR Department</span>
+                      <span>·</span>
+                      <span>2 days ago</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* 5. FLEXIBLE PRICING SECTION */}
       <section id="pricing" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
         <div className="mx-auto max-w-7xl px-6 space-y-16">
@@ -678,10 +817,7 @@ export default function LandingPage() {
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
                     <span>Unlimited punch-ins</span>
                   </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
-                    <span>Team Space messaging and channels</span>
-                  </li>
+
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
                     <span>Shift roster manager with custom timings</span>
@@ -793,11 +929,11 @@ export default function LandingPage() {
           {[
             {
               q: "What is included in the Free plan?",
-              a: "Free workspaces include up to 3 teammates and 50 punch-ins per month. You get punch in/out attendance tracking, default Annual, Sick, and Casual leave pools, basic leave requests with manager approvals, and an employee directory with live leave balances. Team Space, custom shifts, leave categories, holidays, policies, and reports are not included on Free."
+              a: "Free workspaces include up to 3 teammates and 50 punch-ins per month. You get punch in/out attendance tracking, default Annual, Sick, and Casual leave pools, basic leave requests with manager approvals, and an employee directory with live leave balances. Custom shifts, leave categories, holidays, policies, and reports are not included on Free."
             },
             {
               q: "What does the Pro plan unlock?",
-              a: "Pro is billed per user per month based on your current team size — you pay ₹199 for each teammate when you subscribe. You get unlimited punch-ins plus Team Space messaging and channels, shift roster manager with custom timings, custom leave categories and rules, company holiday calendars by branch, policy document uploads, and team analytics with punctuality reports. CSV/PDF exports and audit trails are planned and marked as coming soon."
+              a: "Pro is billed per user per month based on your current team size — you pay ₹199 for each teammate when you subscribe. You get unlimited punch-ins plus a shift roster manager with custom timings, custom leave categories and rules, company holiday calendars by branch, policy document uploads, and team analytics with punctuality reports. CSV/PDF exports and audit trails are planned and marked as coming soon."
             },
             {
               q: "Do new workspaces get a Pro trial?",

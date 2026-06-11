@@ -340,6 +340,19 @@ exports.Prisma.SupportTicketScalarFieldEnum = {
   wid: 'wid'
 };
 
+exports.Prisma.AnnouncementScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  body: 'body',
+  pinned: 'pinned',
+  archived: 'archived',
+  wid: 'wid',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -372,7 +385,8 @@ exports.Prisma.ModelName = {
   WorkspaceChannel: 'WorkspaceChannel',
   ChannelMember: 'ChannelMember',
   WorkspaceMessage: 'WorkspaceMessage',
-  SupportTicket: 'SupportTicket'
+  SupportTicket: 'SupportTicket',
+  Announcement: 'Announcement'
 };
 
 /**

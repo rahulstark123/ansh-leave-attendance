@@ -168,30 +168,7 @@ const INTERACTIVE_GUIDES: InteractiveGuide[] = [
       },
     ],
   },
-  {
-    id: "workspace-chat",
-    title: "Workspace Channels & Direct Messaging",
-    description: "Connect and chat with team members in channels or private conversations.",
-    icon: MessagesSquare,
-    steps: [
-      {
-        title: "Open Team Space",
-        description: "Select 'Team Space' in the main sidebar.",
-      },
-      {
-        title: "Choose Channel or Chat",
-        description: "Select a channel (like #general) or select an employee from the Direct Messages list.",
-      },
-      {
-        title: "Send Messages",
-        description: "Type your message in the bottom input field and press Enter or click Send.",
-      },
-      {
-        title: "Create Topic Channels",
-        description: "For group discussions, click the '+' sign next to Channels to create a public/private channel.",
-      },
-    ],
-  },
+
   {
     id: "face-enrollment",
     title: "Setting Up Face Enrollment",

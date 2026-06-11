@@ -49,7 +49,7 @@ export function PlanUpgradeModal() {
               <Zap className="h-3.5 w-3.5 text-primary fill-primary" />
               Upgrade to Pro
             </div>
-            Unlock Team Space, unlimited punch-ins, more teammates, shift
+            Unlock unlimited punch-ins, more teammates, shift
             rosters, custom leave rules, holiday calendars, and analytics.
           </div>
 

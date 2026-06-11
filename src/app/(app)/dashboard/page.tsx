@@ -928,7 +928,7 @@ export default function DashboardPage() {
                     setEndDate(startDate);
                   }
                 }}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                className="rounded border-slate-300 text-primary focus:ring-primary accent-primary h-4 w-4 cursor-pointer"
               />
               <label htmlFor="halfDayCheckbox" className="text-xs font-bold text-slate-650 dark:text-slate-350 cursor-pointer select-none">
                 Apply as a Half-Day Leave

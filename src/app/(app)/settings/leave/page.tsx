@@ -1152,7 +1152,7 @@ export default function LeaveSettingPage() {
                       id="rollover"
                       checked={newTypeRollover}
                       onChange={(e) => setNewTypeRollover(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
                     />
                     <label htmlFor="rollover" className="text-[11px] font-semibold text-slate-650 dark:text-slate-400 cursor-pointer leading-tight">
                       Allow Carry-forward
@@ -1165,7 +1165,7 @@ export default function LeaveSettingPage() {
                       id="requiresProof"
                       checked={newTypeRequiresProof}
                       onChange={(e) => setNewTypeRequiresProof(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                      className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
                     />
                     <label htmlFor="requiresProof" className="text-[11px] font-semibold text-slate-650 dark:text-slate-400 cursor-pointer leading-tight">
                       Requires Proof Doc
@@ -1403,7 +1403,7 @@ export default function LeaveSettingPage() {
                         id="edit-rollover"
                         checked={editLeaveType.allowRollover}
                         onChange={(e) => setEditLeaveType({ ...editLeaveType, allowRollover: e.target.checked })}
-                        className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                        className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
                       />
                       <label htmlFor="edit-rollover" className="text-[11px] font-semibold text-slate-650 dark:text-slate-400 cursor-pointer leading-tight">
                         Allow Carry-forward
@@ -1416,7 +1416,7 @@ export default function LeaveSettingPage() {
                         id="edit-requiresProof"
                         checked={editLeaveType.requiresProof}
                         onChange={(e) => setEditLeaveType({ ...editLeaveType, requiresProof: e.target.checked })}
-                        className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                        className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
                       />
                       <label htmlFor="edit-requiresProof" className="text-[11px] font-semibold text-slate-650 dark:text-slate-400 cursor-pointer leading-tight">
                         Requires Proof Doc
