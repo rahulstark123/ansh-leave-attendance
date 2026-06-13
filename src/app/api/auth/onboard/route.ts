@@ -49,6 +49,13 @@ export async function POST(req: Request) {
     if (existingEmployee) {
       // Migrate relations to new Supabase ID transactionally
       employee = await prisma.$transaction(async (tx) => {
+        // 1. Temporarily change the email of the existing employee to free up the unique constraint
+        await tx.employee.update({
+          where: { id: existingEmployee.id },
+          data: { email: `temp-${Date.now()}-${existingEmployee.email}` },
+        });
+
+        // 2. Create the new employee with correct email
         const newEmp = await tx.employee.create({
           data: {
             id: user.id,
@@ -69,7 +76,7 @@ export async function POST(req: Request) {
           },
         });
 
-        // Update related records
+        // 3. Update all related records
         await tx.leaveRequest.updateMany({
           where: { employeeId: existingEmployee.id },
           data: { employeeId: user.id },
@@ -80,7 +87,42 @@ export async function POST(req: Request) {
           data: { employeeId: user.id },
         });
 
-        // Delete old seed employee record
+        await tx.attendanceRegularization.updateMany({
+          where: { employeeId: existingEmployee.id },
+          data: { employeeId: user.id },
+        });
+
+        await tx.wFHRequest.updateMany({
+          where: { employeeId: existingEmployee.id },
+          data: { employeeId: user.id },
+        });
+
+        await tx.workspaceChannel.updateMany({
+          where: { createdById: existingEmployee.id },
+          data: { createdById: user.id },
+        });
+
+        await tx.channelMember.updateMany({
+          where: { employeeId: existingEmployee.id },
+          data: { employeeId: user.id },
+        });
+
+        await tx.workspaceMessage.updateMany({
+          where: { senderId: existingEmployee.id },
+          data: { senderId: user.id },
+        });
+
+        await tx.workspaceMessage.updateMany({
+          where: { receiverId: existingEmployee.id },
+          data: { receiverId: user.id },
+        });
+
+        await tx.supportTicket.updateMany({
+          where: { employeeId: existingEmployee.id },
+          data: { employeeId: user.id },
+        });
+
+        // 4. Delete old seed employee record
         await tx.employee.delete({
           where: { id: existingEmployee.id },
         });
