@@ -3,6 +3,7 @@ import { getBillingAuthorizedEmployee, getEmployeeWorkspaceId } from "@/lib/bill
 import { resolveCheckoutFromRequest } from "@/lib/billing/checkout-region";
 import { computeUpgradeCheckoutMinor } from "@/lib/billing/charge-region";
 import { getRazorpayConfig, getRazorpayInstance } from "@/lib/billing/razorpay";
+import { resolveWorkspaceAccess } from "@/lib/billing/access";
 import {
   ensureWorkspaceBilling,
   getScheduledProSubscription,
@@ -39,10 +40,17 @@ export async function POST(req: Request) {
 
     const workspaceId = getEmployeeWorkspaceId(employee);
     const workspace = await ensureWorkspaceBilling(workspaceId);
+    const access = resolveWorkspaceAccess({
+      plan: workspace.plan,
+      planExpiresAt: workspace.planExpiresAt,
+      trialEndsAt: workspace.trialEndsAt,
+      maxUsers: workspace.maxUsers,
+    });
 
-    if (workspace.plan === "pro" && workspace.planExpiresAt && workspace.planExpiresAt > new Date()) {
+    // Trial workspaces still have Pro feature access — allow checkout and schedule billing for after trial.
+    if (access.isProActive) {
       return NextResponse.json(
-        { error: "Workspace already has an active Pro plan" },
+        { error: "Workspace already has an active paid Pro plan" },
         { status: 400 }
       );
     }
@@ -138,6 +146,8 @@ export async function POST(req: Request) {
       seats: billableSeats,
       perUserMonthlyMajor: monthlyEquivalentMajor,
       billingCycle,
+      willScheduleAfterTrial: access.isTrialActive,
+      proStartsAt: access.isTrialActive ? access.trialEndsAt : null,
     });
   } catch (error) {
     console.error("POST /api/billing/checkout/order error:", error);

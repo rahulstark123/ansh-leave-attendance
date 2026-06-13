@@ -37,6 +37,7 @@ interface BillingStatus {
   planExpiresAt: string | null;
   trialEndsAt: string | null;
   isTrialActive: boolean;
+  isProActive: boolean;
   hasScheduledPro: boolean;
   scheduledProStartsAt: string | null;
   trialDaysRemaining: number | null;
@@ -85,6 +86,7 @@ export default function BillingSettingPage() {
   const [currency, setCurrency] = useState("INR");
   const [billingCycle, setBillingCycle] = useState<string | null>(null);
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
+  const [hasPaidPro, setHasPaidPro] = useState(false);
   const [isTrialActive, setIsTrialActive] = useState(false);
   const [hasScheduledPro, setHasScheduledPro] = useState(false);
   const [scheduledProStartsAt, setScheduledProStartsAt] = useState<string | null>(null);
@@ -118,6 +120,7 @@ export default function BillingSettingPage() {
       setCurrency(data.currency);
       setBillingCycle(data.billingCycle);
       setPlanExpiresAt(data.planExpiresAt);
+      setHasPaidPro(Boolean(data.isProActive));
       setIsTrialActive(Boolean(data.isTrialActive));
       setHasScheduledPro(Boolean(data.hasScheduledPro));
       setScheduledProStartsAt(data.scheduledProStartsAt ?? null);
@@ -177,6 +180,14 @@ export default function BillingSettingPage() {
 
   const startProCheckout = () => {
     setErrorMsg("");
+
+    if (!canManageBilling) {
+      setErrorMsg(
+        "Only Admin, HR Manager, or Owner can purchase Pro. Ask your workspace admin to subscribe."
+      );
+      return;
+    }
+
     setIsPlansModalOpen(false);
     openCheckoutModal(async () => {
       await Promise.all([initialize(), loadBilling(), fetchPlan()]);
@@ -219,9 +230,8 @@ export default function BillingSettingPage() {
 
   const activeEmployeeCount = employees.length || 1;
   const utilizationPercentage = Math.round((activeEmployeeCount / maxUsers) * 100);
-  const hasPaidPro = plan === "pro";
-  const isPro = hasPaidPro || isTrialActive;
-  const canPurchasePro = !hasPaidPro && !hasScheduledPro && canManageBilling;
+  const hasProExperience = hasPaidPro || isTrialActive;
+  const showUpgradeOption = !hasPaidPro && !hasScheduledPro;
   const displayCurrency = fx?.chargeCurrency || currency;
   const monthlyListPrice = fx?.monthlyPriceMajor ?? (displayCurrency === "USD" ? 2 : 199);
   const yearlyListPrice = fx?.yearlyMonthlyEquivalentMajor ?? (displayCurrency === "USD" ? 1.62 : 161);
@@ -237,14 +247,14 @@ export default function BillingSettingPage() {
         title="Billing Page"
         description="Review your active ANSH HR subscription plan, check seat allocation thresholds, and view payment invoices."
         toolbar={
-          canPurchasePro ? (
+          showUpgradeOption ? (
             <Button
               type="button"
               className="btn-primary shrink-0 gap-2 border-0"
               onClick={startProCheckout}
             >
               <ArrowUpRight className="h-4 w-4" />
-              {isTrialActive ? "Subscribe to Pro" : "Upgrade"}
+              {isTrialActive ? "Subscribe to Pro" : "Upgrade to Pro"}
             </Button>
           ) : undefined
         }
@@ -263,6 +273,30 @@ export default function BillingSettingPage() {
       {errorMsg && (
         <div className="rounded-xl border border-rose-500/10 bg-rose-500/5 p-4 text-xs font-bold text-rose-400 max-w-xl animate-in fade-in duration-300">
           {errorMsg}
+        </div>
+      )}
+
+      {isTrialActive && !hasScheduledPro && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs text-slate-600 dark:text-slate-300 max-w-2xl animate-in fade-in duration-300">
+          <span className="font-bold text-primary">Free Pro trial active</span>
+          {" — "}
+          Payment is collected when you subscribe; paid Pro billing starts on{" "}
+          <span className="font-bold">{formatRenewalDate(trialEndsAt)}</span>.
+          {!canManageBilling && (
+            <span className="block mt-1 text-amber-700 dark:text-amber-300">
+              Only Admin, HR Manager, or Owner can complete the purchase.
+            </span>
+          )}
+        </div>
+      )}
+
+      {hasScheduledPro && (
+        <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-4 text-xs font-bold text-emerald-400 max-w-2xl animate-in fade-in duration-300 flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <span>
+            Pro subscription confirmed. Billing starts on{" "}
+            {formatRenewalDate(scheduledProStartsAt ?? trialEndsAt)} — your trial continues until then.
+          </span>
         </div>
       )}
 
@@ -285,7 +319,7 @@ export default function BillingSettingPage() {
                 "rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 border",
                 isTrialActive
                   ? "bg-primary/10 border-primary/20 text-primary"
-                  : isPro
+                  : hasProExperience
                     ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                     : "bg-slate-500/10 border-slate-500/20 text-slate-400"
               )}>
@@ -294,7 +328,7 @@ export default function BillingSettingPage() {
                   ? "Pro scheduled"
                   : isTrialActive
                     ? `Trial · ${trialDaysRemaining ?? 14}d left`
-                    : isPro
+                    : hasProExperience
                       ? "Active"
                       : "Free"}
               </div>
@@ -314,7 +348,7 @@ export default function BillingSettingPage() {
                     Billing Cycle
                   </p>
                   <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1.5 text-capitalize">
-                    {isPro ? (billingCycle === "yearly" ? "Yearly" : "Monthly") : "Free"}
+                    {hasProExperience ? (billingCycle === "yearly" ? "Yearly" : "Monthly") : "Free"}
                   </p>
                 </div>
                 <div>
@@ -410,14 +444,14 @@ export default function BillingSettingPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Free Trial */}
+              {/* Free tier */}
               <div className={cn(
                 "p-4 rounded-2xl border space-y-2 relative transition-all duration-300",
-                !isPro
+                !hasProExperience
                   ? "border-primary bg-primary/5 shadow-sm"
                   : "border-border/40 bg-slate-50/30 dark:bg-slate-900/10 opacity-70 hover:opacity-100"
               )}>
-                {!isPro && (
+                {!hasProExperience && (
                   <div className="absolute -top-2.5 right-4 rounded-full bg-primary px-2.5 py-0.5 text-[8px] font-black text-primary-foreground uppercase tracking-wider">
                     Current
                   </div>
@@ -434,15 +468,23 @@ export default function BillingSettingPage() {
               {/* Pro Edition */}
               <div className={cn(
                 "p-4 rounded-2xl border space-y-2 relative transition-all duration-300",
-                isPro
+                hasProExperience
                   ? "border-primary bg-primary/5 shadow-sm"
                   : "border-border/40 bg-slate-50/30 dark:bg-slate-900/10 opacity-70 hover:opacity-100"
               )}>
-                {isPro && (
+                {hasScheduledPro ? (
+                  <div className="absolute -top-2.5 right-4 rounded-full bg-primary px-2.5 py-0.5 text-[8px] font-black text-primary-foreground uppercase tracking-wider">
+                    Scheduled
+                  </div>
+                ) : hasPaidPro ? (
                   <div className="absolute -top-2.5 right-4 rounded-full bg-primary px-2.5 py-0.5 text-[8px] font-black text-primary-foreground uppercase tracking-wider">
                     Current
                   </div>
-                )}
+                ) : isTrialActive ? (
+                  <div className="absolute -top-2.5 right-4 rounded-full bg-primary px-2.5 py-0.5 text-[8px] font-black text-primary-foreground uppercase tracking-wider">
+                    Trial
+                  </div>
+                ) : null}
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-extrabold text-slate-800 dark:text-white">Pro Edition</span>
                   <span className="font-black text-slate-900 dark:text-white">{priceSymbol}{monthlyListPrice}<span className="text-[10px] font-semibold text-slate-400">/user/mo</span></span>
@@ -526,11 +568,11 @@ export default function BillingSettingPage() {
             {/* Free Plan Card */}
             <div className={cn(
               "flex flex-col justify-between p-6 rounded-3xl border transition-all duration-300 relative bg-card",
-              !isPro
+              !hasProExperience
                 ? "border-emerald-500/30 bg-emerald-500/5 ring-1 ring-emerald-500/15"
                 : "border-border hover:shadow-md"
             )}>
-              {!isPro && (
+              {!hasProExperience && (
                 <div className="absolute top-4 right-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[8.5px] font-black text-emerald-500 uppercase tracking-wider">
                   Active
                 </div>
@@ -557,16 +599,20 @@ export default function BillingSettingPage() {
                 <div className="pt-2 border-t border-border/30">
                   <button
                     type="button"
-                    disabled={!isPro || isUpgrading || !canManageBilling}
+                    disabled={!hasPaidPro || isUpgrading || !canManageBilling}
                     onClick={() => handlePlanChange("Free")}
                     className={cn(
                       "w-full text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer transition-all",
-                      !isPro
+                      !hasPaidPro
                         ? "bg-slate-100 dark:bg-slate-850 text-slate-400 cursor-not-allowed border border-border"
                         : "bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-sm"
                     )}
                   >
-                    {!isPro ? "Current Plan" : "Downgrade to Free"}
+                    {!hasPaidPro
+                      ? isTrialActive
+                        ? "On Pro trial"
+                        : "Current Plan"
+                      : "Downgrade to Free"}
                   </button>
                 </div>
 
@@ -606,7 +652,7 @@ export default function BillingSettingPage() {
             {/* Pro Plan Card */}
             <div className={cn(
               "flex flex-col justify-between p-6 rounded-3xl border transition-all duration-300 relative bg-card",
-              isPro
+              hasProExperience
                 ? "border-emerald-500/30 bg-emerald-500/5 ring-1 ring-emerald-500/15"
                 : "border-border hover:shadow-md"
             )}>
@@ -614,9 +660,13 @@ export default function BillingSettingPage() {
                 <div className="absolute top-4 right-4 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[8.5px] font-black text-primary uppercase tracking-wider">
                   Scheduled
                 </div>
-              ) : isPro ? (
+              ) : hasPaidPro ? (
                 <div className="absolute top-4 right-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[8.5px] font-black text-emerald-500 uppercase tracking-wider">
                   Active
+                </div>
+              ) : isTrialActive ? (
+                <div className="absolute top-4 right-4 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[8.5px] font-black text-primary uppercase tracking-wider">
+                  Trial access
                 </div>
               ) : (
                 <div className="absolute -top-3 right-4 rounded-full bg-emerald-500 border border-emerald-600 px-2.5 py-0.5 text-[8px] font-black text-white uppercase tracking-widest shadow-md">
@@ -653,11 +703,11 @@ export default function BillingSettingPage() {
                 <div className="pt-2 border-t border-border/30">
                   <button
                     type="button"
-                    disabled={!canPurchasePro}
+                    disabled={!showUpgradeOption}
                     onClick={() => handlePlanChange("Pro")}
                     className={cn(
                       "w-full text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer transition-all",
-                      canPurchasePro
+                      showUpgradeOption
                         ? "btn-primary shadow-lg shadow-primary/15 flex items-center justify-center gap-1.5"
                         : "bg-slate-100 dark:bg-slate-850 text-slate-400 cursor-not-allowed border border-border"
                     )}
@@ -779,18 +829,8 @@ export default function BillingSettingPage() {
           </div>
 
           {/* Footer inside Modal */}
-          <div className="border-t border-border/40 pt-4 mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] text-slate-400">
-            <span>SSL encrypted · 99.9% uptime SLA · Secured by Razorpay</span>
-            {canPurchasePro && (
-              <button
-                type="button"
-                onClick={startProCheckout}
-                className="btn-primary self-end sm:self-auto text-xs font-black uppercase tracking-wider py-2 px-5 rounded-xl flex items-center gap-1 cursor-pointer"
-              >
-                {isTrialActive ? "Subscribe to Pro" : "Upgrade to Pro"}
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </button>
-            )}
+          <div className="border-t border-border/40 pt-4 mt-6 text-[11px] text-slate-400">
+            SSL encrypted · 99.9% uptime SLA · Secured by Razorpay
           </div>
         </DialogContent>
       </Dialog>

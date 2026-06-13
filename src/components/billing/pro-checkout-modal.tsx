@@ -54,6 +54,7 @@ export function ProCheckoutModal({
   const [resolvedWorkspaceId, setResolvedWorkspaceId] = useState(workspaceId);
   const [resolvedCanManage, setResolvedCanManage] = useState(canManageBilling);
   const [isTrialActive, setIsTrialActive] = useState(false);
+  const [hasScheduledPro, setHasScheduledPro] = useState(false);
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function ProCheckoutModal({
     setResolvedWorkspaceId(workspaceId);
     setResolvedCanManage(canManageBilling);
     setIsTrialActive(false);
+    setHasScheduledPro(false);
     setTrialEndsAt(null);
 
     const token = sessionStorage.getItem("ansh_auth_token");
@@ -78,6 +80,7 @@ export function ProCheckoutModal({
           setResolvedWorkspaceId(status.workspaceId ?? workspaceId);
           setResolvedCanManage(Boolean(status.canManageBilling));
           setIsTrialActive(Boolean(status.isTrialActive));
+          setHasScheduledPro(Boolean(status.hasScheduledPro));
           setTrialEndsAt(status.trialEndsAt ?? null);
         }
       })
@@ -101,6 +104,10 @@ export function ProCheckoutModal({
   const handleProceed = useCallback(async () => {
     if (!resolvedCanManage) {
       setErrorMsg("Only Admin, HR Manager, or Owner can manage billing.");
+      return;
+    }
+    if (hasScheduledPro) {
+      setErrorMsg("Pro is already purchased and will start when your trial ends.");
       return;
     }
     if (seats < minSeats) {
@@ -190,6 +197,7 @@ export function ProCheckoutModal({
     }
   }, [
     resolvedCanManage,
+    hasScheduledPro,
     seats,
     minSeats,
     billingCycle,
@@ -305,7 +313,11 @@ export function ProCheckoutModal({
             </p>
           </div>
 
-          {isTrialActive && trialEndsAt && (
+          {hasScheduledPro ? (
+            <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5 text-[11px] leading-relaxed text-emerald-600 dark:text-emerald-400">
+              Pro is already scheduled. Paid billing starts when your trial ends.
+            </p>
+          ) : isTrialActive && trialEndsAt ? (
             <p className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
               Your free trial runs until{" "}
               <span className="font-bold text-primary">
@@ -315,9 +327,9 @@ export function ProCheckoutModal({
                   year: "numeric",
                 })}
               </span>
-              . Pro billing starts after the trial ends.
+              . Pay now to secure Pro — subscription billing starts after the trial ends.
             </p>
-          )}
+          ) : null}
 
           {errorMsg && (
             <p className="text-xs font-semibold text-rose-500">{errorMsg}</p>
@@ -337,7 +349,7 @@ export function ProCheckoutModal({
               type="button"
               className="flex-1 h-11 rounded-xl btn-primary border-0 font-black"
               onClick={handleProceed}
-              disabled={isPaying || seats < minSeats || seats < 1}
+              disabled={isPaying || seats < minSeats || seats < 1 || hasScheduledPro}
             >
               {isPaying ? (
                 <>

@@ -1,16 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { usePlanStore } from "@/stores/plan-store";
 
 export function TrialBanner() {
+  const pathname = usePathname();
   const isTrialActive = usePlanStore((s) => s.isTrialActive);
   const hasScheduledPro = usePlanStore((s) => s.hasScheduledPro);
   const scheduledProStartsAt = usePlanStore((s) => s.scheduledProStartsAt);
   const trialDaysRemaining = usePlanStore((s) => s.trialDaysRemaining);
+  const openCheckoutModal = usePlanStore((s) => s.openCheckoutModal);
+  const fetchPlan = usePlanStore((s) => s.fetchPlan);
   const [dismissed, setDismissed] = useState(false);
+
+  const onBillingPage = pathname === "/settings/billing";
 
   if (!isTrialActive || dismissed) return null;
 
@@ -39,17 +45,28 @@ export function TrialBanner() {
               — all features unlocked · {daysLabel}
               {hasScheduledPro && scheduledLabel
                 ? ` · Pro subscription starts ${scheduledLabel}`
-                : ""}
+                : " · Subscribe anytime — billing starts after trial"}
             </span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Link
-            href="/settings/billing"
-            className="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline"
-          >
-            View plans
-          </Link>
+          {!hasScheduledPro && !onBillingPage && (
+            <button
+              type="button"
+              onClick={() => openCheckoutModal(() => fetchPlan())}
+              className="rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground hover:opacity-90"
+            >
+              Subscribe to Pro
+            </button>
+          )}
+          {!onBillingPage && (
+            <Link
+              href="/settings/billing"
+              className="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline"
+            >
+              Billing
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setDismissed(true)}
