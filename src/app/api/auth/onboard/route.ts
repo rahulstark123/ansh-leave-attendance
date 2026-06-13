@@ -18,23 +18,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const isManagerOrAdmin = role === "Admin" || role === "HR Manager" || role === "Owner";
-
     // Check if an employee record already exists for this email
     const existingEmployee = await prisma.employee.findUnique({
       where: { email: user.email! },
     });
 
+    const isNewWorkspace = !existingEmployee || !existingEmployee.wid;
+
     let newWid: number;
     if (existingEmployee && existingEmployee.wid) {
       newWid = existingEmployee.wid;
-    } else if (isManagerOrAdmin) {
+    } else {
       const workspace = await createWorkspaceWithTrial(
         companyName || "New Workspace"
       );
       newWid = workspace.id;
-    } else {
-      newWid = 1;
     }
 
     const defaultBranch =
@@ -63,11 +61,11 @@ export async function POST(req: Request) {
             annualBalance: existingEmployee.annualBalance,
             sickBalance: existingEmployee.sickBalance,
             casualBalance: existingEmployee.casualBalance,
-            companyName: isManagerOrAdmin ? companyName : null,
-            companyAddress: isManagerOrAdmin ? companyAddress : null,
-            employeeCount: isManagerOrAdmin ? employeeCount : null,
+            companyName: isNewWorkspace ? companyName : null,
+            companyAddress: isNewWorkspace ? companyAddress : null,
+            employeeCount: isNewWorkspace ? employeeCount : null,
             wid: newWid,
-            branch: isManagerOrAdmin ? defaultBranch : null,
+            branch: isNewWorkspace ? defaultBranch : null,
           },
         });
 
@@ -103,11 +101,11 @@ export async function POST(req: Request) {
           annualBalance: 15,
           sickBalance: 8,
           casualBalance: 6,
-          companyName: isManagerOrAdmin ? companyName : null,
-          companyAddress: isManagerOrAdmin ? companyAddress : null,
-          employeeCount: isManagerOrAdmin ? employeeCount : null,
+          companyName: isNewWorkspace ? companyName : null,
+          companyAddress: isNewWorkspace ? companyAddress : null,
+          employeeCount: isNewWorkspace ? employeeCount : null,
           wid: newWid,
-          branch: isManagerOrAdmin ? defaultBranch : null,
+          branch: isNewWorkspace ? defaultBranch : null,
         },
       });
     }

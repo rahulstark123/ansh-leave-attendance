@@ -18,15 +18,14 @@ export default function OnboardingPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [step, setStep] = useState(1);
-
-  const isManagerOrAdmin = role === "Admin" || role === "HR Manager" || role === "Owner";
+  const [isInvited, setIsInvited] = useState(false);
 
   useEffect(() => {
-    // If role is employee, ensure we don't end up on step 3
-    if (step === 3 && !isManagerOrAdmin) {
+    // If user is invited, skip Step 3 (Workspace Setup)
+    if (step === 3 && isInvited) {
       setStep(2);
     }
-  }, [step, isManagerOrAdmin]);
+  }, [step, isInvited]);
 
   useEffect(() => {
     // Confirm they are authenticated
@@ -48,6 +47,9 @@ export default function OnboardingPage() {
             // Already onboarded, redirect to dashboard
             router.push("/dashboard");
             return;
+          }
+          if (data.isInvited) {
+            setIsInvited(true);
           }
         } catch (err) {
           console.error(err);
@@ -93,12 +95,12 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (step === 2 && isManagerOrAdmin) {
+    if (step === 2 && !isInvited) {
       setStep(3);
       return;
     }
 
-    if (isManagerOrAdmin) {
+    if (!isInvited) {
       if (!companyName.trim()) {
         setErrorMsg("Please enter your company name.");
         return;
@@ -129,9 +131,9 @@ export default function OnboardingPage() {
           name: name.trim(),
           department,
           role,
-          companyName: isManagerOrAdmin ? companyName.trim() : null,
-          companyAddress: isManagerOrAdmin ? companyAddress.trim() : null,
-          employeeCount: isManagerOrAdmin ? employeeCount : null,
+          companyName: !isInvited ? companyName.trim() : null,
+          companyAddress: !isInvited ? companyAddress.trim() : null,
+          employeeCount: !isInvited ? employeeCount : null,
         }),
       });
 
@@ -305,10 +307,10 @@ export default function OnboardingPage() {
               )}
               <div className="space-y-1 pt-0.5">
                 <h3 className={`text-sm font-bold ${step === 3 ? "text-sky-400" : "text-slate-400"}`}>
-                  {role === "Employee" ? "Step 3: Ready to Launch" : "Step 3: Workspace Setup"}
+                  {isInvited ? "Step 3: Ready to Launch" : "Step 3: Workspace Setup"}
                 </h3>
                 <p className={`text-xs leading-relaxed ${step === 3 ? "text-slate-350" : "text-slate-500"}`}>
-                  {role === "Employee"
+                  {isInvited
                     ? "Complete profile registration and initialize your leave accounts."
                     : "Configure company details, team size, and registered physical address."}
                 </p>
@@ -471,7 +473,7 @@ export default function OnboardingPage() {
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Completing Setup...
                       </>
-                    ) : isManagerOrAdmin ? (
+                    ) : !isInvited ? (
                       <>
                         Next: Company Setup
                         <ArrowRight className="h-4 w-4" />
@@ -487,8 +489,8 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* STEP 3: Company Setup (Managers/Admins only) */}
-            {step === 3 && isManagerOrAdmin && (
+            {/* STEP 3: Company Setup */}
+            {step === 3 && !isInvited && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
                 <div className="rounded-2xl border border-sky-500/10 bg-sky-500/5 p-5 space-y-4">
                   <div className="flex items-center gap-2 text-sky-400 border-b border-sky-500/10 pb-2">

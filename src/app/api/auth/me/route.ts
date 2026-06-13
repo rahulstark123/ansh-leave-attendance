@@ -18,7 +18,15 @@ export async function GET(req: Request) {
     });
 
     if (!employee) {
-      return NextResponse.json({ onboardingRequired: true, email: user.email });
+      const existingEmployee = await prisma.employee.findUnique({
+        where: { email: user.email! },
+      });
+      const isInvited = !!(existingEmployee && existingEmployee.wid);
+      return NextResponse.json({ 
+        onboardingRequired: true, 
+        email: user.email,
+        isInvited
+      });
     }
 
     return NextResponse.json({ employee });
