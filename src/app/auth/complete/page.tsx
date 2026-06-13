@@ -29,6 +29,9 @@ export default function AuthCompletePage() {
         sessionStorage.setItem("ansh_auth_session", "true");
         sessionStorage.setItem("ansh_auth_token", session.access_token);
 
+        const isSignupFlow =
+          new URLSearchParams(window.location.search).get("flow") === "signup";
+
         const res = await fetch("/api/auth/me", {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
@@ -39,7 +42,23 @@ export default function AuthCompletePage() {
           return;
         }
 
-        router.replace(data.onboardingRequired ? "/onboarding" : "/dashboard");
+        // Signup page: mirror email signUp() — block already-registered accounts.
+        if (isSignupFlow && data.employee && !data.onboardingRequired) {
+          await supabase.auth.signOut();
+          sessionStorage.removeItem("ansh_auth_session");
+          sessionStorage.removeItem("ansh_auth_token");
+          router.replace(
+            "/login?error=This+Google+account+already+exists.+Please+sign+in+instead."
+          );
+          return;
+        }
+
+        if (data.onboardingRequired || isSignupFlow) {
+          router.replace("/onboarding");
+          return;
+        }
+
+        router.replace("/dashboard");
       } catch (err) {
         console.error("Auth complete failed:", err);
         router.replace("/login?error=Google+sign-in+failed");

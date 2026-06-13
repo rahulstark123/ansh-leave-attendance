@@ -21,11 +21,25 @@ export async function GET(req: Request) {
       const existingEmployee = await prisma.employee.findUnique({
         where: { email: user.email! },
       });
-      const isInvited = !!(existingEmployee && existingEmployee.wid);
-      return NextResponse.json({ 
-        onboardingRequired: true, 
+      // Invited users have a pre-created Employee row (different id) tied to a workspace.
+      const isInvited = !!(
+        existingEmployee &&
+        existingEmployee.wid &&
+        existingEmployee.id !== user.id
+      );
+      return NextResponse.json({
+        onboardingRequired: true,
         email: user.email,
-        isInvited
+        isInvited,
+      });
+    }
+
+    // Profile exists but workspace was never set up — treat as not onboarded.
+    if (!employee.wid) {
+      return NextResponse.json({
+        onboardingRequired: true,
+        email: user.email,
+        isInvited: false,
       });
     }
 

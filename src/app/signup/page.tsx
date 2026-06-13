@@ -26,10 +26,11 @@ export default function SignupPage() {
     setShowGoogleConnecting(true);
 
     try {
+      const completePath = encodeURIComponent("/auth/complete?flow=signup");
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${completePath}`,
         },
       });
 
