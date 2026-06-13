@@ -332,16 +332,25 @@ const getHeaders = () => {
 export const useLeaveStore = create<LeaveState>()(
   persist(
     (set) => ({
-      employees: initialEmployees,
-      leaves: initialLeaves,
-      dashboardEmployees: initialEmployees,
-      dashboardLeaves: initialLeaves,
-      punchHistory: initialPunchHistory,
+      employees: [],
+      leaves: [],
+      dashboardEmployees: [],
+      dashboardLeaves: [],
+      punchHistory: [],
       currentPunchIn: null,
       currentPunchInPhoto: null,
       currentPunchInLat: null,
       currentPunchInLng: null,
-      currentUser: initialEmployees[0],
+      currentUser: {
+        id: "",
+        name: "Loading...",
+        email: "",
+        role: "Employee",
+        department: "",
+        avatarInitials: "...",
+        status: "Active",
+        leaveBalance: { Annual: 0, Sick: 0, Casual: 0 },
+      },
       faceEnrolled: false,
       setFaceEnrolled: (enrolled: boolean) => set({ faceEnrolled: enrolled }),
 
