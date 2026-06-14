@@ -112,7 +112,7 @@ export default function LandingPage() {
 
       {/* 1. SYMMETRICAL NAVIGATION HEADER */}
       <header className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-md bg-[#04080F]/85">
-        <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/logoAnshapps.png"
@@ -153,7 +153,7 @@ export default function LandingPage() {
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 pt-16 pb-24">
+      <section className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 pt-16 pb-24">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-7 space-y-7 text-left">
@@ -421,7 +421,7 @@ export default function LandingPage() {
 
       {/* 3. FEATURES GRID ("Streamline Your Entire HR Operations Natively") */}
       <section id="features" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto max-w-7xl px-6 space-y-16">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
               Streamline Your Entire HR Operations Natively
@@ -502,7 +502,7 @@ export default function LandingPage() {
       </section>
 
       {/* 4. DETAILED BIOMETRIC SETUP FEATURE SECTION */}
-      <section id="biometrics" className="relative z-10 mx-auto max-w-7xl px-6 py-24">
+      <section id="biometrics" className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 py-24">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           {/* Biometrics Setup Mockup */}
           <div className="relative rounded-3xl border border-slate-800 bg-[#0A1118]/85 p-6 shadow-2xl backdrop-blur-md overflow-hidden">
@@ -600,7 +600,7 @@ export default function LandingPage() {
 
       {/* 4.5. LIVE ACTIVITY FEED & ANNOUNCEMENTS SECTION */}
       <section id="announcements" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto max-w-7xl px-6 space-y-16">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
               Live Activity Feed & Broadcast Announcements
@@ -737,7 +737,7 @@ export default function LandingPage() {
 
       {/* 5. FLEXIBLE PRICING SECTION */}
       <section id="pricing" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto max-w-7xl px-6 space-y-16">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1">
               <span className="text-[9px] font-bold tracking-widest uppercase text-emerald-400">Flexible Pricing</span>
@@ -750,7 +750,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-6 max-w-3xl mx-auto sm:grid-cols-2">
+          <div className="grid gap-6 max-w-5xl mx-auto sm:grid-cols-2">
             {/* Free Plan */}
             <div className="rounded-3xl border border-slate-800 bg-[#070D14] p-8 flex flex-col justify-between space-y-6 relative hover:border-emerald-500/20 transition-all">
               <div className="space-y-4">
@@ -846,7 +846,7 @@ export default function LandingPage() {
       </section>
 
       {/* 6. COMPARISON MATRIX ("Why teams choose ANSH HR over legacy biometric systems") */}
-      <section id="comparison" className="relative z-10 mx-auto max-w-7xl px-6 py-24 space-y-16">
+      <section id="comparison" className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 py-24 space-y-16">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-sky-500/25 bg-sky-500/5 px-4.5 py-1.5">
             <span className="text-[10px] font-bold tracking-widest uppercase text-sky-400">
@@ -915,7 +915,7 @@ export default function LandingPage() {
       </section>
 
       {/* 7. FREQUENTLY ASKED QUESTIONS */}
-      <section id="faq" className="relative z-10 mx-auto max-w-4xl px-6 py-24 space-y-12">
+      <section id="faq" className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-8 lg:px-12 xl:px-16 py-24 space-y-12">
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
             Frequently Asked Questions
@@ -984,7 +984,7 @@ export default function LandingPage() {
       </section>
 
       {/* 8. FOOTER CTA BANNER */}
-      <section className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
+      <section className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-8 lg:px-12 xl:px-16 pb-24">
         <div className="rounded-3xl border border-slate-800 bg-[#070D14] p-10 text-center relative overflow-hidden space-y-6">
           <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/5 blur-3xl" />
           <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-sky-500/5 blur-3xl" />
@@ -1016,7 +1016,7 @@ export default function LandingPage() {
 
       {/* 9. GRAND SYMMETRICAL FOOTER */}
       <footer className="relative z-10 border-t border-white/5 bg-[#03060C] pt-20 pb-10">
-        <div className="mx-auto max-w-7xl px-6 space-y-12">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-12">
           
           {/* Big Text Banner: Ansh Apps */}
           <div className="text-center select-none border-b border-white/5 pb-12 overflow-hidden">
