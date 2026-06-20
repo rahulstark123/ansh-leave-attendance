@@ -61,16 +61,30 @@ export function SubSidebar() {
           const displayBadge = item.id === "approvals" ? (pendingCount > 0 ? String(pendingCount) : undefined) : item.badge;
 
           const featureId = gatedSubNavFeatures[item.id];
+          const isDeleteAccount = item.id === "delete-account";
+          
           const itemClassName = cn(
             "flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200",
             isActive
-              ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
-              : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              ? isDeleteAccount
+                ? "bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/20 shadow-sm dark:bg-rose-950/20 dark:text-rose-400 dark:ring-rose-500/30"
+                : "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+              : isDeleteAccount
+                ? "text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400 dark:hover:bg-rose-950/20 dark:hover:text-rose-350"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           );
+          
           const itemContent = (
             <>
               <span className="flex items-center gap-2.5">
-                <Icon className={cn("h-4 w-4 shrink-0 transition-opacity", isActive ? "opacity-100" : "opacity-60")} aria-hidden />
+                <Icon 
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-opacity", 
+                    isActive ? "opacity-100" : "opacity-60",
+                    isDeleteAccount && "opacity-100"
+                  )} 
+                  aria-hidden 
+                />
                 {item.label}
               </span>
               {displayBadge && (

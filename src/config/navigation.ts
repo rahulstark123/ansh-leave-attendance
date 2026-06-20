@@ -16,7 +16,8 @@ import {
   FileText,
   Home,
   Megaphone,
-  Activity
+  Activity,
+  UserX
 } from "lucide-react";
 
 export type NavSectionId =
@@ -118,6 +119,7 @@ export const mainNav: MainNavItem[] = [
       { id: "leave-settings", label: "Leave Setting", href: "/settings/leave", icon: Calendar },
       { id: "attendance-settings", label: "Attendance Setting", href: "/settings/attendance", icon: Clock },
       { id: "billing", label: "Billing Page", href: "/settings/billing", icon: CreditCard },
+      { id: "delete-account", label: "Delete Account", href: "/settings/delete-account", icon: UserX },
     ],
   },
 ];

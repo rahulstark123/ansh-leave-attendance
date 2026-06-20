@@ -2596,6 +2596,8 @@ export namespace Prisma {
     emergencyContactName: string | null
     emergencyContactPhone: string | null
     bloodGroup: string | null
+    acceptedTerms: boolean | null
+    acceptedPrivacy: boolean | null
     createdAt: Date | null
   }
 
@@ -2633,6 +2635,8 @@ export namespace Prisma {
     emergencyContactName: string | null
     emergencyContactPhone: string | null
     bloodGroup: string | null
+    acceptedTerms: boolean | null
+    acceptedPrivacy: boolean | null
     createdAt: Date | null
   }
 
@@ -2672,6 +2676,8 @@ export namespace Prisma {
     bloodGroup: number
     faceEmbedding: number
     facePhotos: number
+    acceptedTerms: number
+    acceptedPrivacy: number
     createdAt: number
     _all: number
   }
@@ -2731,6 +2737,8 @@ export namespace Prisma {
     emergencyContactName?: true
     emergencyContactPhone?: true
     bloodGroup?: true
+    acceptedTerms?: true
+    acceptedPrivacy?: true
     createdAt?: true
   }
 
@@ -2768,6 +2776,8 @@ export namespace Prisma {
     emergencyContactName?: true
     emergencyContactPhone?: true
     bloodGroup?: true
+    acceptedTerms?: true
+    acceptedPrivacy?: true
     createdAt?: true
   }
 
@@ -2807,6 +2817,8 @@ export namespace Prisma {
     bloodGroup?: true
     faceEmbedding?: true
     facePhotos?: true
+    acceptedTerms?: true
+    acceptedPrivacy?: true
     createdAt?: true
     _all?: true
   }
@@ -2933,6 +2945,8 @@ export namespace Prisma {
     bloodGroup: string | null
     faceEmbedding: number[]
     facePhotos: string[]
+    acceptedTerms: boolean
+    acceptedPrivacy: boolean
     createdAt: Date
     _count: EmployeeCountAggregateOutputType | null
     _avg: EmployeeAvgAggregateOutputType | null
@@ -2991,6 +3005,8 @@ export namespace Prisma {
     bloodGroup?: boolean
     faceEmbedding?: boolean
     facePhotos?: boolean
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: boolean
     leaves?: boolean | Employee$leavesArgs<ExtArgs>
     punches?: boolean | Employee$punchesArgs<ExtArgs>
@@ -3040,6 +3056,8 @@ export namespace Prisma {
     bloodGroup?: boolean
     faceEmbedding?: boolean
     facePhotos?: boolean
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["employee"]>
 
@@ -3079,6 +3097,8 @@ export namespace Prisma {
     bloodGroup?: boolean
     faceEmbedding?: boolean
     facePhotos?: boolean
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["employee"]>
 
@@ -3118,10 +3138,12 @@ export namespace Prisma {
     bloodGroup?: boolean
     faceEmbedding?: boolean
     facePhotos?: boolean
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: boolean
   }
 
-  export type EmployeeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "role" | "department" | "avatarInitials" | "status" | "annualBalance" | "sickBalance" | "casualBalance" | "currentPunchIn" | "currentPunchInPhoto" | "currentPunchInLat" | "currentPunchInLng" | "companyName" | "companyAddress" | "employeeCount" | "wid" | "employeeCode" | "phoneNumber" | "joiningDate" | "designation" | "employmentType" | "reportingManager" | "reportingHR" | "workLocation" | "branch" | "rosterShift" | "personalEmail" | "dateOfBirth" | "emergencyContactName" | "emergencyContactPhone" | "bloodGroup" | "faceEmbedding" | "facePhotos" | "createdAt", ExtArgs["result"]["employee"]>
+  export type EmployeeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "role" | "department" | "avatarInitials" | "status" | "annualBalance" | "sickBalance" | "casualBalance" | "currentPunchIn" | "currentPunchInPhoto" | "currentPunchInLat" | "currentPunchInLng" | "companyName" | "companyAddress" | "employeeCount" | "wid" | "employeeCode" | "phoneNumber" | "joiningDate" | "designation" | "employmentType" | "reportingManager" | "reportingHR" | "workLocation" | "branch" | "rosterShift" | "personalEmail" | "dateOfBirth" | "emergencyContactName" | "emergencyContactPhone" | "bloodGroup" | "faceEmbedding" | "facePhotos" | "acceptedTerms" | "acceptedPrivacy" | "createdAt", ExtArgs["result"]["employee"]>
   export type EmployeeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     leaves?: boolean | Employee$leavesArgs<ExtArgs>
     punches?: boolean | Employee$punchesArgs<ExtArgs>
@@ -3186,6 +3208,8 @@ export namespace Prisma {
       bloodGroup: string | null
       faceEmbedding: number[]
       facePhotos: string[]
+      acceptedTerms: boolean
+      acceptedPrivacy: boolean
       createdAt: Date
     }, ExtArgs["result"]["employee"]>
     composites: {}
@@ -3654,6 +3678,8 @@ export namespace Prisma {
     readonly bloodGroup: FieldRef<"Employee", 'String'>
     readonly faceEmbedding: FieldRef<"Employee", 'Float[]'>
     readonly facePhotos: FieldRef<"Employee", 'String[]'>
+    readonly acceptedTerms: FieldRef<"Employee", 'Boolean'>
+    readonly acceptedPrivacy: FieldRef<"Employee", 'Boolean'>
     readonly createdAt: FieldRef<"Employee", 'DateTime'>
   }
     
@@ -22564,6 +22590,8 @@ export namespace Prisma {
     bloodGroup: 'bloodGroup',
     faceEmbedding: 'faceEmbedding',
     facePhotos: 'facePhotos',
+    acceptedTerms: 'acceptedTerms',
+    acceptedPrivacy: 'acceptedPrivacy',
     createdAt: 'createdAt'
   };
 
@@ -22883,6 +22911,13 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -22893,13 +22928,6 @@ export namespace Prisma {
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Boolean'
-   */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
   /**
    * Deep Input Types
@@ -22945,6 +22973,8 @@ export namespace Prisma {
     bloodGroup?: StringNullableFilter<"Employee"> | string | null
     faceEmbedding?: FloatNullableListFilter<"Employee">
     facePhotos?: StringNullableListFilter<"Employee">
+    acceptedTerms?: BoolFilter<"Employee"> | boolean
+    acceptedPrivacy?: BoolFilter<"Employee"> | boolean
     createdAt?: DateTimeFilter<"Employee"> | Date | string
     leaves?: LeaveRequestListRelationFilter
     punches?: PunchRecordListRelationFilter
@@ -22993,6 +23023,8 @@ export namespace Prisma {
     bloodGroup?: SortOrderInput | SortOrder
     faceEmbedding?: SortOrder
     facePhotos?: SortOrder
+    acceptedTerms?: SortOrder
+    acceptedPrivacy?: SortOrder
     createdAt?: SortOrder
     leaves?: LeaveRequestOrderByRelationAggregateInput
     punches?: PunchRecordOrderByRelationAggregateInput
@@ -23044,6 +23076,8 @@ export namespace Prisma {
     bloodGroup?: StringNullableFilter<"Employee"> | string | null
     faceEmbedding?: FloatNullableListFilter<"Employee">
     facePhotos?: StringNullableListFilter<"Employee">
+    acceptedTerms?: BoolFilter<"Employee"> | boolean
+    acceptedPrivacy?: BoolFilter<"Employee"> | boolean
     createdAt?: DateTimeFilter<"Employee"> | Date | string
     leaves?: LeaveRequestListRelationFilter
     punches?: PunchRecordListRelationFilter
@@ -23092,6 +23126,8 @@ export namespace Prisma {
     bloodGroup?: SortOrderInput | SortOrder
     faceEmbedding?: SortOrder
     facePhotos?: SortOrder
+    acceptedTerms?: SortOrder
+    acceptedPrivacy?: SortOrder
     createdAt?: SortOrder
     _count?: EmployeeCountOrderByAggregateInput
     _avg?: EmployeeAvgOrderByAggregateInput
@@ -23139,6 +23175,8 @@ export namespace Prisma {
     bloodGroup?: StringNullableWithAggregatesFilter<"Employee"> | string | null
     faceEmbedding?: FloatNullableListFilter<"Employee">
     facePhotos?: StringNullableListFilter<"Employee">
+    acceptedTerms?: BoolWithAggregatesFilter<"Employee"> | boolean
+    acceptedPrivacy?: BoolWithAggregatesFilter<"Employee"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Employee"> | Date | string
   }
 
@@ -24425,6 +24463,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -24473,6 +24513,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -24521,6 +24563,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -24569,6 +24613,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -24617,6 +24663,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
   }
 
@@ -24656,6 +24704,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -24695,6 +24745,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -26131,6 +26183,11 @@ export namespace Prisma {
     isEmpty?: boolean
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type DateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -26263,6 +26320,8 @@ export namespace Prisma {
     bloodGroup?: SortOrder
     faceEmbedding?: SortOrder
     facePhotos?: SortOrder
+    acceptedTerms?: SortOrder
+    acceptedPrivacy?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -26310,6 +26369,8 @@ export namespace Prisma {
     emergencyContactName?: SortOrder
     emergencyContactPhone?: SortOrder
     bloodGroup?: SortOrder
+    acceptedTerms?: SortOrder
+    acceptedPrivacy?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -26347,6 +26408,8 @@ export namespace Prisma {
     emergencyContactName?: SortOrder
     emergencyContactPhone?: SortOrder
     bloodGroup?: SortOrder
+    acceptedTerms?: SortOrder
+    acceptedPrivacy?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -26444,6 +26507,14 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -26456,11 +26527,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type EmployeeScalarRelationFilter = {
@@ -26518,14 +26584,6 @@ export namespace Prisma {
   export type LeaveRequestSumOrderByAggregateInput = {
     totalDays?: SortOrder
     wid?: SortOrder
-  }
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type PunchRecordCountOrderByAggregateInput = {
@@ -27489,6 +27547,10 @@ export namespace Prisma {
     push?: string | string[]
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -27749,10 +27811,6 @@ export namespace Prisma {
     create?: XOR<EmployeeCreateWithoutLeavesInput, EmployeeUncheckedCreateWithoutLeavesInput>
     connectOrCreate?: EmployeeCreateOrConnectWithoutLeavesInput
     connect?: EmployeeWhereUniqueInput
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type EmployeeUpdateOneRequiredWithoutLeavesNestedInput = {
@@ -28234,6 +28292,11 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -28338,6 +28401,14 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -28350,19 +28421,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
@@ -28994,6 +29052,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
     regularizations?: AttendanceRegularizationCreateNestedManyWithoutEmployeeInput
@@ -29041,6 +29101,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
     regularizations?: AttendanceRegularizationUncheckedCreateNestedManyWithoutEmployeeInput
@@ -29104,6 +29166,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
     regularizations?: AttendanceRegularizationUpdateManyWithoutEmployeeNestedInput
@@ -29151,6 +29215,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
     regularizations?: AttendanceRegularizationUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -29198,6 +29264,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     regularizations?: AttendanceRegularizationCreateNestedManyWithoutEmployeeInput
@@ -29245,6 +29313,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     regularizations?: AttendanceRegularizationUncheckedCreateNestedManyWithoutEmployeeInput
@@ -29308,6 +29378,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     regularizations?: AttendanceRegularizationUpdateManyWithoutEmployeeNestedInput
@@ -29355,6 +29427,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     regularizations?: AttendanceRegularizationUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -29796,6 +29870,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -29843,6 +29919,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -29906,6 +29984,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -29953,6 +30033,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -30000,6 +30082,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -30047,6 +30131,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -30110,6 +30196,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -30157,6 +30245,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -30204,6 +30294,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -30251,6 +30343,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -30364,6 +30458,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -30411,6 +30507,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -30517,6 +30615,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -30564,6 +30664,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -30660,6 +30762,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -30707,6 +30811,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -30754,6 +30860,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -30801,6 +30909,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -30880,6 +30990,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -30927,6 +31039,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -30990,6 +31104,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -31037,6 +31153,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -31128,6 +31246,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -31175,6 +31295,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -31222,6 +31344,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordCreateNestedManyWithoutEmployeeInput
@@ -31269,6 +31393,8 @@ export namespace Prisma {
     bloodGroup?: string | null
     faceEmbedding?: EmployeeCreatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeCreatefacePhotosInput | string[]
+    acceptedTerms?: boolean
+    acceptedPrivacy?: boolean
     createdAt?: Date | string
     leaves?: LeaveRequestUncheckedCreateNestedManyWithoutEmployeeInput
     punches?: PunchRecordUncheckedCreateNestedManyWithoutEmployeeInput
@@ -31332,6 +31458,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUpdateManyWithoutEmployeeNestedInput
@@ -31379,6 +31507,8 @@ export namespace Prisma {
     bloodGroup?: NullableStringFieldUpdateOperationsInput | string | null
     faceEmbedding?: EmployeeUpdatefaceEmbeddingInput | number[]
     facePhotos?: EmployeeUpdatefacePhotosInput | string[]
+    acceptedTerms?: BoolFieldUpdateOperationsInput | boolean
+    acceptedPrivacy?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leaves?: LeaveRequestUncheckedUpdateManyWithoutEmployeeNestedInput
     punches?: PunchRecordUncheckedUpdateManyWithoutEmployeeNestedInput

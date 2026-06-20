@@ -45,6 +45,8 @@ model Employee {
   bloodGroup            String?        // e.g. A+, B-, O+
   faceEmbedding         Float[]
   facePhotos            String[]
+  acceptedTerms         Boolean        @default(false)
+  acceptedPrivacy       Boolean        @default(false)
   createdAt             DateTime       @default(now())
   leaves                LeaveRequest[]
   punches               PunchRecord[]

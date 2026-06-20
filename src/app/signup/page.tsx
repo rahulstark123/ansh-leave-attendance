@@ -20,6 +20,7 @@ export default function SignupPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [showGoogleConnecting, setShowGoogleConnecting] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleGoogleSignup = async () => {
     setErrorMsg("");
@@ -49,6 +50,11 @@ export default function SignupPage() {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
+
+    if (!acceptedTerms) {
+      setErrorMsg("Please accept the Terms & Conditions and Privacy Policy to proceed.");
+      return;
+    }
 
     if (!name.trim()) {
       setErrorMsg("Please enter your name.");
@@ -94,6 +100,8 @@ export default function SignupPage() {
         options: {
           data: {
             full_name: name.trim(),
+            accepted_terms: true,
+            accepted_privacy: true,
           },
         },
       });
@@ -267,10 +275,32 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Privacy Policy & Terms checkbox */}
+              <div className="flex items-start gap-3 pt-2 pb-1">
+                <input
+                  id="agree-checkbox"
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 h-4.5 w-4.5 rounded border-slate-300 text-emerald-600 outline-none focus:ring-emerald-500 cursor-pointer"
+                />
+                <label htmlFor="agree-checkbox" className="text-xs font-semibold text-slate-500 select-none cursor-pointer leading-normal">
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" className="font-bold text-emerald-600 hover:text-emerald-500 hover:underline">
+                    Terms & Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" className="font-bold text-emerald-600 hover:text-emerald-500 hover:underline">
+                    Privacy Policy
+                  </Link>
+                  .
+                </label>
+              </div>
+
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !acceptedTerms}
                   className="flex w-full justify-center items-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (

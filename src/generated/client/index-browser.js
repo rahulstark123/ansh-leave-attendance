@@ -157,6 +157,8 @@ exports.Prisma.EmployeeScalarFieldEnum = {
   bloodGroup: 'bloodGroup',
   faceEmbedding: 'faceEmbedding',
   facePhotos: 'facePhotos',
+  acceptedTerms: 'acceptedTerms',
+  acceptedPrivacy: 'acceptedPrivacy',
   createdAt: 'createdAt'
 };
 

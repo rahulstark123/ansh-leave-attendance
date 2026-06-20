@@ -31,6 +31,73 @@ import {
 type MockTab = "punch" | "leaves" | "team";
 type AccentTheme = "emerald" | "indigo" | "sapphire" | "graphite";
 
+const ecosystemApps = [
+  {
+    name: "ANSH Booking",
+    subtitle: "Meeting room & resource booking",
+    description: "Reserve rooms, assets and slots with ease",
+    status: "BUILDING",
+    isLive: false,
+    badgeText: "BUILDING",
+    badgeColor: "bg-rose-500/10 text-rose-450 border-rose-500/25",
+    dotColor: "bg-rose-500",
+    borderColor: "hover:border-rose-500/35 hover:shadow-rose-500/5",
+    link: "https://anshapps.com",
+  },
+  {
+    name: "ANSH Visitor",
+    subtitle: "Smart lobby & guest management",
+    description: "QR passes, ID verification, check-in logs",
+    status: "LIVE",
+    isLive: true,
+    badgeText: "LIVE",
+    badgeColor: "bg-emerald-500/10 text-emerald-455 border-emerald-500/25",
+    dotColor: "bg-emerald-500",
+    borderColor: "hover:border-emerald-500/35 hover:shadow-emerald-500/5",
+    image: "/ANSH Visitor.jpg",
+    link: "https://visitor.anshapps.com",
+  },
+  {
+    name: "ANSH Tasks",
+    subtitle: "Team task & project tracker",
+    description: "Assign, track and close tasks across teams",
+    status: "LIVE",
+    isLive: true,
+    badgeText: "LIVE",
+    badgeColor: "bg-sky-500/10 text-sky-450 border-sky-500/25",
+    dotColor: "bg-sky-500",
+    borderColor: "hover:border-sky-500/35 hover:shadow-sky-500/5",
+    image: "/Ansh Task.jpg",
+    link: "https://tasks.anshapps.com",
+  },
+  {
+    name: "ANSH HR",
+    subtitle: "Human resource management",
+    description: "Employee records, leaves, payroll & more",
+    status: "CURRENT",
+    isLive: true,
+    badgeText: "YOU ARE HERE",
+    badgeColor: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 animate-pulse",
+    dotColor: "bg-purple-500",
+    borderColor: "border-purple-500/40 hover:border-purple-500/60 shadow-purple-500/5",
+    image: "/ANSH HR.jpg",
+    link: "https://hr.anshapps.com",
+  },
+  {
+    name: "ANSH Expense",
+    subtitle: "Expense & reimbursement tracking",
+    description: "Submit, approve and audit business expenses",
+    status: "LIVE",
+    isLive: true,
+    badgeText: "LIVE",
+    badgeColor: "bg-amber-500/10 text-amber-450 border-amber-500/25",
+    dotColor: "bg-amber-500",
+    borderColor: "hover:border-amber-500/35 hover:shadow-amber-500/5",
+    image: "/ANSH Expense.jpg",
+    link: "https://expense.anshapps.com",
+  },
+];
+
 export default function LandingPage() {
   const [sessionActive, setSessionActive] = useState(false);
   const [activeTab, setActiveTab] = useState<MockTab>("punch");
@@ -414,6 +481,121 @@ export default function LandingPage() {
                   })}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2.5 ECOSYSTEM SHOWCASE SECTION */}
+      <section className="relative z-10 border-t border-white/5 bg-[#04080F] py-20 overflow-hidden">
+        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-12">
+          {/* Header Row */}
+          <div className="grid gap-6 md:grid-cols-12 md:items-end">
+            <div className="md:col-span-7 space-y-2">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block">
+                Ecosystem
+              </span>
+              <h2 className="text-3xl font-black text-white tracking-tight sm:text-4xl">
+                The full <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-transparent">Ansh Apps</span> suite
+              </h2>
+            </div>
+            <div className="md:col-span-5">
+              <p className="text-sm sm:text-base text-slate-400 leading-relaxed font-medium">
+                One ecosystem, every business operation — manage tasks, HR, expenses, bookings and visitors from connected apps.
+              </p>
+            </div>
+          </div>
+
+          {/* Marquee Wrapper with side fade-out gradients */}
+          <div className="relative w-full overflow-hidden">
+            {/* Inline styles to guarantee marquee rendering and scrolling */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes marqueeScroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+              .custom-marquee-container {
+                display: flex;
+                flex-wrap: nowrap;
+                width: max-content;
+                animation: marqueeScroll 35s linear infinite;
+                will-change: transform;
+              }
+              .custom-marquee-container:hover {
+                animation-play-state: paused;
+              }
+            `}} />
+            
+            {/* Fade overlays */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-[#04080F] to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-[#04080F] to-transparent z-10 pointer-events-none" />
+
+            {/* Scrolling Marquee Container */}
+            <div className="custom-marquee-container py-4 gap-6">
+              {[...ecosystemApps, ...ecosystemApps].map((app, index) => (
+                <a
+                  key={`${app.name}-${index}`}
+                  href={app.link}
+                  target={app.link.startsWith("http") ? "_blank" : undefined}
+                  rel={app.link.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className={`group relative flex flex-col justify-between w-72 shrink-0 rounded-3xl border border-white/5 bg-[#070c14]/85 p-4 space-y-4 transition-all duration-300 ${app.borderColor} hover:-translate-y-1 cursor-pointer`}
+                >
+                  {/* Image/Placeholder container */}
+                  {app.image ? (
+                    <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 border border-white/5">
+                      <img
+                        src={app.image}
+                        alt={app.name}
+                        className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                      {/* Top right status badge */}
+                      <div className={`absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border backdrop-blur-md flex items-center gap-1.5 ${app.badgeColor}`}>
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                        {app.badgeText}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-gradient-to-br from-purple-950/40 via-slate-950 to-pink-950/20 border border-white/5 flex flex-col items-center justify-center">
+                      {/* Dashed circle icon */}
+                      <div className="w-10 h-10 rounded-full border border-dashed border-pink-500/40 flex items-center justify-center animate-spin [animation-duration:15s]">
+                        <div className="w-6 h-6 rounded-full border border-dashed border-pink-500/20" />
+                      </div>
+                      <span className="text-xs font-bold text-pink-400 uppercase tracking-widest mt-3">
+                        In Development
+                      </span>
+                      {/* Top right status badge */}
+                      <div className={`absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border backdrop-blur-md flex items-center gap-1.5 ${app.badgeColor}`}>
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                        {app.badgeText}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* App Text and Info */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${app.dotColor}`} />
+                        <h4 className="text-base font-bold text-slate-100">{app.name}</h4>
+                      </div>
+                      {/* Status pill button */}
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded border uppercase tracking-wider ${
+                        app.status === "BUILDING"
+                          ? "border-rose-500/30 text-rose-450 bg-rose-500/5"
+                          : app.name === "ANSH HR"
+                            ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
+                            : "border-emerald-500/30 text-emerald-455 bg-emerald-500/5"
+                      }`}>
+                        {app.status === "BUILDING" ? "Soon" : "Live"}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-slate-200">{app.subtitle}</p>
+                      <p className="text-xs text-slate-450 font-medium leading-relaxed">{app.description}</p>
+                    </div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         </div>

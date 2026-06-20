@@ -73,6 +73,8 @@ export async function POST(req: Request) {
             employeeCount: isNewWorkspace ? employeeCount : null,
             wid: newWid,
             branch: isNewWorkspace ? defaultBranch : null,
+            acceptedTerms: true,
+            acceptedPrivacy: true,
           },
         });
 
@@ -148,6 +150,8 @@ export async function POST(req: Request) {
           employeeCount: isNewWorkspace ? employeeCount : null,
           wid: newWid,
           branch: isNewWorkspace ? defaultBranch : null,
+          acceptedTerms: true,
+          acceptedPrivacy: true,
         },
       });
     }
