@@ -171,6 +171,7 @@ exports.Prisma.LeaveRequestScalarFieldEnum = {
   totalDays: 'totalDays',
   halfDay: 'halfDay',
   reason: 'reason',
+  attachments: 'attachments',
   status: 'status',
   wid: 'wid',
   appliedAt: 'appliedAt'
@@ -346,6 +347,7 @@ exports.Prisma.AnnouncementScalarFieldEnum = {
   id: 'id',
   title: 'title',
   body: 'body',
+  attachments: 'attachments',
   pinned: 'pinned',
   archived: 'archived',
   wid: 'wid',

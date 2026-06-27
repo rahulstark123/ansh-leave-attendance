@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
 import { useLeaveStore } from "@/stores/leave-store";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
 import { FaceScanDialog } from "@/components/attendance/FaceScanDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -190,6 +192,7 @@ export default function DashboardPage() {
   const [reason, setReason] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [applying, setApplying] = useState(false);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
 
   // Holidays, branches, and customLeaveTypes for leave calculations & validations
   const [holidays, setHolidays] = useState<any[]>([]);
@@ -340,6 +343,11 @@ export default function DashboardPage() {
 
     setApplying(true);
     try {
+      let attachments: string[] = [];
+      if (attachmentFiles.length > 0) {
+        attachments = await uploadAttachmentFiles(attachmentFiles, "leaves");
+      }
+
       await applyLeave({
         type: leaveType,
         startDate,
@@ -347,6 +355,7 @@ export default function DashboardPage() {
         totalDays,
         halfDay,
         reason,
+        attachments,
       });
 
       // Reset Form & Close Modal
@@ -355,9 +364,12 @@ export default function DashboardPage() {
       setEndDate("");
       setHalfDay(false);
       setReason("");
+      setAttachmentFiles([]);
       setIsLeaveModalOpen(false);
     } catch (err) {
-      setErrorMsg("Failed to apply for leave. Please try again.");
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to apply for leave. Please try again."
+      );
     } finally {
       setApplying(false);
     }
@@ -948,6 +960,12 @@ export default function DashboardPage() {
                 className="block w-full rounded-2xl border border-border bg-transparent dark:bg-slate-900 px-4 py-3 text-xs text-slate-850 dark:text-slate-100 outline-none focus:border-primary/45 resize-none placeholder:text-slate-400/80"
               />
             </div>
+
+            <AttachmentPicker
+              files={attachmentFiles}
+              onChange={setAttachmentFiles}
+              disabled={applying}
+            />
 
             <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-border/40">
               <Button

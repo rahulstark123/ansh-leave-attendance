@@ -85,6 +85,7 @@ export async function GET(req: Request) {
       totalDays: l.totalDays,
       halfDay: l.halfDay,
       reason: l.reason,
+      attachments: l.attachments ?? [],
       status: l.status,
       appliedAt: l.appliedAt.toISOString(),
     }));
@@ -104,11 +105,15 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { type, startDate, endDate, totalDays, halfDay, reason } = body;
+    const { type, startDate, endDate, totalDays, halfDay, reason, attachments } = body;
 
     if (!type || !startDate || !endDate || totalDays === undefined || halfDay === undefined || !reason) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    const attachmentUrls = Array.isArray(attachments)
+      ? attachments.filter((url): url is string => typeof url === "string").slice(0, 3)
+      : [];
 
     const leave = await prisma.leaveRequest.create({
       data: {
@@ -119,6 +124,7 @@ export async function POST(req: Request) {
         totalDays,
         halfDay,
         reason,
+        attachments: attachmentUrls,
         status: "Pending",
         wid: employee.wid ?? 1,
       },
@@ -136,6 +142,7 @@ export async function POST(req: Request) {
       totalDays: leave.totalDays,
       halfDay: leave.halfDay,
       reason: leave.reason,
+      attachments: leave.attachments ?? [],
       status: leave.status,
       appliedAt: leave.appliedAt.toISOString(),
     };
@@ -155,7 +162,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { id, type, startDate, endDate, totalDays, halfDay, reason } = body;
+    const { id, type, startDate, endDate, totalDays, halfDay, reason, attachments } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Missing leave request ID" }, { status: 400 });
@@ -194,16 +201,32 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Only pending leave requests can be modified" }, { status: 400 });
     }
 
+    const updateData: {
+      type?: string;
+      startDate?: string;
+      endDate?: string;
+      totalDays?: number;
+      halfDay?: boolean;
+      reason?: string;
+      attachments?: string[];
+    } = {
+      type: type !== undefined ? type : existing.type,
+      startDate: startDate !== undefined ? startDate : existing.startDate,
+      endDate: endDate !== undefined ? endDate : existing.endDate,
+      totalDays: totalDays !== undefined ? parseFloat(totalDays) : existing.totalDays,
+      halfDay: halfDay !== undefined ? !!halfDay : existing.halfDay,
+      reason: reason !== undefined ? reason : existing.reason,
+    };
+
+    if (attachments !== undefined) {
+      updateData.attachments = Array.isArray(attachments)
+        ? attachments.filter((url): url is string => typeof url === "string").slice(0, 3)
+        : existing.attachments;
+    }
+
     const updated = await prisma.leaveRequest.update({
       where: { id },
-      data: {
-        type: type !== undefined ? type : existing.type,
-        startDate: startDate !== undefined ? startDate : existing.startDate,
-        endDate: endDate !== undefined ? endDate : existing.endDate,
-        totalDays: totalDays !== undefined ? parseFloat(totalDays) : existing.totalDays,
-        halfDay: halfDay !== undefined ? !!halfDay : existing.halfDay,
-        reason: reason !== undefined ? reason : existing.reason,
-      },
+      data: updateData,
       include: {
         employee: {
           select: {
@@ -227,6 +250,7 @@ export async function PATCH(req: Request) {
       totalDays: updated.totalDays,
       halfDay: updated.halfDay,
       reason: updated.reason,
+      attachments: updated.attachments ?? [],
       status: updated.status,
       appliedAt: updated.appliedAt.toISOString(),
     };

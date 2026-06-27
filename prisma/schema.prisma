@@ -69,6 +69,7 @@ model LeaveRequest {
   totalDays      Float
   halfDay        Boolean
   reason         String
+  attachments    String[] @default([])
   status         String   // "Pending" | "Approved" | "Rejected"
   wid            Int?     // Workspace ID
   appliedAt      DateTime @default(now())
@@ -280,6 +281,7 @@ model Announcement {
   id          String   @id @default(cuid())
   title       String
   body        String
+  attachments String[] @default([])
   pinned      Boolean  @default(false)
   archived    Boolean  @default(false)
   wid         Int      @default(1)

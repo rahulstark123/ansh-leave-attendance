@@ -29,7 +29,22 @@ import {
 } from "lucide-react";
 
 type MockTab = "punch" | "leaves" | "team";
-type AccentTheme = "emerald" | "indigo" | "sapphire" | "graphite";
+type AccentTheme = "violet" | "indigo" | "cyan" | "graphite";
+
+const landingContainer =
+  "mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-10 xl:px-12";
+const landingContainerNarrow =
+  "mx-auto w-full max-w-5xl px-6 sm:px-8 lg:px-10 xl:px-12";
+const brandGradientText =
+  "bg-gradient-to-r from-[#4dc4ff] via-[#8b5cf6] to-[#e879f9] bg-clip-text text-transparent";
+const brandBtnPrimary =
+  "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:from-blue-700 hover:to-violet-600";
+const brandBtnCta =
+  "bg-gradient-to-r from-[#00C6FF] to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:from-[#00B4EA] hover:to-[#7C22D4]";
+const brandBadgePill =
+  "border border-violet-500/20 bg-blue-500/10 text-violet-400";
+const brandCheckCircle =
+  "bg-blue-500/10 text-violet-400";
 
 const ecosystemApps = [
   {
@@ -51,9 +66,9 @@ const ecosystemApps = [
     status: "LIVE",
     isLive: true,
     badgeText: "LIVE",
-    badgeColor: "bg-emerald-500/10 text-emerald-455 border-emerald-500/25",
-    dotColor: "bg-emerald-500",
-    borderColor: "hover:border-emerald-500/35 hover:shadow-emerald-500/5",
+    badgeColor: "bg-violet-500/10 text-violet-400 border-violet-500/30",
+    dotColor: "bg-violet-500",
+    borderColor: "hover:border-violet-500/30 hover:shadow-violet-500/5",
     image: "/ANSH Visitor.jpg",
     link: "https://visitor.anshapps.com",
   },
@@ -77,9 +92,9 @@ const ecosystemApps = [
     status: "CURRENT",
     isLive: true,
     badgeText: "YOU ARE HERE",
-    badgeColor: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 animate-pulse",
-    dotColor: "bg-purple-500",
-    borderColor: "border-purple-500/40 hover:border-purple-500/60 shadow-purple-500/5",
+    badgeColor: "bg-violet-500/15 text-violet-400 border-violet-500/30 animate-pulse",
+    dotColor: "bg-[#7000FF]",
+    borderColor: "border-violet-500/40 hover:border-violet-500/60 shadow-violet-500/5",
     image: "/ANSH HR.jpg",
     link: "https://hr.anshapps.com",
   },
@@ -101,7 +116,7 @@ const ecosystemApps = [
 export default function LandingPage() {
   const [sessionActive, setSessionActive] = useState(false);
   const [activeTab, setActiveTab] = useState<MockTab>("punch");
-  const [activeAccent, setActiveAccent] = useState<AccentTheme>("emerald");
+  const [activeAccent, setActiveAccent] = useState<AccentTheme>("violet");
   const [mockTime, setMockTime] = useState("08:14:52");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -126,47 +141,47 @@ export default function LandingPage() {
 
   // Accent helper classes mapping
   const accentTextClass = {
-    emerald: "text-emerald-400",
+    violet: "text-violet-400",
     indigo: "text-indigo-400",
-    sapphire: "text-sky-400",
+    cyan: "text-[#4dc4ff]",
     graphite: "text-slate-300"
   }[activeAccent];
 
   const accentBgClass = {
-    emerald: "bg-emerald-500",
+    violet: "bg-violet-500",
     indigo: "bg-indigo-500",
-    sapphire: "bg-sky-500",
+    cyan: "bg-[#00C6FF]",
     graphite: "bg-slate-500"
   }[activeAccent];
 
   const accentBadgeClass = {
-    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    violet: "bg-violet-500/10 text-violet-400 border-violet-500/20",
     indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    sapphire: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    cyan: "bg-[#00C6FF]/10 text-[#4dc4ff] border-[#00C6FF]/20",
     graphite: "bg-slate-500/10 text-slate-300 border-slate-500/20"
   }[activeAccent];
 
   const accentBorderClass = {
-    emerald: "border-emerald-500/20 hover:border-emerald-500/40",
+    violet: "border-violet-500/20 hover:border-violet-500/40",
     indigo: "border-indigo-500/20 hover:border-indigo-500/40",
-    sapphire: "border-sky-500/20 hover:border-sky-500/40",
+    cyan: "border-[#00C6FF]/20 hover:border-[#00C6FF]/40",
     graphite: "border-slate-700 hover:border-slate-600"
   }[activeAccent];
 
   const accentGlowClass = {
-    emerald: "shadow-emerald-500/20",
+    violet: "shadow-violet-500/20",
     indigo: "shadow-indigo-500/20",
-    sapphire: "shadow-sky-500/20",
+    cyan: "shadow-[#00C6FF]/20",
     graphite: "shadow-slate-500/20"
   }[activeAccent];
 
   return (
-    <div className="min-h-screen bg-[#04080F] font-sans text-slate-100 selection:bg-emerald-500/20 selection:text-emerald-400">
-      {/* Symmetrical Background Glow Effects */}
+    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 selection:bg-violet-500/20 selection:text-violet-400">
+      {/* Ambient brand glow blobs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-emerald-500/5 blur-[160px]" />
-        <div className="absolute -right-1/4 top-1/4 h-[650px] w-[650px] rounded-full bg-sky-500/5 blur-[160px]" />
-        <div className="absolute left-1/3 top-2/3 h-[500px] w-[500px] rounded-full bg-purple-500/5 blur-[150px]" />
+        <div className="absolute -left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-[#00C6FF]/5 blur-[120px]" />
+        <div className="absolute -right-1/4 top-1/4 h-[650px] w-[650px] rounded-full bg-[#7000FF]/5 blur-[100px]" />
+        <div className="absolute left-1/3 top-2/3 h-[500px] w-[500px] rounded-full bg-[#E040FB]/5 blur-[130px]" />
         <div
           className="absolute inset-0 opacity-[0.02] pointer-events-none"
           style={{
@@ -178,8 +193,8 @@ export default function LandingPage() {
       </div>
 
       {/* 1. SYMMETRICAL NAVIGATION HEADER */}
-      <header className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-md bg-[#04080F]/85">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-md bg-zinc-950/85">
+        <div className={`${landingContainer} h-16 flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <img
               src="/logoAnshapps.png"
@@ -193,17 +208,17 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#biometrics" className="hover:text-white transition-colors">Face Setup</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <a href="#comparison" className="hover:text-white transition-colors">Why ANSH</a>
+          <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <a href="#features" className="hover:text-violet-400 transition-colors">Features</a>
+            <a href="#biometrics" className="hover:text-violet-400 transition-colors">Face Setup</a>
+            <a href="#pricing" className="hover:text-violet-400 transition-colors">Pricing</a>
+            <a href="#comparison" className="hover:text-violet-400 transition-colors">Why ANSH</a>
           </nav>
 
           <div className="flex items-center gap-4">
             {sessionActive ? (
               <Link href="/dashboard">
-                <button className="inline-flex h-10 items-center justify-center rounded-xl bg-emerald-500 px-5 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/15 hover:shadow-emerald-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                <button className={`inline-flex h-10 items-center justify-center rounded-xl px-5 text-xs font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer ${brandBtnPrimary}`}>
                   Go to Dashboard
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" strokeWidth={2.5} />
                 </button>
@@ -220,33 +235,33 @@ export default function LandingPage() {
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 pt-16 pb-24">
+      <section className={`relative z-10 ${landingContainer} pt-16 pb-24`}>
         <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-7 space-y-7 text-left">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4.5 py-1.5 backdrop-blur-md">
-              <Sparkles className="h-4.5 w-4.5 text-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold tracking-widest uppercase text-emerald-400">
+            <div className={`inline-flex items-center gap-2.5 rounded-full px-4.5 py-1.5 backdrop-blur-md ${brandBadgePill}`}>
+              <Sparkles className="h-4.5 w-4.5 text-violet-400 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400">
                 Built for MSMEs & Scaling Teams
               </span>
             </div>
 
             <h1 className="font-sans text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight text-white">
               Run Your Entire HR, Leaves &{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-transparent">
+              <span className={brandGradientText}>
                 Attendance
               </span>{" "}
               in One Workspace
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl">
               ANSH Leave & Attendance combines high-speed facial recognition check-ins, live ticking shift stopwatches, dynamic allowance requests, and role-guarded pipelines into a unified, high-performance portal.
             </p>
 
             {/* Benefit Checkmarks Grid (2x2) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="flex items-start gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle} mt-0.5`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
@@ -256,7 +271,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle} mt-0.5`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
@@ -266,7 +281,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle} mt-0.5`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
@@ -276,7 +291,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle} mt-0.5`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
@@ -289,7 +304,7 @@ export default function LandingPage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
               <Link href="/signup" className="w-full sm:w-auto">
-                <button className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl bg-emerald-500 px-8 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/15 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                <button className={`inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl px-8 text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer ${brandBtnCta}`}>
                   Start your 14 days Free trial
                   <Play className="ml-2 h-4 w-4 fill-current" />
                 </button>
@@ -304,23 +319,23 @@ export default function LandingPage() {
             <div className="pt-6 border-t border-white/5">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Built from Bharat for the World — encouraging{" "}
-                <span className="text-emerald-400">Vasudhaiva Kutumbakam</span>
+                <span className="text-violet-400">Vasudhaiva Kutumbakam</span>
               </p>
             </div>
           </div>
 
           {/* Hero Right Mockup Frame (Toggles and Accent selection) */}
           <div className="lg:col-span-5 relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-sky-500/10 rounded-3xl blur-2xl -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#0078FF]/10 via-[#7000FF]/10 to-[#E040FB]/10 rounded-3xl blur-2xl -z-10" />
             
             {/* Interactive Browser Frame */}
-            <div className="rounded-3xl border border-slate-800 bg-[#0A1118]/90 shadow-2xl p-5 space-y-5 select-none relative overflow-hidden">
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-2xl p-5 space-y-5 select-none relative overflow-hidden">
               {/* Browser Dot Controls */}
               <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
                 <div className="flex gap-1.5">
                   <span className="h-3 w-3 rounded-full bg-rose-500/80" />
                   <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-                  <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-violet-500/80" />
                 </div>
                 
                 {/* Simulated URL */}
@@ -432,7 +447,7 @@ export default function LandingPage() {
                           <span className="block text-[9px] text-slate-500">HR Manager</span>
                         </div>
                       </div>
-                      <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/10">
+                      <span className="text-[9px] font-bold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-500/10">
                         Active
                       </span>
                     </div>
@@ -460,11 +475,11 @@ export default function LandingPage() {
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Try live color picker:</span>
                 
                 <div className="flex gap-2.5">
-                  {(["emerald", "indigo", "sapphire", "graphite"] as AccentTheme[]).map((theme) => {
+                  {(["violet", "indigo", "cyan", "graphite"] as AccentTheme[]).map((theme) => {
                     const bgCircle = {
-                      emerald: "bg-emerald-500",
+                      violet: "bg-violet-500",
                       indigo: "bg-indigo-500",
-                      sapphire: "bg-sky-500",
+                      cyan: "bg-[#00C6FF]",
                       graphite: "bg-slate-400"
                     }[theme];
 
@@ -487,16 +502,16 @@ export default function LandingPage() {
       </section>
 
       {/* 2.5 ECOSYSTEM SHOWCASE SECTION */}
-      <section className="relative z-10 border-t border-white/5 bg-[#04080F] py-20 overflow-hidden">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-12">
+      <section className="relative z-10 border-t border-white/5 bg-zinc-950 py-20 overflow-hidden">
+        <div className={`${landingContainer} space-y-12`}>
           {/* Header Row */}
           <div className="grid gap-6 md:grid-cols-12 md:items-end">
             <div className="md:col-span-7 space-y-2">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block">
+              <span className="text-xs font-bold text-violet-400 uppercase tracking-widest block">
                 Ecosystem
               </span>
               <h2 className="text-3xl font-black text-white tracking-tight sm:text-4xl">
-                The full <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-transparent">Ansh Apps</span> suite
+                The full <span className={brandGradientText}>Ansh Apps</span> suite
               </h2>
             </div>
             <div className="md:col-span-5">
@@ -505,9 +520,10 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Marquee Wrapper with side fade-out gradients */}
-          <div className="relative w-full overflow-hidden">
+        {/* Marquee — full viewport width */}
+        <div className="relative w-full overflow-hidden mt-12">
             {/* Inline styles to guarantee marquee rendering and scrolling */}
             <style dangerouslySetInnerHTML={{ __html: `
               @keyframes marqueeScroll {
@@ -527,8 +543,8 @@ export default function LandingPage() {
             `}} />
             
             {/* Fade overlays */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-[#04080F] to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-[#04080F] to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
 
             {/* Scrolling Marquee Container */}
             <div className="custom-marquee-container py-4 gap-6">
@@ -538,7 +554,7 @@ export default function LandingPage() {
                   href={app.link}
                   target={app.link.startsWith("http") ? "_blank" : undefined}
                   rel={app.link.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className={`group relative flex flex-col justify-between w-72 shrink-0 rounded-3xl border border-white/5 bg-[#070c14]/85 p-4 space-y-4 transition-all duration-300 ${app.borderColor} hover:-translate-y-1 cursor-pointer`}
+                  className={`group relative flex flex-col justify-between w-72 shrink-0 rounded-3xl border border-white/5 bg-zinc-900/85 p-4 space-y-4 transition-all duration-300 ${app.borderColor} hover:-translate-y-1 cursor-pointer`}
                 >
                   {/* Image/Placeholder container */}
                   {app.image ? (
@@ -583,8 +599,8 @@ export default function LandingPage() {
                         app.status === "BUILDING"
                           ? "border-rose-500/30 text-rose-450 bg-rose-500/5"
                           : app.name === "ANSH HR"
-                            ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
-                            : "border-emerald-500/30 text-emerald-455 bg-emerald-500/5"
+                            ? "border-violet-500/40 text-violet-400 bg-violet-500/10"
+                            : "border-violet-500/30 text-violet-400 bg-violet-500/5"
                       }`}>
                         {app.status === "BUILDING" ? "Soon" : "Live"}
                       </span>
@@ -597,13 +613,12 @@ export default function LandingPage() {
                 </a>
               ))}
             </div>
-          </div>
         </div>
       </section>
 
       {/* 3. FEATURES GRID ("Streamline Your Entire HR Operations Natively") */}
-      <section id="features" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
+      <section id="features" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
+        <div className={`${landingContainer} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
               Streamline Your Entire HR Operations Natively
@@ -615,8 +630,8 @@ export default function LandingPage() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Feature 1 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <Fingerprint className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Facial Recognition Punch-In</h3>
@@ -626,8 +641,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <Clock className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Live Stopwatch Clocking</h3>
@@ -637,8 +652,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <CalendarDays className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Dynamic Allowance Pools</h3>
@@ -648,8 +663,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Glassmorphic Approvals Queue</h3>
@@ -659,8 +674,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 5 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <Users2 className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Team Status Registry</h3>
@@ -670,13 +685,13 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 6 */}
-            <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4 hover:border-emerald-500/25 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                 <Sparkles className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-200">Accent Theme Customization</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Dynamic theme switcher. Swap the primary color theme instantly between Indigo, Sapphire, Emerald, and Graphite system styles.
+                Dynamic theme switcher. Swap the primary color theme instantly between Violet, Indigo, Cyan, and Graphite system styles.
               </p>
             </div>
           </div>
@@ -684,10 +699,10 @@ export default function LandingPage() {
       </section>
 
       {/* 4. DETAILED BIOMETRIC SETUP FEATURE SECTION */}
-      <section id="biometrics" className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 py-24">
+      <section id="biometrics" className={`relative z-10 ${landingContainer} py-24`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           {/* Biometrics Setup Mockup */}
-          <div className="relative rounded-3xl border border-slate-800 bg-[#0A1118]/85 p-6 shadow-2xl backdrop-blur-md overflow-hidden">
+          <div className="relative rounded-3xl border border-zinc-800 bg-zinc-900/85 p-6 shadow-2xl backdrop-blur-md overflow-hidden">
             <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-5">
               Secure Enrollment Console
             </span>
@@ -696,10 +711,10 @@ export default function LandingPage() {
               {/* Slot 1: Front */}
               <div className="space-y-1.5 text-center">
                 <div className="aspect-[4/3] rounded-xl border border-slate-700 bg-slate-900/60 flex flex-col items-center justify-center relative shadow-sm overflow-hidden p-1">
-                  <div className="absolute inset-0 bg-emerald-500/5" />
-                  <Camera className="h-5 w-5 text-emerald-400" />
+                  <div className="absolute inset-0 bg-violet-500/5" />
+                  <Camera className="h-5 w-5 text-violet-400" />
                   <span className="text-[8px] font-semibold text-slate-400 mt-1 block">Front view</span>
-                  <div className="absolute bottom-2 right-2 bg-emerald-500 text-slate-950 p-0.5 rounded-full">
+                  <div className="absolute bottom-2 right-2 bg-violet-500 text-white p-0.5 rounded-full">
                     <Check className="h-2 w-2" strokeWidth={4} />
                   </div>
                 </div>
@@ -709,10 +724,10 @@ export default function LandingPage() {
               {/* Slot 2: Left */}
               <div className="space-y-1.5 text-center">
                 <div className="aspect-[4/3] rounded-xl border border-slate-700 bg-slate-900/60 flex flex-col items-center justify-center relative shadow-sm overflow-hidden p-1">
-                  <div className="absolute inset-0 bg-emerald-500/5" />
-                  <Camera className="h-5 w-5 text-emerald-400" />
+                  <div className="absolute inset-0 bg-violet-500/5" />
+                  <Camera className="h-5 w-5 text-violet-400" />
                   <span className="text-[8px] font-semibold text-slate-400 mt-1 block">Left angle</span>
-                  <div className="absolute bottom-2 right-2 bg-emerald-500 text-slate-950 p-0.5 rounded-full">
+                  <div className="absolute bottom-2 right-2 bg-violet-500 text-white p-0.5 rounded-full">
                     <Check className="h-2 w-2" strokeWidth={4} />
                   </div>
                 </div>
@@ -722,10 +737,10 @@ export default function LandingPage() {
               {/* Slot 3: Right */}
               <div className="space-y-1.5 text-center">
                 <div className="aspect-[4/3] rounded-xl border border-slate-700 bg-slate-900/60 flex flex-col items-center justify-center relative shadow-sm overflow-hidden p-1">
-                  <div className="absolute inset-0 bg-emerald-500/5" />
-                  <Camera className="h-5 w-5 text-emerald-400" />
+                  <div className="absolute inset-0 bg-violet-500/5" />
+                  <Camera className="h-5 w-5 text-violet-400" />
                   <span className="text-[8px] font-semibold text-slate-400 mt-1 block">Right angle</span>
-                  <div className="absolute bottom-2 right-2 bg-emerald-500 text-slate-950 p-0.5 rounded-full">
+                  <div className="absolute bottom-2 right-2 bg-violet-500 text-white p-0.5 rounded-full">
                     <Check className="h-2 w-2" strokeWidth={4} />
                   </div>
                 </div>
@@ -735,7 +750,7 @@ export default function LandingPage() {
 
             <div className="mt-5 rounded-2xl bg-slate-950 border border-slate-800 p-4 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-                <Info className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <Info className="h-3.5 w-3.5 text-violet-400 shrink-0" />
                 <span>Client-Side Face Validation</span>
               </div>
               <p className="text-[10px] text-slate-500 leading-relaxed">
@@ -746,7 +761,7 @@ export default function LandingPage() {
 
           {/* Biometrics Setup Description */}
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-1.5 border border-emerald-500/20 text-emerald-400">
+            <div className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 ${brandBadgePill}`}>
               <Fingerprint className="h-4 w-4" />
               <span className="text-[10px] font-bold uppercase tracking-wider">Fast Setup</span>
             </div>
@@ -758,19 +773,19 @@ export default function LandingPage() {
             </p>
             <ul className="space-y-3.5 text-xs text-slate-350 font-semibold">
               <li className="flex items-center gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle}`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <span>Requires 3 reference images (Front, Left Profile, Right Profile)</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle}`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <span>Automatic client-side downscaling to 800px for speedy uploads</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle}`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <span>Clears database signatures instantly upon scan deletions</span>
@@ -781,8 +796,8 @@ export default function LandingPage() {
       </section>
 
       {/* 4.5. LIVE ACTIVITY FEED & ANNOUNCEMENTS SECTION */}
-      <section id="announcements" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
+      <section id="announcements" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
+        <div className={`${landingContainer} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
               Live Activity Feed & Broadcast Announcements
@@ -795,14 +810,14 @@ export default function LandingPage() {
           <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
             
             {/* Column 1: Live Activity Feed */}
-            <div className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-[#0A1016]/40 p-8 space-y-6 hover:border-emerald-500/25 transition-all group">
+            <div className="flex flex-col justify-between rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-6 hover:border-violet-500/20 transition-all group">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
                     <Clock className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Real-Time Updates</span>
+                    <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">Real-Time Updates</span>
                     <h3 className="text-lg font-bold text-slate-200">Organization Activity Logs</h3>
                   </div>
                 </div>
@@ -813,8 +828,8 @@ export default function LandingPage() {
 
                 <div className="space-y-3 pt-2">
                   {/* Event 1 */}
-                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-emerald-500/20 transition-all">
-                    <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 text-xs font-black">
+                  <div className="flex gap-3 items-start p-3 bg-zinc-950/60 border border-zinc-800/60 rounded-2xl hover:border-violet-500/20 transition-all">
+                    <div className="h-7 w-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center shrink-0 text-xs font-black">
                       RR
                     </div>
                     <div className="flex-1 min-w-0">
@@ -858,7 +873,7 @@ export default function LandingPage() {
             </div>
 
             {/* Column 2: Pinned Announcements */}
-            <div className="flex flex-col justify-between rounded-3xl border border-slate-800 bg-[#0A1016]/40 p-8 space-y-6 hover:border-emerald-500/25 transition-all group">
+            <div className="flex flex-col justify-between rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-6 hover:border-violet-500/20 transition-all group">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
@@ -895,9 +910,9 @@ export default function LandingPage() {
                   </div>
 
                   {/* Announcement 2 */}
-                  <div className="p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl relative overflow-hidden group hover:border-emerald-500/25 transition-all">
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-                      <CalendarDays className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <div className="p-4 bg-zinc-950/60 border border-zinc-800/60 rounded-2xl relative overflow-hidden group hover:border-violet-500/20 transition-all">
+                    <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
+                      <CalendarDays className="h-3.5 w-3.5 text-violet-400 shrink-0" />
                       <span>Independence Day Holiday Calendar</span>
                     </div>
                     <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
@@ -918,11 +933,11 @@ export default function LandingPage() {
       </section>
 
       {/* 5. FLEXIBLE PRICING SECTION */}
-      <section id="pricing" className="relative z-10 border-t border-white/5 bg-[#03060C]/60 py-24">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-16">
+      <section id="pricing" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
+        <div className={`${landingContainer} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1">
-              <span className="text-[9px] font-bold tracking-widest uppercase text-emerald-400">Flexible Pricing</span>
+            <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ${brandBadgePill}`}>
+              <span className="text-[9px] font-bold tracking-widest uppercase text-violet-400">Flexible Pricing</span>
             </div>
             <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
               Flexible Plans Tailored for Your Scale
@@ -932,9 +947,9 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-6 max-w-5xl mx-auto sm:grid-cols-2">
+          <div className="grid gap-6 max-w-4xl mx-auto sm:grid-cols-2">
             {/* Free Plan */}
-            <div className="rounded-3xl border border-slate-800 bg-[#070D14] p-8 flex flex-col justify-between space-y-6 relative hover:border-emerald-500/20 transition-all">
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 flex flex-col justify-between space-y-6 relative hover:border-violet-500/20 transition-all">
               <div className="space-y-4">
                 <div className="inline-flex rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
                   For Micro Teams
@@ -949,27 +964,27 @@ export default function LandingPage() {
                 </div>
                 <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Up to 3 teammates</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>50 punch-ins per month</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Punch in/out attendance tracking</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Default annual, sick, and casual leave</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Basic leave requests and approvals</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Employee directory and leave balances</span>
                   </li>
                 </ul>
@@ -977,9 +992,9 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="rounded-3xl border border-emerald-500/25 bg-[#070D14] p-8 flex flex-col justify-between space-y-6 relative hover:border-emerald-500/40 transition-all shadow-xl shadow-emerald-950/20">
+            <div className="rounded-3xl border border-violet-500/25 bg-zinc-900/60 p-8 flex flex-col justify-between space-y-6 relative hover:border-violet-500/40 transition-all shadow-xl shadow-violet-950/20">
               <div className="space-y-4">
-                <div className="inline-flex rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                <div className={`inline-flex rounded-lg px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${brandBadgePill}`}>
                   Best for MSMEs
                 </div>
                 <div className="space-y-1">
@@ -992,32 +1007,32 @@ export default function LandingPage() {
                 </div>
                 <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Per-user pricing — scales with your team size</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Unlimited punch-ins</span>
                   </li>
 
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Shift roster manager with custom timings</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Custom leave categories and rules</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Company holiday calendar by branch</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Policy document hub and handbook uploads</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Team analytics, punctuality, and reports</span>
                   </li>
                 </ul>
@@ -1028,10 +1043,10 @@ export default function LandingPage() {
       </section>
 
       {/* 6. COMPARISON MATRIX ("Why teams choose ANSH HR over legacy biometric systems") */}
-      <section id="comparison" className="relative z-10 mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 py-24 space-y-16">
+      <section id="comparison" className={`relative z-10 ${landingContainer} py-24 space-y-16`}>
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-sky-500/25 bg-sky-500/5 px-4.5 py-1.5">
-            <span className="text-[10px] font-bold tracking-widest uppercase text-sky-400">
+          <div className={`inline-flex items-center gap-2.5 rounded-full px-4.5 py-1.5 ${brandBadgePill}`}>
+            <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400">
               Why Teams Switch
             </span>
           </div>
@@ -1045,8 +1060,8 @@ export default function LandingPage() {
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Card 1 */}
-          <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
               <Layers className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Compared to Biometric Hardware</h3>
@@ -1056,8 +1071,8 @@ export default function LandingPage() {
           </div>
 
           {/* Card 2 */}
-          <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
               <Clock className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Compared to Excel & Manual Logs</h3>
@@ -1067,8 +1082,8 @@ export default function LandingPage() {
           </div>
 
           {/* Card 3 */}
-          <div className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
               <Lock className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Compared to Corporate Suites</h3>
@@ -1080,8 +1095,8 @@ export default function LandingPage() {
 
         {/* Comparison Model Footers */}
         <div className="grid gap-6 md:grid-cols-2 pt-6">
-          <div className="bg-[#05110E] border border-emerald-500/15 rounded-2xl p-5 space-y-2">
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">THE ANSH HR MODEL FOR MSMEs</span>
+          <div className="bg-zinc-900/60 border border-violet-500/15 rounded-2xl p-5 space-y-2">
+            <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest block">THE ANSH HR MODEL FOR MSMEs</span>
             <p className="text-xs text-slate-300 leading-relaxed">
               Unified client-side face scans, ticking clocks, real-time balances, simple digital pricing, and zero setup friction.
             </p>
@@ -1097,7 +1112,7 @@ export default function LandingPage() {
       </section>
 
       {/* 7. FREQUENTLY ASKED QUESTIONS */}
-      <section id="faq" className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-8 lg:px-12 xl:px-16 py-24 space-y-12">
+      <section id="faq" className={`relative z-10 ${landingContainerNarrow} py-24 space-y-12`}>
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
             Frequently Asked Questions
@@ -1131,14 +1146,14 @@ export default function LandingPage() {
             },
             {
               q: "Can I customize the workspace accent color?",
-              a: "Yes. Each user can switch their dashboard accent between Emerald, Indigo, Sapphire, and Graphite from profile settings. The selected color updates buttons, badges, and highlights across the workspace UI."
+              a: "Yes. Each user can switch their dashboard accent between Violet, Indigo, Cyan, and Graphite from profile settings. The selected color updates buttons, badges, and highlights across the workspace UI."
             }
           ].map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (
               <div
                 key={idx}
-                className="rounded-2xl border border-slate-800 bg-[#0A1016]/40 overflow-hidden transition-colors duration-200"
+                className="rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden transition-colors duration-200"
               >
                 <button
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
@@ -1166,28 +1181,35 @@ export default function LandingPage() {
       </section>
 
       {/* 8. FOOTER CTA BANNER */}
-      <section className="relative z-10 mx-auto w-full max-w-6xl px-6 sm:px-8 lg:px-12 xl:px-16 pb-24">
-        <div className="rounded-3xl border border-slate-800 bg-[#070D14] p-10 text-center relative overflow-hidden space-y-6">
-          <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/5 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-sky-500/5 blur-3xl" />
+      <section className={`relative z-10 ${landingContainerNarrow} pb-24`}>
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-10 text-center relative overflow-hidden space-y-6">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to bottom right, rgba(0, 120, 255, 0.10), rgba(112, 0, 255, 0.10), rgba(224, 64, 251, 0.10))",
+            }}
+          />
+          <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-[#7000FF]/10 blur-[70px]" />
+          <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-[#00C6FF]/10 blur-[80px]" />
           
-          <div className="flex justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="relative flex justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-violet-400 border border-violet-500/20">
               <CheckCircle className="h-5 w-5" />
             </div>
           </div>
 
-          <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+          <h2 className="relative text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
             Ready to accelerate your team's workflow?
           </h2>
           
-          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="relative text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
             Create your free workspace in under two minutes. No credit card required. Enjoy complete access to biometric setups, leave allowance logs, and status registries.
           </p>
 
-          <div className="flex justify-center pt-2">
+          <div className="relative flex justify-center pt-2">
             <Link href="/signup">
-              <button className="inline-flex h-12 items-center justify-center rounded-2xl bg-emerald-500 px-8 text-sm font-bold text-slate-950 shadow-xl shadow-emerald-500/15 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+              <button className={`inline-flex h-12 items-center justify-center rounded-2xl px-8 text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer ${brandBtnCta}`}>
                 Launch ANSH HR Now
                 <ArrowRight className="ml-2 h-4 w-4" strokeWidth={2.5} />
               </button>
@@ -1197,13 +1219,13 @@ export default function LandingPage() {
       </section>
 
       {/* 9. GRAND SYMMETRICAL FOOTER */}
-      <footer className="relative z-10 border-t border-white/5 bg-[#03060C] pt-20 pb-10">
-        <div className="mx-auto w-full max-w-[1720px] px-6 sm:px-8 lg:px-12 xl:px-16 space-y-12">
+      <footer className="relative z-10 border-t border-white/5 bg-zinc-950 pt-20 pb-10">
+        <div className={`${landingContainer} space-y-12`}>
           
           {/* Big Text Banner: Ansh Apps */}
           <div className="text-center select-none border-b border-white/5 pb-12 overflow-hidden">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">HANDLED BY ANSH</span>
-            <h1 className="text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] xl:text-[14rem] font-black bg-gradient-to-r from-sky-400 via-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-tighter opacity-95 leading-none py-4">
+            <h1 className={`text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] xl:text-[14rem] font-black ${brandGradientText} tracking-tighter opacity-95 leading-none py-4`}>
               Ansh Apps
             </h1>
           </div>
@@ -1254,7 +1276,7 @@ export default function LandingPage() {
               </p>
               <a
                 href="mailto:hello@anshapps.com"
-                className="text-emerald-400 hover:text-emerald-300 hover:underline inline-block pt-1 font-bold transition-colors"
+                className="text-violet-400 hover:text-violet-300 hover:underline inline-block pt-1 font-bold transition-colors"
               >
                 hello@anshapps.com
               </a>

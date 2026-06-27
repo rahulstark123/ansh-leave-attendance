@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLeaveStore, type LeaveStatus } from "@/stores/leave-store";
+import { AttachmentLinks } from "@/components/AttachmentLinks";
 import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   ShieldAlert,
@@ -177,6 +178,8 @@ export default function ApprovalsPage() {
                     "{req.reason || "No comments provided."}"
                   </p>
                 </div>
+
+                <AttachmentLinks attachments={req.attachments} />
 
                  {req.status === "Pending" && (
                   <>

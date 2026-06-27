@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLeaveStore } from "@/stores/leave-store";
 import { FaceManageModal } from "@/components/attendance/FaceManageModal";
+import { resolveStorageUrl } from "@/lib/storage/public-url";
 import {
   Loader2,
   Clock,
@@ -748,7 +749,7 @@ export default function AttendanceSettingPage() {
                               <div className="flex gap-1.5">
                                 {emp.facePhotos.map((url) => (
                                   <div key={url} className="h-7 w-9 rounded-lg border border-border overflow-hidden bg-slate-950 shadow-sm shrink-0">
-                                    <img src={url} className="h-full w-full object-cover scale-x-[-1]" />
+                                    <img src={resolveStorageUrl(url) ?? url} className="h-full w-full object-cover scale-x-[-1]" />
                                   </div>
                                 ))}
                               </div>

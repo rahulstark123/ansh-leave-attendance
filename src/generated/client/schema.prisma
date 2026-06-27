@@ -60,18 +60,19 @@ model Employee {
 }
 
 model LeaveRequest {
-  id         String   @id @default(cuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type       String // "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity"
-  startDate  String // Date string "YYYY-MM-DD"
-  endDate    String // Date string "YYYY-MM-DD"
-  totalDays  Float
-  halfDay    Boolean
-  reason     String
-  status     String // "Pending" | "Approved" | "Rejected"
-  wid        Int? // Workspace ID
-  appliedAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String // "Annual" | "Sick" | "Casual" | "Unpaid" | "Maternity/Paternity"
+  startDate   String // Date string "YYYY-MM-DD"
+  endDate     String // Date string "YYYY-MM-DD"
+  totalDays   Float
+  halfDay     Boolean
+  reason      String
+  attachments String[] @default([])
+  status      String // "Pending" | "Approved" | "Rejected"
+  wid         Int? // Workspace ID
+  appliedAt   DateTime @default(now())
 }
 
 model PunchRecord {
@@ -277,16 +278,17 @@ model SupportTicket {
 }
 
 model Announcement {
-  id         String   @id @default(cuid())
-  title      String
-  body       String
-  pinned     Boolean  @default(false)
-  archived   Boolean  @default(false)
-  wid        Int      @default(1)
-  authorId   String
-  authorName String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  body        String
+  attachments String[] @default([])
+  pinned      Boolean  @default(false)
+  archived    Boolean  @default(false)
+  wid         Int      @default(1)
+  authorId    String
+  authorName  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([wid])
 }

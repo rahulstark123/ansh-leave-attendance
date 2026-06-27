@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
-import { s3Client, BUCKET_NAME } from "@/lib/s3";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-
+import { buildObjectKey, uploadToR2 } from "@/lib/storage/r2";
+import { getPublicObjectUrl } from "@/lib/storage/public-url";
 import { isFaceEnrolled } from "@/lib/face-enrollment";
 import { resolveCoordsFromRequest } from "@/lib/ip-geolocation";
 import { calculatePunchStatus, formatPunchTime } from "@/lib/punch-utils";
 import { canWorkspacePunchIn } from "@/lib/billing/workspace-access";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hjnqlybokoljhxyzsqqi.supabase.co";
 
 function parseCoord(value: unknown): number | null {
   if (value === undefined || value === null || value === "") return null;
@@ -93,18 +90,15 @@ export async function POST(req: Request) {
           buffer = Buffer.from(selfie, 'base64');
         }
         
-        const s3Key = `punches/${employee.id}/${Date.now()}_${action}.${extension}`;
-        const uploadCommand = new PutObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: s3Key,
-          Body: buffer,
-          ContentType: contentType,
-        });
-        await s3Client.send(uploadCommand);
-        
-        selfieUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${s3Key}`;
+        const objectKey = buildObjectKey(
+          "punches",
+          employee.id,
+          `${Date.now()}_${action}.${extension}`
+        );
+        await uploadToR2(objectKey, buffer, contentType);
+        selfieUrl = getPublicObjectUrl(objectKey);
       } catch (uploadErr) {
-        console.error("Failed to upload punch selfie to S3:", uploadErr);
+        console.error("Failed to upload punch selfie to storage:", uploadErr);
       }
     }
 

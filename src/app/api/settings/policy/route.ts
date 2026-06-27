@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { getSystemSettings, saveSystemSettings } from "@/lib/settings";
-import { s3Client, BUCKET_NAME } from "@/lib/s3";
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { buildObjectKey, deleteFromR2, sanitizeFilename, uploadToR2 } from "@/lib/storage/r2";
 
 // 1. GET: Retrieve list of policy documents
 export async function GET(req: Request) {
@@ -19,7 +18,7 @@ export async function GET(req: Request) {
   }
 }
 
-// 2. POST: Upload a new policy document (S3 + system-settings.json registry)
+// 2. POST: Upload a new policy document (R2 + system-settings.json registry)
 export async function POST(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
@@ -44,21 +43,13 @@ export async function POST(req: Request) {
     const wid = employee.wid ?? 1;
     const originalName = (file as any).name || "document.pdf";
     const extension = originalName.split(".").pop() || "pdf";
-    const cleanOriginalName = originalName.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-    const s3Key = `${wid}/${Date.now()}_${cleanOriginalName}`;
+    const cleanOriginalName = sanitizeFilename(originalName);
+    const objectKey = buildObjectKey(String(wid), `${Date.now()}_${cleanOriginalName}`);
 
-    // Convert file to buffer and execute S3 upload
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: s3Key,
-      Body: buffer,
-      ContentType: file.type || "application/pdf",
-    });
-
-    await s3Client.send(uploadCommand);
+    await uploadToR2(objectKey, buffer, file.type || "application/pdf");
 
     const settings = getSystemSettings();
     const currentDocs = settings.leaveSettings.policyDocuments || [];
@@ -78,7 +69,7 @@ export async function POST(req: Request) {
       name: savedName,
       uploadedAt: new Date().toISOString().split("T")[0],
       size: fileSizeFormatted,
-      s3Key: s3Key,
+      s3Key: objectKey,
     };
 
     const updatedDocs = [...currentDocs, newDoc];
@@ -152,7 +143,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-// 4. DELETE: Remove policy document from settings database and S3
+// 4. DELETE: Remove policy document from settings database and R2
 export async function DELETE(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
@@ -180,16 +171,11 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Document Not Found" }, { status: 404 });
     }
 
-    // Delete associated file from S3 bucket (if present)
     if (doc.s3Key) {
       try {
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: doc.s3Key,
-        });
-        await s3Client.send(deleteCommand);
+        await deleteFromR2(doc.s3Key);
       } catch (err) {
-        console.error("Failed to delete S3 file during cleanup:", err);
+        console.error("Failed to delete storage file during cleanup:", err);
       }
     }
 

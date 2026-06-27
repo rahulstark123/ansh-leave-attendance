@@ -1,26 +1,17 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
-import { s3Client, BUCKET_NAME } from "@/lib/s3";
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { buildObjectKey, deleteFromR2, uploadToR2 } from "@/lib/storage/r2";
+import { extractKeyFromUrl, getPublicObjectUrl } from "@/lib/storage/public-url";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hjnqlybokoljhxyzsqqi.supabase.co";
-
-// Helper to clean up existing photos in S3
-async function cleanupS3Photos(photoUrls: string[]) {
+async function cleanupStoredPhotos(photoUrls: string[]) {
   for (const url of photoUrls) {
-    const parts = url.split(`/${BUCKET_NAME}/`);
-    if (parts.length > 1) {
-      const key = parts[1];
-      try {
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: key,
-        });
-        await s3Client.send(deleteCommand);
-      } catch (err) {
-        console.error("Failed to delete face photo from S3:", key, err);
-      }
+    const key = extractKeyFromUrl(url);
+    if (!key) continue;
+    try {
+      await deleteFromR2(key);
+    } catch (err) {
+      console.error("Failed to delete face photo from storage:", key, err);
     }
   }
 }
@@ -85,12 +76,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please upload all 3 photos (Front, Left, Right)" }, { status: 400 });
     }
 
-    // Clean up existing face photos in S3 before replacing
+    // Clean up existing face photos before replacing
     if (employee.facePhotos && employee.facePhotos.length > 0) {
-      await cleanupS3Photos(employee.facePhotos);
+      await cleanupStoredPhotos(employee.facePhotos);
     }
 
-    // Upload 3 photos to S3
+    // Upload 3 photos to R2
     const photos = [photo1, photo2, photo3];
     const labels = ["front", "left", "right"];
     const publicUrls: string[] = [];
@@ -98,26 +89,15 @@ export async function POST(req: Request) {
     for (let i = 0; i < 3; i++) {
       const file = photos[i];
       const label = labels[i];
-      const wid = employee.wid ?? 1;
-      
       const originalName = file.name || `${label}.jpg`;
       const extension = originalName.split(".").pop() || "jpg";
-      const s3Key = `faces/${employeeId}/${Date.now()}_${label}.${extension}`;
+      const objectKey = buildObjectKey("faces", employeeId, `${Date.now()}_${label}.${extension}`);
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      const uploadCommand = new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: s3Key,
-        Body: buffer,
-        ContentType: file.type || "image/jpeg",
-      });
-
-      await s3Client.send(uploadCommand);
-      
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${s3Key}`;
-      publicUrls.push(publicUrl);
+      await uploadToR2(objectKey, buffer, file.type || "image/jpeg");
+      publicUrls.push(getPublicObjectUrl(objectKey));
     }
 
     if (faceEmbedding.length !== 128) {
@@ -190,9 +170,8 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Employee not found" }, { status: 404 });
     }
 
-    // Clean up S3 photos
     if (employee.facePhotos && employee.facePhotos.length > 0) {
-      await cleanupS3Photos(employee.facePhotos);
+      await cleanupStoredPhotos(employee.facePhotos);
     }
 
     // Reset database fields

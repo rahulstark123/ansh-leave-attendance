@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { FaceUploadEnrollment } from "./FaceUploadEnrollment";
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2, ShieldAlert, Smile, CheckCircle, RefreshCw } from "lucide-react";
+import { resolveStorageUrl } from "@/lib/storage/public-url";
 
 interface Employee {
   id: string;
@@ -119,7 +120,7 @@ export function FaceManageModal({ employee, onClose, onUpdateComplete, onDeleteC
                       <div key={url} className="space-y-1.5 text-center">
                         <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border bg-slate-900 flex items-center justify-center relative shadow-sm">
                           <img
-                            src={url}
+                            src={resolveStorageUrl(url) ?? url}
                             alt={`${label} photo`}
                             className="w-full h-full object-cover scale-x-[-1]"
                           />

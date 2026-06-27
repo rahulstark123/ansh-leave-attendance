@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { hasFaceEmbedding } from "@/lib/face-enrollment";
+import { resolveStorageUrl } from "@/lib/storage/public-url";
 import { verifyFaceFromBase64, verifyFaceFromUrl } from "@/lib/face-api-server";
 
 export const runtime = "nodejs";
@@ -46,9 +47,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Face embedding not found" }, { status: 404 });
     }
 
+    const resolvedSelfieUrl = resolveStorageUrl(selfieUrl!) ?? selfieUrl!;
+
     const result = selfie
       ? await verifyFaceFromBase64(selfie, dbEmployee.faceEmbedding)
-      : await verifyFaceFromUrl(selfieUrl!, dbEmployee.faceEmbedding);
+      : await verifyFaceFromUrl(resolvedSelfieUrl, dbEmployee.faceEmbedding);
 
     if (result.distance === Infinity) {
       return NextResponse.json(

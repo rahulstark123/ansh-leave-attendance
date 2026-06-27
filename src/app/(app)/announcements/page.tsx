@@ -17,6 +17,9 @@ import {
   CalendarDays,
   Bell,
 } from "lucide-react";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { AttachmentLinks } from "@/components/AttachmentLinks";
+import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
 
 export default function AnnouncementsPage() {
   const { currentUser } = useLeaveStore();
@@ -33,6 +36,9 @@ export default function AnnouncementsPage() {
   const [body, setBody] = useState("");
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [createAttachments, setCreateAttachments] = useState<File[]>([]);
+  const [editAttachments, setEditAttachments] = useState<File[]>([]);
+  const [existingEditAttachments, setExistingEditAttachments] = useState<string[]>([]);
 
   const isManagement =
     currentUser?.role === "Admin" ||
@@ -70,18 +76,24 @@ export default function AnnouncementsPage() {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
+      let attachments: string[] = [];
+      if (createAttachments.length > 0) {
+        attachments = await uploadAttachmentFiles(createAttachments, "announcements");
+      }
+
       const res = await fetch("/api/announcements", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, body, pinned }),
+        body: JSON.stringify({ title, body, pinned, attachments }),
       });
       if (res.ok) {
         setTitle("");
         setBody("");
         setPinned(false);
+        setCreateAttachments([]);
         setIsCreateOpen(false);
         fetchAnnouncements();
       }
@@ -99,6 +111,12 @@ export default function AnnouncementsPage() {
     setSubmitting(true);
     try {
       const token = sessionStorage.getItem("ansh_auth_token");
+      let newUrls: string[] = [];
+      if (editAttachments.length > 0) {
+        newUrls = await uploadAttachmentFiles(editAttachments, "announcements");
+      }
+      const attachments = [...existingEditAttachments, ...newUrls].slice(0, 3);
+
       const res = await fetch("/api/announcements", {
         method: "PATCH",
         headers: {
@@ -110,11 +128,14 @@ export default function AnnouncementsPage() {
           title,
           body,
           pinned,
+          attachments,
         }),
       });
       if (res.ok) {
         setIsEditOpen(false);
         setSelectedAnnouncement(null);
+        setEditAttachments([]);
+        setExistingEditAttachments([]);
         fetchAnnouncements();
       }
     } catch (err) {
@@ -172,6 +193,8 @@ export default function AnnouncementsPage() {
     setTitle(ann.title);
     setBody(ann.body);
     setPinned(ann.pinned);
+    setExistingEditAttachments(Array.isArray(ann.attachments) ? ann.attachments : []);
+    setEditAttachments([]);
     setIsEditOpen(true);
   };
 
@@ -207,6 +230,7 @@ export default function AnnouncementsPage() {
                   setTitle("");
                   setBody("");
                   setPinned(false);
+                  setCreateAttachments([]);
                   setIsCreateOpen(true);
                 }}
                 className="btn-primary h-10 text-xs font-bold uppercase tracking-wider shrink-0 cursor-pointer"
@@ -266,6 +290,7 @@ export default function AnnouncementsPage() {
                   <p className="text-xs text-slate-600 dark:text-slate-305 leading-relaxed whitespace-pre-wrap">
                     {ann.body}
                   </p>
+                  <AttachmentLinks attachments={ann.attachments} label="Files" />
                 </CardContent>
               </div>
 
@@ -360,6 +385,12 @@ export default function AnnouncementsPage() {
               />
             </div>
 
+            <AttachmentPicker
+              files={createAttachments}
+              onChange={setCreateAttachments}
+              disabled={submitting}
+            />
+
             <div className="flex items-center gap-2 py-1 select-none">
               <input
                 type="checkbox"
@@ -441,6 +472,19 @@ export default function AnnouncementsPage() {
                 className="block w-full rounded-2xl border border-border bg-background px-4 py-3 text-xs text-foreground outline-none focus:border-primary/45 resize-none"
               />
             </div>
+
+            {existingEditAttachments.length > 0 && (
+              <AttachmentLinks attachments={existingEditAttachments} label="Current attachments" />
+            )}
+
+            {existingEditAttachments.length < 3 && (
+              <AttachmentPicker
+                files={editAttachments}
+                onChange={setEditAttachments}
+                disabled={submitting}
+                maxFiles={3 - existingEditAttachments.length}
+              />
+            )}
 
             <div className="flex items-center gap-2 py-1 select-none">
               <input

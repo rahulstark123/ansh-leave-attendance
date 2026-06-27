@@ -15,6 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLeaveStore, type LeaveType } from "@/stores/leave-store";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { AttachmentLinks } from "@/components/AttachmentLinks";
+import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
 import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
 import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
@@ -309,6 +312,8 @@ export default function LeavePage() {
   const [halfDay, setHalfDay] = useState(false);
   const [reason, setReason] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   // Edit State
   const [editOpen, setEditOpen] = useState(false);
@@ -465,7 +470,7 @@ export default function LeavePage() {
       })),
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -533,22 +538,37 @@ export default function LeavePage() {
       }
     }
 
-    applyLeave({
-      type,
-      startDate,
-      endDate,
-      totalDays,
-      halfDay,
-      reason,
-    });
+    setSubmitting(true);
+    try {
+      let attachments: string[] = [];
+      if (attachmentFiles.length > 0) {
+        attachments = await uploadAttachmentFiles(attachmentFiles, "leaves");
+      }
 
-    // Reset Form
-    setType("Annual");
-    setStartDate("");
-    setEndDate("");
-    setHalfDay(false);
-    setReason("");
-    setOpen(false);
+      await applyLeave({
+        type,
+        startDate,
+        endDate,
+        totalDays,
+        halfDay,
+        reason,
+        attachments,
+      });
+
+      setType("Annual");
+      setStartDate("");
+      setEndDate("");
+      setHalfDay(false);
+      setReason("");
+      setAttachmentFiles([]);
+      setOpen(false);
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to submit leave request. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
@@ -1027,21 +1047,29 @@ export default function LeavePage() {
               />
             </div>
 
+            <AttachmentPicker
+              files={attachmentFiles}
+              onChange={setAttachmentFiles}
+              disabled={submitting}
+            />
+
             <DialogFooter className="pt-4 border-t border-border/40">
               <div className="grid grid-cols-2 gap-3 w-full">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setOpen(false)}
+                  disabled={submitting}
                   className="rounded-xl font-bold text-xs uppercase tracking-wider h-11 w-full"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
+                  disabled={submitting}
                   className="btn-primary rounded-xl font-bold text-xs uppercase tracking-wider h-11 border-0 w-full"
                 >
-                  Submit Request
+                  {submitting ? "Submitting..." : "Submit Request"}
                 </Button>
               </div>
             </DialogFooter>
@@ -1135,6 +1163,8 @@ export default function LeavePage() {
                   {previewRequest.reason || "No description provided."}
                 </p>
               </div>
+
+              <AttachmentLinks attachments={previewRequest.attachments} />
 
               <DialogFooter className="pt-4 border-t border-border/40">
                 <Button

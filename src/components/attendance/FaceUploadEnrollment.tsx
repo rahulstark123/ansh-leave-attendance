@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLeaveStore } from "@/stores/leave-store";
 import { compressImage } from "@/lib/image-compress";
+import { resolveStorageUrl } from "@/lib/storage/public-url";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UploadCloud, CheckCircle2, Loader2, Trash2, ShieldAlert, Image as ImageIcon, Smile } from "lucide-react";
@@ -321,7 +322,7 @@ export function FaceUploadEnrollment({ employeeId, onEnrollComplete }: FaceUploa
                   <div key={`${url}-${idx}`} className="space-y-1.5 text-center">
                     <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border bg-slate-900">
                       <img
-                        src={url}
+                        src={resolveStorageUrl(url) ?? url}
                         alt={`${label} profile`}
                         className="w-full h-full object-cover scale-x-[-1]"
                       />

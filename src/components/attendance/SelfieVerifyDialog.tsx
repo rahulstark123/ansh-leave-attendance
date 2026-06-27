@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveStorageUrl } from "@/lib/storage/public-url";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Image as ImageIcon, Loader2, ShieldCheck, ShieldAlert, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -119,7 +120,7 @@ export function SelfieVerifyDialog({
 
           <div className="aspect-video rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-900">
             {selfieUrl ? (
-              <img src={selfieUrl} alt="Punch selfie" className="w-full h-full object-cover" />
+              <img src={resolveStorageUrl(selfieUrl) ?? selfieUrl} alt="Punch selfie" className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full text-slate-400">No selfie</div>
             )}
@@ -163,7 +164,7 @@ export function SelfieVerifyDialog({
               <p className="text-slate-500 mb-2">Enrolled reference photos</p>
               <div className="grid grid-cols-3 gap-2">
                 {referencePhotos.slice(0, 3).map((u) => (
-                  <img key={u} src={u} alt="" className="aspect-[3/4] object-cover rounded-lg border" />
+                  <img key={u} src={resolveStorageUrl(u) ?? u} alt="" className="aspect-[3/4] object-cover rounded-lg border" />
                 ))}
               </div>
             </div>

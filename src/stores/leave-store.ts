@@ -21,6 +21,7 @@ export interface LeaveRequest {
   totalDays: number;
   halfDay: boolean;
   reason: string;
+  attachments?: string[];
   status: LeaveStatus;
   appliedAt: string;
 }
@@ -86,7 +87,7 @@ interface LeaveState {
   faceEnrolled: boolean;
   setFaceEnrolled: (enrolled: boolean) => void;
   initialize: () => Promise<void>;
-  applyLeave: (request: Omit<LeaveRequest, "id" | "employeeId" | "employeeName" | "employeeRole" | "avatarInitials" | "appliedAt" | "status">) => Promise<void>;
+  applyLeave: (request: Omit<LeaveRequest, "id" | "employeeId" | "employeeName" | "employeeRole" | "avatarInitials" | "appliedAt" | "status"> & { attachments?: string[] }) => Promise<void>;
   approveLeave: (id: string) => Promise<void>;
   rejectLeave: (id: string) => Promise<void>;
   updateLeave: (id: string, request: any) => Promise<void>;
@@ -411,6 +412,7 @@ export const useLeaveStore = create<LeaveState>()(
           }
         } catch (error) {
           console.error(error);
+          throw error;
         }
       },
 

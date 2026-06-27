@@ -47,16 +47,21 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, body: announcementBody, pinned } = body;
+    const { title, body: announcementBody, pinned, attachments } = body;
 
     if (!title || !announcementBody) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const attachmentUrls = Array.isArray(attachments)
+      ? attachments.filter((url): url is string => typeof url === "string").slice(0, 3)
+      : [];
+
     const announcement = await prisma.announcement.create({
       data: {
         title,
         body: announcementBody,
+        attachments: attachmentUrls,
         pinned: Boolean(pinned),
         archived: false,
         wid: employee.wid ?? 1,
@@ -89,7 +94,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { id, title, body: announcementBody, pinned, archived } = body;
+    const { id, title, body: announcementBody, pinned, archived, attachments } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Missing announcement ID" }, { status: 400 });
@@ -108,6 +113,11 @@ export async function PATCH(req: Request) {
     if (announcementBody !== undefined) updateData.body = announcementBody;
     if (pinned !== undefined) updateData.pinned = Boolean(pinned);
     if (archived !== undefined) updateData.archived = Boolean(archived);
+    if (attachments !== undefined) {
+      updateData.attachments = Array.isArray(attachments)
+        ? attachments.filter((url): url is string => typeof url === "string").slice(0, 3)
+        : existing.attachments;
+    }
 
     const updated = await prisma.announcement.update({
       where: { id },

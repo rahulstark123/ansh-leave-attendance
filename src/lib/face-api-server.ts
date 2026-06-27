@@ -7,6 +7,8 @@ import {
   faceDistanceToScore,
   isFaceMatch,
 } from "@/lib/face-distance";
+import { extractKeyFromUrl } from "@/lib/storage/public-url";
+import { fetchR2Object } from "@/lib/storage/r2";
 
 type FaceApiModule = typeof import("@vladmandic/face-api/dist/face-api.node-wasm.js");
 
@@ -86,12 +88,25 @@ export async function extractDescriptorFromBase64(base64: string): Promise<Float
 }
 
 export async function extractDescriptorFromUrl(imageUrl: string): Promise<Float32Array | null> {
-  const response = await fetch(imageUrl);
-  if (!response.ok) {
-    throw new Error("Failed to download image for face analysis.");
+  const key = extractKeyFromUrl(imageUrl);
+  let buffer: Buffer;
+
+  if (key) {
+    const response = await fetchR2Object(key);
+    const body = response.Body;
+    if (!body) {
+      throw new Error("Failed to download image for face analysis.");
+    }
+    buffer = Buffer.from(await body.transformToByteArray());
+  } else {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error("Failed to download image for face analysis.");
+    }
+    buffer = Buffer.from(await response.arrayBuffer());
   }
-  const arrayBuffer = await response.arrayBuffer();
-  return extractDescriptorFromBuffer(Buffer.from(arrayBuffer));
+
+  return extractDescriptorFromBuffer(buffer);
 }
 
 export async function extractAverageDescriptorFromBuffers(

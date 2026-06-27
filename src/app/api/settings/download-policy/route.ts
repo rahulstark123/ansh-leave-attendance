@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { getSystemSettings } from "@/lib/settings";
-import { s3Client, BUCKET_NAME } from "@/lib/s3";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { fetchR2Object } from "@/lib/storage/r2";
 
 export async function GET(req: Request) {
   try {
@@ -33,17 +32,12 @@ export async function GET(req: Request) {
       return new Response("This is a simulated document with no actual S3 file attached.", { status: 400 });
     }
 
-    // 4. Fetch the file stream from S3 bucket
-    const getCommand = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: doc.s3Key,
-    });
-
-    const response = await s3Client.send(getCommand);
+    // 4. Fetch the file stream from R2
+    const response = await fetchR2Object(doc.s3Key);
     const stream = response.Body as any;
 
     if (!stream) {
-      return new Response("Failed to fetch stream from S3", { status: 500 });
+      return new Response("Failed to fetch stream from storage", { status: 500 });
     }
 
     // 5. Stream response back to user

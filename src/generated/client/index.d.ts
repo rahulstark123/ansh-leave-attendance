@@ -4362,6 +4362,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: number
     reason: number
+    attachments: number
     status: number
     wid: number
     appliedAt: number
@@ -4416,6 +4417,7 @@ export namespace Prisma {
     totalDays?: true
     halfDay?: true
     reason?: true
+    attachments?: true
     status?: true
     wid?: true
     appliedAt?: true
@@ -4517,6 +4519,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments: string[]
     status: string
     wid: number | null
     appliedAt: Date
@@ -4550,6 +4553,7 @@ export namespace Prisma {
     totalDays?: boolean
     halfDay?: boolean
     reason?: boolean
+    attachments?: boolean
     status?: boolean
     wid?: boolean
     appliedAt?: boolean
@@ -4565,6 +4569,7 @@ export namespace Prisma {
     totalDays?: boolean
     halfDay?: boolean
     reason?: boolean
+    attachments?: boolean
     status?: boolean
     wid?: boolean
     appliedAt?: boolean
@@ -4580,6 +4585,7 @@ export namespace Prisma {
     totalDays?: boolean
     halfDay?: boolean
     reason?: boolean
+    attachments?: boolean
     status?: boolean
     wid?: boolean
     appliedAt?: boolean
@@ -4595,12 +4601,13 @@ export namespace Prisma {
     totalDays?: boolean
     halfDay?: boolean
     reason?: boolean
+    attachments?: boolean
     status?: boolean
     wid?: boolean
     appliedAt?: boolean
   }
 
-  export type LeaveRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "type" | "startDate" | "endDate" | "totalDays" | "halfDay" | "reason" | "status" | "wid" | "appliedAt", ExtArgs["result"]["leaveRequest"]>
+  export type LeaveRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "type" | "startDate" | "endDate" | "totalDays" | "halfDay" | "reason" | "attachments" | "status" | "wid" | "appliedAt", ExtArgs["result"]["leaveRequest"]>
   export type LeaveRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
   }
@@ -4625,6 +4632,7 @@ export namespace Prisma {
       totalDays: number
       halfDay: boolean
       reason: string
+      attachments: string[]
       status: string
       wid: number | null
       appliedAt: Date
@@ -5060,6 +5068,7 @@ export namespace Prisma {
     readonly totalDays: FieldRef<"LeaveRequest", 'Float'>
     readonly halfDay: FieldRef<"LeaveRequest", 'Boolean'>
     readonly reason: FieldRef<"LeaveRequest", 'String'>
+    readonly attachments: FieldRef<"LeaveRequest", 'String[]'>
     readonly status: FieldRef<"LeaveRequest", 'String'>
     readonly wid: FieldRef<"LeaveRequest", 'Int'>
     readonly appliedAt: FieldRef<"LeaveRequest", 'DateTime'>
@@ -21496,6 +21505,7 @@ export namespace Prisma {
     id: number
     title: number
     body: number
+    attachments: number
     pinned: number
     archived: number
     wid: number
@@ -21545,6 +21555,7 @@ export namespace Prisma {
     id?: true
     title?: true
     body?: true
+    attachments?: true
     pinned?: true
     archived?: true
     wid?: true
@@ -21645,6 +21656,7 @@ export namespace Prisma {
     id: string
     title: string
     body: string
+    attachments: string[]
     pinned: boolean
     archived: boolean
     wid: number
@@ -21677,6 +21689,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     body?: boolean
+    attachments?: boolean
     pinned?: boolean
     archived?: boolean
     wid?: boolean
@@ -21690,6 +21703,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     body?: boolean
+    attachments?: boolean
     pinned?: boolean
     archived?: boolean
     wid?: boolean
@@ -21703,6 +21717,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     body?: boolean
+    attachments?: boolean
     pinned?: boolean
     archived?: boolean
     wid?: boolean
@@ -21716,6 +21731,7 @@ export namespace Prisma {
     id?: boolean
     title?: boolean
     body?: boolean
+    attachments?: boolean
     pinned?: boolean
     archived?: boolean
     wid?: boolean
@@ -21725,7 +21741,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type AnnouncementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "body" | "pinned" | "archived" | "wid" | "authorId" | "authorName" | "createdAt" | "updatedAt", ExtArgs["result"]["announcement"]>
+  export type AnnouncementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "body" | "attachments" | "pinned" | "archived" | "wid" | "authorId" | "authorName" | "createdAt" | "updatedAt", ExtArgs["result"]["announcement"]>
 
   export type $AnnouncementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Announcement"
@@ -21734,6 +21750,7 @@ export namespace Prisma {
       id: string
       title: string
       body: string
+      attachments: string[]
       pinned: boolean
       archived: boolean
       wid: number
@@ -22167,6 +22184,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Announcement", 'String'>
     readonly title: FieldRef<"Announcement", 'String'>
     readonly body: FieldRef<"Announcement", 'String'>
+    readonly attachments: FieldRef<"Announcement", 'String[]'>
     readonly pinned: FieldRef<"Announcement", 'Boolean'>
     readonly archived: FieldRef<"Announcement", 'Boolean'>
     readonly wid: FieldRef<"Announcement", 'Int'>
@@ -22607,6 +22625,7 @@ export namespace Prisma {
     totalDays: 'totalDays',
     halfDay: 'halfDay',
     reason: 'reason',
+    attachments: 'attachments',
     status: 'status',
     wid: 'wid',
     appliedAt: 'appliedAt'
@@ -22827,6 +22846,7 @@ export namespace Prisma {
     id: 'id',
     title: 'title',
     body: 'body',
+    attachments: 'attachments',
     pinned: 'pinned',
     archived: 'archived',
     wid: 'wid',
@@ -23192,6 +23212,7 @@ export namespace Prisma {
     totalDays?: FloatFilter<"LeaveRequest"> | number
     halfDay?: BoolFilter<"LeaveRequest"> | boolean
     reason?: StringFilter<"LeaveRequest"> | string
+    attachments?: StringNullableListFilter<"LeaveRequest">
     status?: StringFilter<"LeaveRequest"> | string
     wid?: IntNullableFilter<"LeaveRequest"> | number | null
     appliedAt?: DateTimeFilter<"LeaveRequest"> | Date | string
@@ -23207,6 +23228,7 @@ export namespace Prisma {
     totalDays?: SortOrder
     halfDay?: SortOrder
     reason?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     wid?: SortOrderInput | SortOrder
     appliedAt?: SortOrder
@@ -23225,6 +23247,7 @@ export namespace Prisma {
     totalDays?: FloatFilter<"LeaveRequest"> | number
     halfDay?: BoolFilter<"LeaveRequest"> | boolean
     reason?: StringFilter<"LeaveRequest"> | string
+    attachments?: StringNullableListFilter<"LeaveRequest">
     status?: StringFilter<"LeaveRequest"> | string
     wid?: IntNullableFilter<"LeaveRequest"> | number | null
     appliedAt?: DateTimeFilter<"LeaveRequest"> | Date | string
@@ -23240,6 +23263,7 @@ export namespace Prisma {
     totalDays?: SortOrder
     halfDay?: SortOrder
     reason?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     wid?: SortOrderInput | SortOrder
     appliedAt?: SortOrder
@@ -23262,6 +23286,7 @@ export namespace Prisma {
     totalDays?: FloatWithAggregatesFilter<"LeaveRequest"> | number
     halfDay?: BoolWithAggregatesFilter<"LeaveRequest"> | boolean
     reason?: StringWithAggregatesFilter<"LeaveRequest"> | string
+    attachments?: StringNullableListFilter<"LeaveRequest">
     status?: StringWithAggregatesFilter<"LeaveRequest"> | string
     wid?: IntNullableWithAggregatesFilter<"LeaveRequest"> | number | null
     appliedAt?: DateTimeWithAggregatesFilter<"LeaveRequest"> | Date | string
@@ -24355,6 +24380,7 @@ export namespace Prisma {
     id?: StringFilter<"Announcement"> | string
     title?: StringFilter<"Announcement"> | string
     body?: StringFilter<"Announcement"> | string
+    attachments?: StringNullableListFilter<"Announcement">
     pinned?: BoolFilter<"Announcement"> | boolean
     archived?: BoolFilter<"Announcement"> | boolean
     wid?: IntFilter<"Announcement"> | number
@@ -24368,6 +24394,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     body?: SortOrder
+    attachments?: SortOrder
     pinned?: SortOrder
     archived?: SortOrder
     wid?: SortOrder
@@ -24384,6 +24411,7 @@ export namespace Prisma {
     NOT?: AnnouncementWhereInput | AnnouncementWhereInput[]
     title?: StringFilter<"Announcement"> | string
     body?: StringFilter<"Announcement"> | string
+    attachments?: StringNullableListFilter<"Announcement">
     pinned?: BoolFilter<"Announcement"> | boolean
     archived?: BoolFilter<"Announcement"> | boolean
     wid?: IntFilter<"Announcement"> | number
@@ -24397,6 +24425,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     body?: SortOrder
+    attachments?: SortOrder
     pinned?: SortOrder
     archived?: SortOrder
     wid?: SortOrder
@@ -24418,6 +24447,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Announcement"> | string
     title?: StringWithAggregatesFilter<"Announcement"> | string
     body?: StringWithAggregatesFilter<"Announcement"> | string
+    attachments?: StringNullableListFilter<"Announcement">
     pinned?: BoolWithAggregatesFilter<"Announcement"> | boolean
     archived?: BoolWithAggregatesFilter<"Announcement"> | boolean
     wid?: IntWithAggregatesFilter<"Announcement"> | number
@@ -24758,6 +24788,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -24773,6 +24804,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -24786,6 +24818,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24801,6 +24834,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24815,6 +24849,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -24828,6 +24863,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24842,6 +24878,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -26017,6 +26054,7 @@ export namespace Prisma {
     id?: string
     title: string
     body: string
+    attachments?: AnnouncementCreateattachmentsInput | string[]
     pinned?: boolean
     archived?: boolean
     wid?: number
@@ -26030,6 +26068,7 @@ export namespace Prisma {
     id?: string
     title: string
     body: string
+    attachments?: AnnouncementCreateattachmentsInput | string[]
     pinned?: boolean
     archived?: boolean
     wid?: number
@@ -26043,6 +26082,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
+    attachments?: AnnouncementUpdateattachmentsInput | string[]
     pinned?: BoolFieldUpdateOperationsInput | boolean
     archived?: BoolFieldUpdateOperationsInput | boolean
     wid?: IntFieldUpdateOperationsInput | number
@@ -26056,6 +26096,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
+    attachments?: AnnouncementUpdateattachmentsInput | string[]
     pinned?: BoolFieldUpdateOperationsInput | boolean
     archived?: BoolFieldUpdateOperationsInput | boolean
     wid?: IntFieldUpdateOperationsInput | number
@@ -26069,6 +26110,7 @@ export namespace Prisma {
     id?: string
     title: string
     body: string
+    attachments?: AnnouncementCreateattachmentsInput | string[]
     pinned?: boolean
     archived?: boolean
     wid?: number
@@ -26082,6 +26124,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
+    attachments?: AnnouncementUpdateattachmentsInput | string[]
     pinned?: BoolFieldUpdateOperationsInput | boolean
     archived?: BoolFieldUpdateOperationsInput | boolean
     wid?: IntFieldUpdateOperationsInput | number
@@ -26095,6 +26138,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     body?: StringFieldUpdateOperationsInput | string
+    attachments?: AnnouncementUpdateattachmentsInput | string[]
     pinned?: BoolFieldUpdateOperationsInput | boolean
     archived?: BoolFieldUpdateOperationsInput | boolean
     wid?: IntFieldUpdateOperationsInput | number
@@ -26543,6 +26587,7 @@ export namespace Prisma {
     totalDays?: SortOrder
     halfDay?: SortOrder
     reason?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     wid?: SortOrder
     appliedAt?: SortOrder
@@ -27328,6 +27373,7 @@ export namespace Prisma {
     id?: SortOrder
     title?: SortOrder
     body?: SortOrder
+    attachments?: SortOrder
     pinned?: SortOrder
     archived?: SortOrder
     wid?: SortOrder
@@ -27807,10 +27853,19 @@ export namespace Prisma {
     deleteMany?: SupportTicketScalarWhereInput | SupportTicketScalarWhereInput[]
   }
 
+  export type LeaveRequestCreateattachmentsInput = {
+    set: string[]
+  }
+
   export type EmployeeCreateNestedOneWithoutLeavesInput = {
     create?: XOR<EmployeeCreateWithoutLeavesInput, EmployeeUncheckedCreateWithoutLeavesInput>
     connectOrCreate?: EmployeeCreateOrConnectWithoutLeavesInput
     connect?: EmployeeWhereUniqueInput
+  }
+
+  export type LeaveRequestUpdateattachmentsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type EmployeeUpdateOneRequiredWithoutLeavesNestedInput = {
@@ -28231,6 +28286,15 @@ export namespace Prisma {
     update?: XOR<XOR<EmployeeUpdateToOneWithWhereWithoutSupportTicketsInput, EmployeeUpdateWithoutSupportTicketsInput>, EmployeeUncheckedUpdateWithoutSupportTicketsInput>
   }
 
+  export type AnnouncementCreateattachmentsInput = {
+    set: string[]
+  }
+
+  export type AnnouncementUpdateattachmentsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -28472,6 +28536,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -28485,6 +28550,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -28780,6 +28846,7 @@ export namespace Prisma {
     totalDays?: FloatFilter<"LeaveRequest"> | number
     halfDay?: BoolFilter<"LeaveRequest"> | boolean
     reason?: StringFilter<"LeaveRequest"> | string
+    attachments?: StringNullableListFilter<"LeaveRequest">
     status?: StringFilter<"LeaveRequest"> | string
     wid?: IntNullableFilter<"LeaveRequest"> | number | null
     appliedAt?: DateTimeFilter<"LeaveRequest"> | Date | string
@@ -31528,6 +31595,7 @@ export namespace Prisma {
     totalDays: number
     halfDay: boolean
     reason: string
+    attachments?: LeaveRequestCreateattachmentsInput | string[]
     status: string
     wid?: number | null
     appliedAt?: Date | string
@@ -31625,6 +31693,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31638,6 +31707,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31651,6 +31721,7 @@ export namespace Prisma {
     totalDays?: FloatFieldUpdateOperationsInput | number
     halfDay?: BoolFieldUpdateOperationsInput | boolean
     reason?: StringFieldUpdateOperationsInput | string
+    attachments?: LeaveRequestUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     wid?: NullableIntFieldUpdateOperationsInput | number | null
     appliedAt?: DateTimeFieldUpdateOperationsInput | Date | string
