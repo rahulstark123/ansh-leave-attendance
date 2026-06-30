@@ -62,6 +62,13 @@ interface SupportTicket {
   priority: "Low" | "Medium" | "High";
   createdAt: string;
   updatedAt: string;
+  replies?: {
+    id: string;
+    message: string;
+    isAdmin: boolean;
+    authorName: string;
+    createdAt: string;
+  }[];
 }
 
 interface InteractiveGuide {
@@ -899,6 +906,34 @@ export default function HelpPage() {
                     {previewTicket.description}
                   </p>
                 </div>
+
+                {previewTicket.replies && previewTicket.replies.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                      Support Responses
+                    </h4>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {previewTicket.replies.map((reply) => (
+                        <div
+                          key={reply.id}
+                          className={`rounded-xl border p-3 text-xs leading-relaxed ${
+                            reply.isAdmin
+                              ? "border-primary/30 bg-primary/5 text-slate-700 dark:text-slate-300"
+                              : "border-border/60 bg-slate-50/50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="font-bold text-[10px]">{reply.authorName}</span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(reply.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          {reply.message}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Management Update Desk */}
                 {isManagement && (

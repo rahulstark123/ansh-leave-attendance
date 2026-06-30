@@ -18,34 +18,30 @@ export async function GET(req: Request) {
       employee.role === "HR Manager" ||
       employee.role === "Manager";
 
+    const ticketInclude = {
+      employee: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
+          avatarInitials: true,
+        },
+      },
+      replies: {
+        orderBy: { createdAt: "asc" as const },
+      },
+    };
+
     if (isManagement) {
       tickets = await prisma.supportTicket.findMany({
         where: { wid },
-        include: {
-          employee: {
-            select: {
-              name: true,
-              email: true,
-              role: true,
-              avatarInitials: true,
-            },
-          },
-        },
+        include: ticketInclude,
         orderBy: { createdAt: "desc" },
       });
     } else {
       tickets = await prisma.supportTicket.findMany({
         where: { employeeId: employee.id, wid },
-        include: {
-          employee: {
-            select: {
-              name: true,
-              email: true,
-              role: true,
-              avatarInitials: true,
-            },
-          },
-        },
+        include: ticketInclude,
         orderBy: { createdAt: "desc" },
       });
     }
@@ -64,6 +60,13 @@ export async function GET(req: Request) {
       priority: t.priority,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
+      replies: t.replies.map((r) => ({
+        id: r.id,
+        message: r.message,
+        isAdmin: r.isAdmin,
+        authorName: r.authorName,
+        createdAt: r.createdAt.toISOString(),
+      })),
     }));
 
     return NextResponse.json({ tickets: formattedTickets });

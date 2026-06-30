@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSessionFromRequest } from "@/lib/adminpanel/auth";
 
 /**
  * Supabase password-reset emails sometimes land on the site root
  * (redirect_to=https://hr.anshapps.com) with ?code= or ?token_hash=.
  * Forward those to /auth/confirm so the user reaches the reset page.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // Protect admin panel routes (except login)
+  if (pathname.startsWith("/adminpanel") && pathname !== "/adminpanel/login") {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/adminpanel/login";
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/auth/") || pathname.startsWith("/api/")) {
     return NextResponse.next();

@@ -1,0 +1,17 @@
+.adminpanel-root {
+  --background: #0a0c14;
+  --foreground: #e8eaf0;
+  --card: #12151f;
+  --card-foreground: #e8eaf0;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted-foreground: rgba(255, 255, 255, 0.45);
+  --primary: #5a3ab6;
+  --primary-foreground: #ffffff;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.adminpanel-root * {
+  border-color: var(--border);
+}

@@ -343,6 +343,15 @@ exports.Prisma.SupportTicketScalarFieldEnum = {
   wid: 'wid'
 };
 
+exports.Prisma.SupportTicketReplyScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  message: 'message',
+  isAdmin: 'isAdmin',
+  authorName: 'authorName',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.AnnouncementScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -390,6 +399,7 @@ exports.Prisma.ModelName = {
   ChannelMember: 'ChannelMember',
   WorkspaceMessage: 'WorkspaceMessage',
   SupportTicket: 'SupportTicket',
+  SupportTicketReply: 'SupportTicketReply',
   Announcement: 'Announcement'
 };
 
