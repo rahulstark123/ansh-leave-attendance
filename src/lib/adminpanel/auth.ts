@@ -16,19 +16,23 @@ function getCredentials() {
     email: (process.env.ADMINPANEL_EMAIL || "hr@anshapps.com").toLowerCase().trim(),
     password: process.env.ADMINPANEL_PASSWORD || "Rahul@123",
     passcode: process.env.ADMINPANEL_PASSCODE || "Khushi@Simran",
+    pin: process.env.ADMINPANEL_PIN || "30042026",
   };
 }
 
 export function verifyAdminCredentials(
   email: string,
   password: string,
-  passcode: string
+  passcode: string,
+  pin: string
 ): boolean {
   const creds = getCredentials();
+  const normalizedPin = pin.replace(/\D/g, "");
   return (
     email.toLowerCase().trim() === creds.email &&
     password === creds.password &&
-    passcode === creds.passcode
+    passcode === creds.passcode &&
+    normalizedPin === creds.pin.replace(/\D/g, "")
   );
 }
 

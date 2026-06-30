@@ -8,16 +8,24 @@ import {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, passcode } = body;
+    const { email, password, passcode, pin } = body;
 
-    if (!email || !password || !passcode) {
+    if (!email || !password || !passcode || pin === undefined || pin === null || pin === "") {
       return NextResponse.json(
-        { error: "Email, password, and passcode are required" },
+        { error: "Email, password, passcode, and PIN are required" },
         { status: 400 }
       );
     }
 
-    if (!verifyAdminCredentials(email, password, passcode)) {
+    const normalizedPin = String(pin).replace(/\D/g, "");
+    if (!normalizedPin) {
+      return NextResponse.json(
+        { error: "PIN must contain numbers only" },
+        { status: 400 }
+      );
+    }
+
+    if (!verifyAdminCredentials(email, password, passcode, normalizedPin)) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
