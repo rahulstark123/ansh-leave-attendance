@@ -27,6 +27,8 @@ import {
   Megaphone,
   Bell
 } from "lucide-react";
+import { TrustCompliance } from "@/components/shared/trust-compliance";
+import { MsmeBadge } from "@/components/shared/msme-badge";
 
 type MockTab = "punch" | "leaves" | "team";
 type AccentTheme = "violet" | "indigo" | "cyan" | "graphite";
@@ -1218,6 +1220,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 8b. TRUST & COMPLIANCE */}
+      <section className={`relative z-10 ${landingContainerNarrow}`}>
+        <TrustCompliance variant="landing" />
+      </section>
+
       {/* 9. GRAND SYMMETRICAL FOOTER */}
       <footer className="relative z-10 border-t border-white/5 bg-zinc-950 pt-20 pb-10">
         <div className={`${landingContainer} space-y-12`}>
@@ -1284,9 +1291,14 @@ export default function LandingPage() {
           </div>
 
           {/* Bottom Copyright Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-white/5 pt-8 text-[11px] text-slate-500 font-medium">
-            <span>© 2026 ANSH HR. All rights reserved.</span>
-            <div className="flex gap-4.5 mt-4 sm:mt-0">
+          <div className="flex flex-col gap-6 border-t border-white/5 pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <span className="text-[11px] font-medium text-slate-500">
+                © 2026 ANSH HR. All rights reserved.
+              </span>
+              <MsmeBadge variant="landing" />
+            </div>
+            <div className="flex gap-4.5 text-[11px] font-medium text-slate-500">
               <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
               <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms & Conditions</Link>
               <a href="mailto:hello@anshapps.com" className="hover:text-slate-300 transition-colors">Contact Us</a>
