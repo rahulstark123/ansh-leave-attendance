@@ -22,7 +22,7 @@ export function MsmeBadge({
       className={cn(
         "group inline-flex items-center gap-2.5 rounded-lg border px-3 py-2 transition-colors",
         isLanding
-          ? "border-white/10 bg-zinc-900/50 hover:border-violet-500/20 hover:bg-violet-500/5"
+          ? "border-zinc-200/80 bg-white/90 hover:border-violet-500/25 hover:bg-violet-500/5 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-violet-500/20 dark:hover:bg-violet-500/5"
           : "border-zinc-200/80 bg-zinc-50/80 hover:border-violet-500/25 hover:bg-violet-500/5 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-violet-500/20 dark:hover:bg-violet-500/5",
         className
       )}
@@ -42,7 +42,7 @@ export function MsmeBadge({
           className={cn(
             "text-[11px] font-semibold",
             isLanding
-              ? "text-slate-400 group-hover:text-slate-300"
+              ? "text-zinc-700 group-hover:text-zinc-900 dark:text-slate-300 dark:group-hover:text-white"
               : "text-zinc-700 group-hover:text-zinc-900 dark:text-slate-300 dark:group-hover:text-white"
           )}
         >

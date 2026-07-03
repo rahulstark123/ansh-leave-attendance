@@ -35,7 +35,7 @@ export function TrustCompliance({
         className={cn(
           "relative overflow-hidden rounded-2xl border backdrop-blur-sm",
           isLanding
-            ? "border-zinc-800 bg-zinc-900/40"
+            ? "border-zinc-200/80 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/40"
             : "border-zinc-200/80 bg-zinc-50/90 dark:border-zinc-800 dark:bg-zinc-900/40",
           compact ? "p-6 sm:p-8" : "p-8 sm:p-10"
         )}
@@ -76,7 +76,7 @@ export function TrustCompliance({
                   id="trust-compliance-heading"
                   className={cn(
                     "font-extrabold tracking-tight",
-                    isLanding ? "text-white" : "text-zinc-900 dark:text-white",
+                    isLanding ? "text-zinc-900 dark:text-white" : "text-zinc-900 dark:text-white",
                     compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
                   )}
                 >
@@ -89,7 +89,7 @@ export function TrustCompliance({
               <p
                 className={cn(
                   "leading-relaxed",
-                  isLanding ? "text-slate-400" : "text-zinc-600 dark:text-slate-400",
+                  isLanding ? "text-zinc-600 dark:text-slate-400" : "text-zinc-600 dark:text-slate-400",
                   compact ? "text-xs sm:text-sm" : "text-sm"
                 )}
               >
@@ -110,7 +110,7 @@ export function TrustCompliance({
               className={cn(
                 "rounded-xl border p-4",
                 isLanding
-                  ? "border-zinc-800 bg-zinc-950/30"
+                  ? "border-zinc-200/80 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/30"
                   : "border-zinc-200/80 bg-white/70 dark:border-zinc-800 dark:bg-zinc-950/30"
               )}
             >
@@ -118,13 +118,13 @@ export function TrustCompliance({
                 <Building2
                   className={cn(
                     "h-4 w-4",
-                    isLanding ? "text-violet-400" : "text-violet-500 dark:text-violet-400"
+                    isLanding ? "text-violet-600 dark:text-violet-400" : "text-violet-500 dark:text-violet-400"
                   )}
                 />
                 <span
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-widest",
-                    isLanding ? "text-slate-500" : "text-zinc-500 dark:text-slate-500"
+                    isLanding ? "text-zinc-500 dark:text-slate-500" : "text-zinc-500 dark:text-slate-500"
                   )}
                 >
                   MSME Registered
@@ -133,7 +133,7 @@ export function TrustCompliance({
               <p
                 className={cn(
                   "text-sm font-bold",
-                  isLanding ? "text-slate-200" : "text-zinc-900 dark:text-slate-200"
+                  isLanding ? "text-zinc-900 dark:text-slate-200" : "text-zinc-900 dark:text-slate-200"
                 )}
               >
                 MSME Registered Enterprise
@@ -152,7 +152,7 @@ export function TrustCompliance({
               className={cn(
                 "rounded-xl border p-4",
                 isLanding
-                  ? "border-zinc-800 bg-zinc-950/30"
+                  ? "border-zinc-200/80 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/30"
                   : "border-zinc-200/80 bg-white/70 dark:border-zinc-800 dark:bg-zinc-950/30"
               )}
             >
@@ -160,13 +160,13 @@ export function TrustCompliance({
                 <BadgeCheck
                   className={cn(
                     "h-4 w-4",
-                    isLanding ? "text-violet-400" : "text-violet-500 dark:text-violet-400"
+                    isLanding ? "text-violet-600 dark:text-violet-400" : "text-violet-500 dark:text-violet-400"
                   )}
                 />
                 <span
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-widest",
-                    isLanding ? "text-slate-500" : "text-zinc-500 dark:text-slate-500"
+                    isLanding ? "text-zinc-500 dark:text-slate-500" : "text-zinc-500 dark:text-slate-500"
                   )}
                 >
                   Udyam Number
@@ -175,7 +175,7 @@ export function TrustCompliance({
               <p
                 className={cn(
                   "font-mono text-xs font-semibold tracking-wide sm:text-sm",
-                  isLanding ? "text-slate-300" : "text-zinc-700 dark:text-slate-300"
+                  isLanding ? "text-zinc-700 dark:text-slate-300" : "text-zinc-700 dark:text-slate-300"
                 )}
               >
                 {UDYAM_REGISTRATION_NUMBER}

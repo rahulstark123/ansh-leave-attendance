@@ -31,24 +31,50 @@ import {
 } from "lucide-react";
 import { TrustCompliance } from "@/components/shared/trust-compliance";
 import { MsmeBadge } from "@/components/shared/msme-badge";
+import { PAGE_SHELL } from "@/components/layout/page-shell";
+import { LandingThemeToggle } from "@/components/landing/landing-theme-toggle";
+import {
+  LANDING_BODY,
+  LANDING_CARD,
+  LANDING_CTA_CARD,
+  LANDING_COMPARISON_CARD,
+  LANDING_FAQ_ITEM,
+  LANDING_FOOTER,
+  LANDING_GRID_BG,
+  LANDING_GRID_BG_DARK,
+  LANDING_GRID_OVERLAY,
+  LANDING_HEADING,
+  LANDING_HEADER,
+  LANDING_MARQUEE_CARD,
+  LANDING_MARQUEE_FADE_LEFT,
+  LANDING_MARQUEE_FADE_RIGHT,
+  LANDING_MUTED,
+  LANDING_NAV,
+  LANDING_NAV_LINK,
+  LANDING_PAGE,
+  LANDING_PANEL,
+  LANDING_PRICING_CARD,
+  LANDING_SECTION,
+  LANDING_SECTION_ALT,
+  LANDING_SIGN_IN_BTN,
+  LANDING_SUBTEXT,
+  LANDING_SURFACE,
+} from "@/components/landing/landing-styles";
+import { useUiStore } from "@/stores/ui-store";
 
 type MockTab = "punch" | "leaves" | "team";
 type AccentTheme = "violet" | "indigo" | "cyan" | "graphite";
 
-const landingContainer =
-  "mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-10 xl:px-12";
-const landingContainerNarrow =
-  "mx-auto w-full max-w-5xl px-6 sm:px-8 lg:px-10 xl:px-12";
 const brandGradientText =
-  "bg-gradient-to-r from-[#4dc4ff] via-[#8b5cf6] to-[#e879f9] bg-clip-text text-transparent";
+  "bg-gradient-to-r from-[#00c6ff] via-[#7000ff] to-[#e040fb] bg-clip-text text-transparent dark:from-[#4dc4ff] dark:via-[#8b5cf6] dark:to-[#e879f9]";
 const brandBtnPrimary =
-  "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:from-blue-700 hover:to-violet-600";
+  "bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-violet-600/25";
 const brandBtnCta =
-  "bg-gradient-to-r from-[#00C6FF] to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:from-[#00B4EA] hover:to-[#7C22D4]";
+  "bg-gradient-to-r from-[#00c6ff] to-[#9333ea] hover:from-[#00b4ea] hover:to-[#7c22d4] text-white shadow-lg shadow-violet-500/25";
 const brandBadgePill =
-  "border border-violet-500/20 bg-blue-500/10 text-violet-400";
+  "border border-violet-500/25 bg-violet-500/10 text-violet-600 dark:border-violet-500/20 dark:text-violet-400";
 const brandCheckCircle =
-  "bg-blue-500/10 text-violet-400";
+  "bg-violet-500/10 text-violet-600 dark:bg-blue-500/10 dark:text-violet-400";
 
 const ecosystemApps = [
   {
@@ -58,7 +84,7 @@ const ecosystemApps = [
     status: "BUILDING",
     isLive: false,
     badgeText: "BUILDING",
-    badgeColor: "bg-rose-500/10 text-rose-450 border-rose-500/25",
+    badgeColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25",
     dotColor: "bg-rose-500",
     borderColor: "hover:border-rose-500/35 hover:shadow-rose-500/5",
     link: "https://anshapps.com",
@@ -83,7 +109,7 @@ const ecosystemApps = [
     status: "LIVE",
     isLive: true,
     badgeText: "LIVE",
-    badgeColor: "bg-sky-500/10 text-sky-450 border-sky-500/25",
+    badgeColor: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25",
     dotColor: "bg-sky-500",
     borderColor: "hover:border-sky-500/35 hover:shadow-sky-500/5",
     image: "/Ansh Task.jpg",
@@ -109,15 +135,43 @@ const ecosystemApps = [
     status: "LIVE",
     isLive: true,
     badgeText: "LIVE",
-    badgeColor: "bg-amber-500/10 text-amber-450 border-amber-500/25",
+    badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25",
     dotColor: "bg-amber-500",
     borderColor: "hover:border-amber-500/35 hover:shadow-amber-500/5",
     image: "/ANSH Expense.jpg",
     link: "https://expense.anshapps.com",
   },
+  {
+    name: "ANSH Forms",
+    subtitle: "Smart form builder",
+    description: "Create forms, collect responses & track submissions",
+    status: "LIVE",
+    isLive: true,
+    badgeText: "LIVE",
+    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25",
+    dotColor: "bg-emerald-500",
+    borderColor: "hover:border-emerald-500/35 hover:shadow-emerald-500/5",
+    image: "/ANSH Forms.jpg",
+    link: "https://forms.anshapps.com",
+  },
+  {
+    name: "ANSH Links",
+    subtitle: "Link-in-bio profile builder",
+    description: "Showcase identity, social links, WhatsApp & UPI in one page",
+    status: "LIVE",
+    isLive: true,
+    badgeText: "LIVE",
+    badgeColor: "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/25",
+    dotColor: "bg-pink-500",
+    borderColor: "hover:border-pink-500/35 hover:shadow-pink-500/5",
+    image: "/ANSH Links.jpg",
+    link: "https://links.anshapps.com",
+  },
 ];
 
 export default function LandingPage() {
+  const appearance = useUiStore((s) => s.appearance);
+  const isDark = appearance === "dark";
   const [sessionActive, setSessionActive] = useState(false);
   const [activeTab, setActiveTab] = useState<MockTab>("punch");
   const [activeAccent, setActiveAccent] = useState<AccentTheme>("violet");
@@ -180,25 +234,24 @@ export default function LandingPage() {
   }[activeAccent];
 
   return (
-    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 selection:bg-violet-500/20 selection:text-violet-400">
+    <div className={LANDING_PAGE}>
       {/* Ambient brand glow blobs */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-[#00C6FF]/5 blur-[120px]" />
-        <div className="absolute -right-1/4 top-1/4 h-[650px] w-[650px] rounded-full bg-[#7000FF]/5 blur-[100px]" />
-        <div className="absolute left-1/3 top-2/3 h-[500px] w-[500px] rounded-full bg-[#E040FB]/5 blur-[130px]" />
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-[30%] -left-[10%] h-[70%] w-[50%] rounded-full bg-[#00c6ff]/10 blur-[120px] dark:bg-[#00c6ff]/5" />
+        <div className="absolute top-[20%] -right-[10%] h-[60%] w-[40%] rounded-full bg-[#7000ff]/10 blur-[100px] dark:bg-[#7000ff]/5" />
+        <div className="absolute bottom-[10%] left-[20%] h-[50%] w-[50%] rounded-full bg-[#e040fb]/10 blur-[130px] dark:bg-[#e040fb]/5" />
         <div
-          className="absolute inset-0 opacity-[0.02] pointer-events-none"
+          className={LANDING_GRID_OVERLAY}
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
+            backgroundImage: isDark ? LANDING_GRID_BG_DARK : LANDING_GRID_BG,
             backgroundSize: "32px 32px",
           }}
         />
       </div>
 
       {/* 1. SYMMETRICAL NAVIGATION HEADER */}
-      <header className="sticky top-0 z-50 border-b border-white/5 backdrop-blur-md bg-zinc-950/85">
-        <div className={`${landingContainer} h-16 flex items-center justify-between`}>
+      <header className={LANDING_HEADER}>
+        <div className={`${PAGE_SHELL} h-16 flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <img
               src="/logoAnshapps.png"
@@ -206,20 +259,21 @@ export default function LandingPage() {
               className="h-9 w-9 object-contain"
             />
             <div>
-              <span className="font-extrabold text-sm tracking-wider uppercase text-white block">
+              <span className={`font-extrabold text-sm tracking-wider uppercase block ${LANDING_HEADING}`}>
                 ANSH HR
               </span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-            <a href="#features" className="hover:text-violet-400 transition-colors">Features</a>
-            <a href="#biometrics" className="hover:text-violet-400 transition-colors">Face Setup</a>
-            <a href="#pricing" className="hover:text-violet-400 transition-colors">Pricing</a>
-            <a href="#comparison" className="hover:text-violet-400 transition-colors">Why ANSH</a>
+          <nav className={LANDING_NAV}>
+            <a href="#features" className={LANDING_NAV_LINK}>Features</a>
+            <a href="#biometrics" className={LANDING_NAV_LINK}>Face Setup</a>
+            <a href="#pricing" className={LANDING_NAV_LINK}>Pricing</a>
+            <a href="#comparison" className={LANDING_NAV_LINK}>Why ANSH</a>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <LandingThemeToggle />
             {sessionActive ? (
               <Link href="/dashboard">
                 <button className={`inline-flex h-10 items-center justify-center rounded-xl px-5 text-xs font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer ${brandBtnPrimary}`}>
@@ -229,7 +283,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <Link href="/login">
-                <button className="inline-flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 text-xs font-bold text-slate-200 hover:bg-white/10 hover:text-white active:scale-[0.98] transition-all cursor-pointer">
+                <button className={LANDING_SIGN_IN_BTN}>
                   Sign In
                 </button>
               </Link>
@@ -239,18 +293,18 @@ export default function LandingPage() {
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className={`relative z-10 ${landingContainer} pt-16 pb-24`}>
+      <section className={`relative z-10 ${PAGE_SHELL} pt-16 pb-24`}>
         <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-7 space-y-7 text-left">
             <div className={`inline-flex items-center gap-2.5 rounded-full px-4.5 py-1.5 backdrop-blur-md ${brandBadgePill}`}>
-              <Sparkles className="h-4.5 w-4.5 text-violet-400 animate-pulse" />
-              <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400">
+              <Sparkles className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-violet-600 dark:text-violet-400">
                 Built for MSMEs & Scaling Teams
               </span>
             </div>
 
-            <h1 className="font-sans text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight text-white">
+            <h1 className={`font-sans text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight ${LANDING_HEADING}`}>
               Run Your Entire HR, Leaves &{" "}
               <span className={brandGradientText}>
                 Attendance
@@ -258,7 +312,7 @@ export default function LandingPage() {
               in One Workspace
             </h1>
 
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl">
+            <p className={`text-sm sm:text-base leading-relaxed max-w-xl ${LANDING_SUBTEXT}`}>
               ANSH Leave & Attendance combines high-speed facial recognition check-ins, live ticking shift stopwatches, dynamic allowance requests, and role-guarded pipelines into a unified, high-performance portal.
             </p>
 
@@ -269,8 +323,8 @@ export default function LandingPage() {
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-200">Biometric Face Verification</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Scan profiles client-side with zero network lag.</p>
+                  <h4 className={`text-xs font-bold ${LANDING_BODY}`}>Biometric Face Verification</h4>
+                  <p className={`text-[10px] mt-0.5 ${LANDING_MUTED}`}>Scan profiles client-side with zero network lag.</p>
                 </div>
               </div>
 
@@ -279,8 +333,8 @@ export default function LandingPage() {
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-200">Live Ticking Shift Clock</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Watch active hours track down to the second.</p>
+                  <h4 className={`text-xs font-bold ${LANDING_BODY}`}>Live Ticking Shift Clock</h4>
+                  <p className={`text-[10px] mt-0.5 ${LANDING_MUTED}`}>Watch active hours track down to the second.</p>
                 </div>
               </div>
 
@@ -289,8 +343,8 @@ export default function LandingPage() {
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-200">Automatic Leave Deductions</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Real-time allowances (Annual, Sick, Casual).</p>
+                  <h4 className={`text-xs font-bold ${LANDING_BODY}`}>Automatic Leave Deductions</h4>
+                  <p className={`text-[10px] mt-0.5 ${LANDING_MUTED}`}>Real-time allowances (Annual, Sick, Casual).</p>
                 </div>
               </div>
 
@@ -299,8 +353,8 @@ export default function LandingPage() {
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-200">Role-Guarded Approvals</h4>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Strict admin/manager approval dashboards.</p>
+                  <h4 className={`text-xs font-bold ${LANDING_BODY}`}>Role-Guarded Approvals</h4>
+                  <p className={`text-[10px] mt-0.5 ${LANDING_MUTED}`}>Strict admin/manager approval dashboards.</p>
                 </div>
               </div>
             </div>
@@ -314,22 +368,22 @@ export default function LandingPage() {
                 </button>
               </Link>
               <a href="https://anshapps.com/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <button className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-8 text-sm font-bold text-slate-200 hover:bg-white/10 hover:text-white transition-all cursor-pointer">
+                <button className={`inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 px-8 text-sm font-bold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-all cursor-pointer dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white`}>
                   Visit ANSH
                 </button>
               </a>
             </div>
 
-            <div className="pt-6 border-t border-white/5">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="pt-6 border-t border-zinc-200/80 dark:border-white/5">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${LANDING_MUTED}`}>
                 Built from Bharat for the World — encouraging{" "}
-                <span className="text-violet-400">Vasudhaiva Kutumbakam</span>
+                <span className="text-violet-600 dark:text-violet-400">Vasudhaiva Kutumbakam</span>
               </p>
             </div>
           </div>
 
-          {/* Hero Right Mockup Frame (Toggles and Accent selection) */}
-          <div className="lg:col-span-5 relative">
+          {/* Hero Right Mockup Frame (Toggles and Accent selection) — always dark */}
+          <div className="lg:col-span-5 relative dark">
             <div className="absolute inset-0 bg-gradient-to-tr from-[#0078FF]/10 via-[#7000FF]/10 to-[#E040FB]/10 rounded-3xl blur-2xl -z-10" />
             
             {/* Interactive Browser Frame */}
@@ -506,21 +560,21 @@ export default function LandingPage() {
       </section>
 
       {/* 2.5 ECOSYSTEM SHOWCASE SECTION */}
-      <section className="relative z-10 border-t border-white/5 bg-zinc-950 py-20 overflow-hidden">
-        <div className={`${landingContainer} space-y-12`}>
+      <section className={LANDING_SECTION_ALT}>
+        <div className={`${PAGE_SHELL} space-y-12`}>
           {/* Header Row */}
           <div className="grid gap-6 md:grid-cols-12 md:items-end">
             <div className="md:col-span-7 space-y-2">
-              <span className="text-xs font-bold text-violet-400 uppercase tracking-widest block">
+              <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest block">
                 Ecosystem
               </span>
-              <h2 className="text-3xl font-black text-white tracking-tight sm:text-4xl">
+              <h2 className={`text-3xl font-black tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
                 The full <span className={brandGradientText}>Ansh Apps</span> suite
               </h2>
             </div>
             <div className="md:col-span-5">
-              <p className="text-sm sm:text-base text-slate-400 leading-relaxed font-medium">
-                One ecosystem, every business operation — manage tasks, HR, expenses, bookings and visitors from connected apps.
+              <p className={`text-sm sm:text-base leading-relaxed font-medium ${LANDING_SUBTEXT}`}>
+                One ecosystem, every business operation — manage tasks, HR, expenses, bookings, visitors, forms and links from connected apps.
               </p>
             </div>
           </div>
@@ -547,8 +601,8 @@ export default function LandingPage() {
             `}} />
             
             {/* Fade overlays */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10 pointer-events-none" />
+            <div className={LANDING_MARQUEE_FADE_LEFT} />
+            <div className={LANDING_MARQUEE_FADE_RIGHT} />
 
             {/* Scrolling Marquee Container */}
             <div className="custom-marquee-container py-4 gap-6">
@@ -558,7 +612,7 @@ export default function LandingPage() {
                   href={app.link}
                   target={app.link.startsWith("http") ? "_blank" : undefined}
                   rel={app.link.startsWith("http") ? "noopener noreferrer" : undefined}
-                  className={`group relative flex flex-col justify-between w-72 shrink-0 rounded-3xl border border-white/5 bg-zinc-900/85 p-4 space-y-4 transition-all duration-300 ${app.borderColor} hover:-translate-y-1 cursor-pointer`}
+                  className={`${LANDING_MARQUEE_CARD} ${app.borderColor} hover:-translate-y-1 cursor-pointer`}
                 >
                   {/* Image/Placeholder container */}
                   {app.image ? (
@@ -596,12 +650,12 @@ export default function LandingPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-2.5 h-2.5 rounded-full ${app.dotColor}`} />
-                        <h4 className="text-base font-bold text-slate-100">{app.name}</h4>
+                        <h4 className={`text-base font-bold ${LANDING_BODY}`}>{app.name}</h4>
                       </div>
                       {/* Status pill button */}
                       <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded border uppercase tracking-wider ${
                         app.status === "BUILDING"
-                          ? "border-rose-500/30 text-rose-450 bg-rose-500/5"
+                          ? "border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/5"
                           : app.name === "ANSH HR"
                             ? "border-violet-500/40 text-violet-400 bg-violet-500/10"
                             : "border-violet-500/30 text-violet-400 bg-violet-500/5"
@@ -610,8 +664,8 @@ export default function LandingPage() {
                       </span>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-slate-200">{app.subtitle}</p>
-                      <p className="text-xs text-slate-450 font-medium leading-relaxed">{app.description}</p>
+                      <p className={`text-sm font-bold ${LANDING_BODY}`}>{app.subtitle}</p>
+                      <p className={`text-xs font-medium leading-relaxed ${LANDING_SUBTEXT}`}>{app.description}</p>
                     </div>
                   </div>
                 </a>
@@ -621,80 +675,80 @@ export default function LandingPage() {
       </section>
 
       {/* 3. FEATURES GRID ("Streamline Your Entire HR Operations Natively") */}
-      <section id="features" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
-        <div className={`${landingContainer} space-y-16`}>
+      <section id="features" className={LANDING_SECTION}>
+        <div className={`${PAGE_SHELL} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-4">
-            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+            <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
               Streamline Your Entire HR Operations Natively
             </h2>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <p className={`text-sm leading-relaxed ${LANDING_SUBTEXT}`}>
               No need to pay for multiple software tools. ANSH HR consolidates your attendance registers, facial scans, allowances, and employee directories under one affordable platform.
             </p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Feature 1 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <Fingerprint className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Facial Recognition Punch-In</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Facial Recognition Punch-In</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 Process facial landmark coordinates client-side with face-api.js. Provides secure authentication with zero server processing latency.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <Clock className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Live Stopwatch Clocking</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Live Stopwatch Clocking</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 A live stopwatch tracks your check-in length down to the second in the dashboard, with built-in tolerance rules for grace check-ins.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <CalendarDays className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Dynamic Allowance Pools</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Dynamic Allowance Pools</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 Employees can request Annual, Sick, or Casual leaves through dialog forms. Remaining balances automatically update on approval.
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Glassmorphic Approvals Queue</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Glassmorphic Approvals Queue</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 A dedicated request pipeline for HR Managers and Admins to accept/deny requests, complete with automatic employee balance updates.
               </p>
             </div>
 
             {/* Feature 5 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <Users2 className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Team Status Registry</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Team Status Registry</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 Visual directory showcasing active employee counts. Search, filter by department, and review individual statuses in real-time.
               </p>
             </div>
 
             {/* Feature 6 */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 hover:border-violet-500/20 transition-all group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+            <div className={`${LANDING_CARD} space-y-4`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-200">Accent Theme Customization</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Accent Theme Customization</h3>
+              <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                 Dynamic theme switcher. Swap the primary color theme instantly between Violet, Indigo, Cyan, and Graphite system styles.
               </p>
             </div>
@@ -703,10 +757,10 @@ export default function LandingPage() {
       </section>
 
       {/* 4. DETAILED BIOMETRIC SETUP FEATURE SECTION */}
-      <section id="biometrics" className={`relative z-10 ${landingContainer} py-24`}>
+      <section id="biometrics" className={`relative z-10 ${PAGE_SHELL} py-24`}>
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          {/* Biometrics Setup Mockup */}
-          <div className="relative rounded-3xl border border-zinc-800 bg-zinc-900/85 p-6 shadow-2xl backdrop-blur-md overflow-hidden">
+          {/* Biometrics Setup Mockup — always dark (product preview) */}
+          <div className="dark relative rounded-3xl border border-zinc-800 bg-zinc-900/85 p-6 shadow-2xl backdrop-blur-md overflow-hidden">
             <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-5">
               Secure Enrollment Console
             </span>
@@ -769,13 +823,13 @@ export default function LandingPage() {
               <Fingerprint className="h-4 w-4" />
               <span className="text-[10px] font-bold uppercase tracking-wider">Fast Setup</span>
             </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+            <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
               Enroll Face Signatures in 3 Quick Photo Uploads
             </h2>
-            <p className="text-slate-400 leading-relaxed text-sm">
+            <p className={`leading-relaxed text-sm ${LANDING_SUBTEXT}`}>
               We process face parameters directly in the user's browser, extract a 128-float mathematical model, and store optimized files. This speeds up daily punch-ins and avoids webcam delays.
             </p>
-            <ul className="space-y-3.5 text-xs text-slate-350 font-semibold">
+            <ul className={`space-y-3.5 text-xs font-semibold ${LANDING_BODY}`}>
               <li className="flex items-center gap-3">
                 <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${brandCheckCircle}`}>
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
@@ -800,13 +854,13 @@ export default function LandingPage() {
       </section>
 
       {/* 4.5. LIVE ACTIVITY FEED & ANNOUNCEMENTS SECTION */}
-      <section id="announcements" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
-        <div className={`${landingContainer} space-y-16`}>
+      <section id="announcements" className={LANDING_SECTION}>
+        <div className={`${PAGE_SHELL} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-4">
-            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+            <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
               Live Activity Feed & Broadcast Announcements
             </h2>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <p className={`text-sm leading-relaxed ${LANDING_SUBTEXT}`}>
               Keep your entire workforce synchronized with dynamic organization-wide events and corporate bulletins. Build trust and alignment through real-time communication.
             </p>
           </div>
@@ -814,62 +868,62 @@ export default function LandingPage() {
           <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
             
             {/* Column 1: Live Activity Feed */}
-            <div className="flex flex-col justify-between rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-6 hover:border-violet-500/20 transition-all group">
+            <div className={`flex flex-col justify-between ${LANDING_PANEL} space-y-6`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-violet-400 border border-violet-500/20 group-hover:bg-blue-500/20 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
                     <Clock className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">Real-Time Updates</span>
-                    <h3 className="text-lg font-bold text-slate-200">Organization Activity Logs</h3>
+                    <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest block">Real-Time Updates</span>
+                    <h3 className={`text-lg font-bold ${LANDING_BODY}`}>Organization Activity Logs</h3>
                   </div>
                 </div>
                 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                   Watch shift check-ins, leave requests, and status changes propagate across your team directory instantly.
                 </p>
 
                 <div className="space-y-3 pt-2">
                   {/* Event 1 */}
-                  <div className="flex gap-3 items-start p-3 bg-zinc-950/60 border border-zinc-800/60 rounded-2xl hover:border-violet-500/20 transition-all">
+                  <div className="flex gap-3 items-start p-3 bg-zinc-100 border border-zinc-200/80 rounded-2xl hover:border-violet-500/25 transition-all dark:bg-zinc-950/60 dark:border-zinc-800/60 dark:hover:border-violet-500/20">
                     <div className="h-7 w-7 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center shrink-0 text-xs font-black">
                       RR
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <span className="text-xs font-bold text-slate-200">Rahul Raj</span>
-                        <span className="text-[9px] text-slate-500 font-mono">09:02 AM</span>
+                        <span className={`text-xs font-bold ${LANDING_BODY}`}>Rahul Raj</span>
+                        <span className={`text-[9px] font-mono ${LANDING_MUTED}`}>09:02 AM</span>
                       </div>
-                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Punched in at Mumbai Office (Selfie verified)</p>
+                      <p className={`text-[10px] mt-0.5 leading-normal ${LANDING_SUBTEXT}`}>Punched in at Mumbai Office (Selfie verified)</p>
                     </div>
                   </div>
 
                   {/* Event 2 */}
-                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-sky-500/20 transition-all">
+                  <div className="flex gap-3 items-start p-3 bg-zinc-100 border border-zinc-200/80 rounded-2xl hover:border-sky-500/25 transition-all dark:bg-slate-950/60 dark:border-slate-800/60 dark:hover:border-sky-500/20">
                     <div className="h-7 w-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 text-xs font-black">
                       AP
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <span className="text-xs font-bold text-slate-200">Amit Patel</span>
-                        <span className="text-[9px] text-slate-500 font-mono">Yesterday</span>
+                        <span className={`text-xs font-bold ${LANDING_BODY}`}>Amit Patel</span>
+                        <span className={`text-[9px] font-mono ${LANDING_MUTED}`}>Yesterday</span>
                       </div>
-                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Requested 1-day Sick Leave (Awaiting HR Review)</p>
+                      <p className={`text-[10px] mt-0.5 leading-normal ${LANDING_SUBTEXT}`}>Requested 1-day Sick Leave (Awaiting HR Review)</p>
                     </div>
                   </div>
 
                   {/* Event 3 */}
-                  <div className="flex gap-3 items-start p-3 bg-slate-950/60 border border-slate-800/60 rounded-2xl hover:border-purple-500/20 transition-all">
+                  <div className="flex gap-3 items-start p-3 bg-zinc-100 border border-zinc-200/80 rounded-2xl hover:border-purple-500/25 transition-all dark:bg-slate-950/60 dark:border-slate-800/60 dark:hover:border-purple-500/20">
                     <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 text-xs font-black">
                       SYS
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <span className="text-xs font-bold text-slate-200">System Accrual</span>
-                        <span className="text-[9px] text-slate-500 font-mono">1st Jun</span>
+                        <span className={`text-xs font-bold ${LANDING_BODY}`}>System Accrual</span>
+                        <span className={`text-[9px] font-mono ${LANDING_MUTED}`}>1st Jun</span>
                       </div>
-                      <p className="text-[10px] text-slate-450 mt-0.5 leading-normal">Credited monthly leave allowances (+1.5 Annual Days)</p>
+                      <p className={`text-[10px] mt-0.5 leading-normal ${LANDING_SUBTEXT}`}>Credited monthly leave allowances (+1.5 Annual Days)</p>
                     </div>
                   </div>
                 </div>
@@ -877,36 +931,36 @@ export default function LandingPage() {
             </div>
 
             {/* Column 2: Pinned Announcements */}
-            <div className="flex flex-col justify-between rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8 space-y-6 hover:border-violet-500/20 transition-all group">
+            <div className={`flex flex-col justify-between ${LANDING_PANEL} space-y-6`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
                     <Megaphone className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest block">Notice Board</span>
-                    <h3 className="text-lg font-bold text-slate-200">Active Announcements</h3>
+                    <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest block">Notice Board</span>
+                    <h3 className={`text-lg font-bold ${LANDING_BODY}`}>Active Announcements</h3>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className={`text-xs leading-relaxed ${LANDING_SUBTEXT}`}>
                   Pin company-wide notices for holiday updates, policy changes, office announcements, or safety guidelines.
                 </p>
 
                 <div className="space-y-3.5 pt-2">
                   {/* Announcement 1 */}
-                  <div className="p-4 bg-slate-950/60 border border-slate-800/60 rounded-2xl relative overflow-hidden group hover:border-sky-500/25 transition-all">
+                  <div className="p-4 bg-zinc-100 border border-zinc-200/80 rounded-2xl relative overflow-hidden group hover:border-sky-500/25 transition-all dark:bg-slate-950/60 dark:border-slate-800/60 dark:hover:border-sky-500/25">
                     <div className="absolute top-0 right-0 bg-sky-500/10 text-sky-400 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-bl-xl border-l border-b border-sky-500/15">
                       Important
                     </div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-                      <Bell className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                    <div className={`flex items-center gap-2 text-xs font-bold ${LANDING_BODY}`}>
+                      <Bell className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                       <span>Q3 General Strategy Meeting</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+                    <p className={`text-[10px] mt-1.5 leading-relaxed ${LANDING_MUTED}`}>
                       All employees are requested to attend the Q3 townhall town hall session scheduled for Friday, June 19th at 3:00 PM IST.
                     </p>
-                    <div className="flex items-center gap-1.5 mt-2.5 text-[9px] text-slate-500 font-semibold">
+                    <div className={`flex items-center gap-1.5 mt-2.5 text-[9px] font-semibold ${LANDING_MUTED}`}>
                       <span>HR Department</span>
                       <span>·</span>
                       <span>2 hours ago</span>
@@ -914,15 +968,15 @@ export default function LandingPage() {
                   </div>
 
                   {/* Announcement 2 */}
-                  <div className="p-4 bg-zinc-950/60 border border-zinc-800/60 rounded-2xl relative overflow-hidden group hover:border-violet-500/20 transition-all">
-                    <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                      <CalendarDays className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+                  <div className="p-4 bg-zinc-100 border border-zinc-200/80 rounded-2xl relative overflow-hidden group hover:border-violet-500/25 transition-all dark:bg-zinc-950/60 dark:border-zinc-800/60 dark:hover:border-violet-500/20">
+                    <div className={`flex items-center gap-2 text-xs font-bold ${LANDING_BODY}`}>
+                      <CalendarDays className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400 shrink-0" />
                       <span>Independence Day Holiday Calendar</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+                    <p className={`text-[10px] mt-1.5 leading-relaxed ${LANDING_MUTED}`}>
                       Please note that August 15th will be observed as a national holiday across all registered branch offices.
                     </p>
-                    <div className="flex items-center gap-1.5 mt-2.5 text-[9px] text-slate-500 font-semibold">
+                    <div className={`flex items-center gap-1.5 mt-2.5 text-[9px] font-semibold ${LANDING_MUTED}`}>
                       <span>HR Department</span>
                       <span>·</span>
                       <span>2 days ago</span>
@@ -937,58 +991,58 @@ export default function LandingPage() {
       </section>
 
       {/* 5. FLEXIBLE PRICING SECTION */}
-      <section id="pricing" className="relative z-10 border-t border-white/5 bg-zinc-950/80 py-24">
-        <div className={`${landingContainer} space-y-16`}>
+      <section id="pricing" className={LANDING_SECTION}>
+        <div className={`${PAGE_SHELL} space-y-16`}>
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 ${brandBadgePill}`}>
-              <span className="text-[9px] font-bold tracking-widest uppercase text-violet-400">Flexible Pricing</span>
+              <span className="text-[9px] font-bold tracking-widest uppercase text-violet-600 dark:text-violet-400">Flexible Pricing</span>
             </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+            <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
               Flexible Plans Tailored for Your Scale
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className={`text-xs sm:text-sm ${LANDING_SUBTEXT}`}>
               Start with core leave and attendance for free. Compare what each plan includes — you can manage billing inside your workspace when you are ready.
             </p>
           </div>
 
           <div className="grid gap-6 max-w-4xl mx-auto sm:grid-cols-2">
             {/* Free Plan */}
-            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 flex flex-col justify-between space-y-6 relative hover:border-violet-500/20 transition-all">
+            <div className={`${LANDING_PRICING_CARD} space-y-6`}>
               <div className="space-y-4">
-                <div className="inline-flex rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <div className={`inline-flex rounded-lg border px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${LANDING_MUTED} border-zinc-200 bg-zinc-100 dark:bg-slate-900 dark:border-slate-800`}>
                   For Micro Teams
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-white">Free Plan</h3>
-                  <p className="text-[10px] text-slate-500 leading-normal">Ideal for small business founders getting started.</p>
+                  <h3 className={`text-lg font-bold ${LANDING_HEADING}`}>Free Plan</h3>
+                  <p className={`text-[10px] leading-normal ${LANDING_MUTED}`}>Ideal for small business founders getting started.</p>
                 </div>
-                <div className="flex items-baseline text-white">
+                <div className={`flex items-baseline ${LANDING_HEADING}`}>
                   <span className="text-3xl font-black tracking-tight">₹0</span>
-                  <span className="ml-1 text-[11px] font-semibold text-slate-500">/ workspace</span>
+                  <span className={`ml-1 text-[11px] font-semibold ${LANDING_MUTED}`}>/ workspace</span>
                 </div>
-                <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
+                <ul className={`space-y-3.5 pt-4 text-xs font-medium ${LANDING_BODY}`}>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Up to 3 teammates</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>50 punch-ins per month</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Punch in/out attendance tracking</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Default annual, sick, and casual leave</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Basic leave requests and approvals</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Employee directory and leave balances</span>
                   </li>
                 </ul>
@@ -996,47 +1050,47 @@ export default function LandingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="rounded-3xl border border-violet-500/25 bg-zinc-900/60 p-8 flex flex-col justify-between space-y-6 relative hover:border-violet-500/40 transition-all shadow-xl shadow-violet-950/20">
+            <div className={`${LANDING_PRICING_CARD} border-violet-500/25 hover:border-violet-500/40 shadow-xl shadow-violet-500/10 dark:shadow-violet-950/20 space-y-6`}>
               <div className="space-y-4">
                 <div className={`inline-flex rounded-lg px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${brandBadgePill}`}>
                   Best for MSMEs
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-white">Pro Plan</h3>
-                  <p className="text-[10px] text-slate-500 leading-normal">Per-user pricing that scales with every teammate you add.</p>
+                  <h3 className={`text-lg font-bold ${LANDING_HEADING}`}>Pro Plan</h3>
+                  <p className={`text-[10px] leading-normal ${LANDING_MUTED}`}>Per-user pricing that scales with every teammate you add.</p>
                 </div>
-                <div className="flex items-baseline text-white">
+                <div className={`flex items-baseline ${LANDING_HEADING}`}>
                   <span className="text-3xl font-black tracking-tight">₹199</span>
-                  <span className="ml-1 text-[11px] font-semibold text-slate-500">/ user / month</span>
+                  <span className={`ml-1 text-[11px] font-semibold ${LANDING_MUTED}`}>/ user / month</span>
                 </div>
-                <ul className="space-y-3.5 pt-4 text-xs font-medium text-slate-300">
+                <ul className={`space-y-3.5 pt-4 text-xs font-medium ${LANDING_BODY}`}>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Per-user pricing — scales with your team size</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Unlimited punch-ins</span>
                   </li>
 
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Shift roster manager with custom timings</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Custom leave categories and rules</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Company holiday calendar by branch</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Policy document hub and handbook uploads</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <Check className="h-4 w-4 text-violet-400 shrink-0" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
                     <span>Team analytics, punctuality, and reports</span>
                   </li>
                 </ul>
@@ -1047,51 +1101,51 @@ export default function LandingPage() {
       </section>
 
       {/* 6. COMPARISON MATRIX ("Why teams choose ANSH HR over legacy biometric systems") */}
-      <section id="comparison" className={`relative z-10 ${landingContainer} py-24 space-y-16`}>
+      <section id="comparison" className={`relative z-10 ${PAGE_SHELL} py-24 space-y-16`}>
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <div className={`inline-flex items-center gap-2.5 rounded-full px-4.5 py-1.5 ${brandBadgePill}`}>
-            <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-violet-600 dark:text-violet-400">
               Why Teams Switch
             </span>
           </div>
-          <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+          <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
             Why MSMEs choose ANSH HR over Zoho, biometric machines, and manual registers
           </h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className={`text-sm leading-relaxed ${LANDING_SUBTEXT}`}>
             We are built specifically for small & medium businesses that want real work execution, cleaner dashboard views, and zero setup friction.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Card 1 */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
+          <div className={LANDING_COMPARISON_CARD}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
               <Layers className="h-4 w-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Compared to Biometric Hardware</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Compared to Biometric Hardware</h3>
+            <p className={`text-xs leading-relaxed ${LANDING_MUTED}`}>
               No expensive thumb-scanners or physical wall installations required. Staff check-in from their own screens with secure camera feeds.
             </p>
           </div>
 
           {/* Card 2 */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
+          <div className={LANDING_COMPARISON_CARD}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
               <Clock className="h-4 w-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Compared to Excel & Manual Logs</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Compared to Excel & Manual Logs</h3>
+            <p className={`text-xs leading-relaxed ${LANDING_MUTED}`}>
               Eliminate human spreadsheet entry errors. Remaining leave pools deduct instantly and live stopwatches document shift durations.
             </p>
           </div>
 
           {/* Card 3 */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-violet-400 border border-violet-500/20">
+          <div className={LANDING_COMPARISON_CARD}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
               <Lock className="h-4 w-4" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Compared to Corporate Suites</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className={`text-sm font-bold ${LANDING_BODY}`}>Compared to Corporate Suites</h3>
+            <p className={`text-xs leading-relaxed ${LANDING_MUTED}`}>
               Avoid rigid, complex workflow setups. ANSH is lightweight, updates profiles in real-time, and has transparent flat pricing.
             </p>
           </div>
@@ -1099,16 +1153,16 @@ export default function LandingPage() {
 
         {/* Comparison Model Footers */}
         <div className="grid gap-6 md:grid-cols-2 pt-6">
-          <div className="bg-zinc-900/60 border border-violet-500/15 rounded-2xl p-5 space-y-2">
-            <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest block">THE ANSH HR MODEL FOR MSMEs</span>
-            <p className="text-xs text-slate-300 leading-relaxed">
+          <div className="bg-violet-500/5 border border-violet-500/15 rounded-2xl p-5 space-y-2 dark:bg-zinc-900/60">
+            <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest block dark:text-violet-400">THE ANSH HR MODEL FOR MSMEs</span>
+            <p className={`text-xs leading-relaxed ${LANDING_BODY}`}>
               Unified client-side face scans, ticking clocks, real-time balances, simple digital pricing, and zero setup friction.
             </p>
           </div>
 
           <div className="bg-[#110508] border border-rose-500/15 rounded-2xl p-5 space-y-2">
-            <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block">THE BLOATED ENTERPRISE MODEL</span>
-            <p className="text-xs text-slate-350 leading-relaxed">
+            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest block dark:text-rose-400">THE BLOATED ENTERPRISE MODEL</span>
+            <p className="text-xs text-zinc-300 leading-relaxed">
               Expensive legacy hardware, slow database syncs, manual registers, hidden user fees, and complex setup processes.
             </p>
           </div>
@@ -1116,12 +1170,13 @@ export default function LandingPage() {
       </section>
 
       {/* 7. FREQUENTLY ASKED QUESTIONS */}
-      <section id="faq" className={`relative z-10 ${landingContainerNarrow} py-24 space-y-12`}>
+      <section id="faq" className={`relative z-10 ${PAGE_SHELL} py-24`}>
+        <div className="mx-auto max-w-4xl space-y-12">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+          <h2 className={`text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
             Frequently Asked Questions
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className={`text-sm ${LANDING_SUBTEXT}`}>
             Got questions about ANSH HR? Find quick answers below.
           </p>
         </div>
@@ -1157,24 +1212,24 @@ export default function LandingPage() {
             return (
               <div
                 key={idx}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden transition-colors duration-200"
+                className={LANDING_FAQ_ITEM}
               >
                 <button
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full text-left px-6 py-5 flex items-center justify-between text-slate-200 hover:text-white font-bold text-sm cursor-pointer"
+                  className={`w-full text-left px-6 py-5 flex items-center justify-between font-bold text-sm cursor-pointer ${LANDING_BODY} hover:text-violet-600 dark:hover:text-white`}
                 >
                   <span>{faq.q}</span>
-                  <span className={`transform transition-transform duration-200 text-slate-500 ${isOpen ? "rotate-180" : ""}`}>
+                  <span className={`transform transition-transform duration-200 text-zinc-500 dark:text-zinc-400 ${isOpen ? "rotate-180" : ""}`}>
                     ▼
                   </span>
                 </button>
                 
                 <div
                   className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isOpen ? "max-h-80 border-t border-slate-800 bg-slate-950/20" : "max-h-0"
+                    isOpen ? "max-h-80 border-t border-zinc-200 bg-zinc-50/80 dark:border-slate-800 dark:bg-slate-950/20" : "max-h-0"
                   }`}
                 >
-                  <p className="px-6 py-4 text-xs text-slate-400 leading-relaxed font-semibold">
+                  <p className={`px-6 py-4 text-xs leading-relaxed font-semibold ${LANDING_SUBTEXT}`}>
                     {faq.a}
                   </p>
                 </div>
@@ -1182,11 +1237,13 @@ export default function LandingPage() {
             );
           })}
         </div>
+        </div>
       </section>
 
       {/* 8. FOOTER CTA BANNER */}
-      <section className={`relative z-10 ${landingContainerNarrow} pb-24`}>
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-10 text-center relative overflow-hidden space-y-6">
+      <section className={`relative z-10 ${PAGE_SHELL} pb-24`}>
+        <div className="mx-auto max-w-5xl">
+        <div className={LANDING_CTA_CARD}>
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -1198,16 +1255,16 @@ export default function LandingPage() {
           <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-[#00C6FF]/10 blur-[80px]" />
           
           <div className="relative flex justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-violet-400 border border-violet-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
               <CheckCircle className="h-5 w-5" />
             </div>
           </div>
 
-          <h2 className="relative text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+          <h2 className={`relative text-3xl font-extrabold tracking-tight sm:text-4xl ${LANDING_HEADING}`}>
             Ready to accelerate your team's workflow?
           </h2>
           
-          <p className="relative text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
+          <p className={`relative text-xs sm:text-sm max-w-xl mx-auto leading-relaxed ${LANDING_SUBTEXT}`}>
             Create your free workspace in under two minutes. No credit card required. Enjoy complete access to biometric setups, leave allowance logs, and status registries.
           </p>
 
@@ -1220,20 +1277,23 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+        </div>
       </section>
 
       {/* 8b. TRUST & COMPLIANCE */}
-      <section className={`relative z-10 ${landingContainerNarrow}`}>
-        <TrustCompliance variant="landing" />
+      <section className={`relative z-10 ${PAGE_SHELL}`}>
+        <div className="mx-auto max-w-5xl">
+          <TrustCompliance variant="landing" />
+        </div>
       </section>
 
       {/* 9. GRAND SYMMETRICAL FOOTER */}
-      <footer className="relative z-10 border-t border-white/5 bg-zinc-950 pt-20 pb-10">
-        <div className={`${landingContainer} space-y-12`}>
+      <footer className={LANDING_FOOTER}>
+        <div className={`${PAGE_SHELL} space-y-12`}>
           
           {/* Big Text Banner: Ansh Apps */}
-          <div className="text-center select-none border-b border-white/5 pb-12 overflow-hidden">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">HANDLED BY ANSH</span>
+          <div className="text-center select-none border-b border-zinc-200/80 pb-12 overflow-hidden dark:border-white/5">
+            <span className={`text-[10px] font-black uppercase tracking-widest block mb-4 ${LANDING_MUTED}`}>HANDLED BY ANSH</span>
             <h1 className={`text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] xl:text-[14rem] font-black ${brandGradientText} tracking-tighter opacity-95 leading-none py-4`}>
               Ansh Apps
             </h1>
@@ -1249,51 +1309,51 @@ export default function LandingPage() {
                   alt="Ansh Apps Logo"
                   className="h-6 w-6 object-contain"
                 />
-                <span className="font-extrabold tracking-wider text-slate-200">ANSH HR</span>
+                <span className={`font-extrabold tracking-wider ${LANDING_BODY}`}>ANSH HR</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs font-medium">
+              <p className={`text-[11px] leading-relaxed max-w-xs font-medium ${LANDING_MUTED}`}>
                 The ultimate leave & attendance workspace designed for modern high-performance teams who scale natively.
               </p>
             </div>
 
             {/* Column 2 */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Product</h4>
-              <ul className="space-y-2 text-slate-500">
-                <li><a href="#punch" className="hover:text-white transition-colors">Punch Clock</a></li>
-                <li><a href="#leaves" className="hover:text-white transition-colors">Leaves Gallery</a></li>
-                <li><a href="#approvals" className="hover:text-white transition-colors">Approvals Queue</a></li>
-                <li><a href="#team" className="hover:text-white transition-colors">Status Registry</a></li>
+              <h4 className={`text-[10px] font-bold uppercase tracking-widest ${LANDING_SUBTEXT}`}>Product</h4>
+              <ul className={`space-y-2 ${LANDING_MUTED}`}>
+                <li><a href="#punch" className="hover:text-violet-600 dark:hover:text-white transition-colors">Punch Clock</a></li>
+                <li><a href="#leaves" className="hover:text-violet-600 dark:hover:text-white transition-colors">Leaves Gallery</a></li>
+                <li><a href="#approvals" className="hover:text-violet-600 dark:hover:text-white transition-colors">Approvals Queue</a></li>
+                <li><a href="#team" className="hover:text-violet-600 dark:hover:text-white transition-colors">Status Registry</a></li>
               </ul>
             </div>
 
             {/* Column 3 */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Account</h4>
-              <ul className="space-y-2 text-slate-500">
-                <li><Link href="/login" className="hover:text-white transition-colors">Sign In</Link></li>
-                <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
-                <li><Link href="/onboarding" className="hover:text-white transition-colors">Workspace Setup</Link></li>
+              <h4 className={`text-[10px] font-bold uppercase tracking-widest ${LANDING_SUBTEXT}`}>Account</h4>
+              <ul className={`space-y-2 ${LANDING_MUTED}`}>
+                <li><Link href="/login" className="hover:text-violet-600 dark:hover:text-white transition-colors">Sign In</Link></li>
+                <li><Link href="/signup" className="hover:text-violet-600 dark:hover:text-white transition-colors">Sign Up</Link></li>
+                <li><Link href="/onboarding" className="hover:text-violet-600 dark:hover:text-white transition-colors">Workspace Setup</Link></li>
               </ul>
             </div>
 
             {/* Column 4 */}
             <div className="space-y-3">
-              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Get In Touch</h4>
-              <p className="text-slate-500 leading-normal text-[11px] font-medium">
+              <h4 className={`text-[10px] font-bold uppercase tracking-widest ${LANDING_SUBTEXT}`}>Get In Touch</h4>
+              <p className={`leading-normal text-[11px] font-medium ${LANDING_MUTED}`}>
                 Have questions or need custom business plans? Talk to our creators.
               </p>
               <div className="flex flex-col gap-2 pt-1">
                 <a
                   href="mailto:hello@anshapps.com"
-                  className="flex items-center gap-2 text-violet-400 hover:text-violet-300 font-bold transition-colors"
+                  className="flex items-center gap-2 text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-bold transition-colors"
                 >
                   <Mail className="h-5 w-5 shrink-0" aria-hidden="true" />
                   hello@anshapps.com
                 </a>
                 <a
                   href="tel:+919625727372"
-                  className="flex items-center gap-2 text-violet-400 hover:text-violet-300 font-bold transition-colors"
+                  className="flex items-center gap-2 text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-bold transition-colors"
                 >
                   <Phone className="h-5 w-5 shrink-0" aria-hidden="true" />
                   +91 9625727372
@@ -1302,7 +1362,7 @@ export default function LandingPage() {
                   href="https://wa.me/919625727372?text=Hi"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-green-400 hover:text-green-300 font-bold transition-colors"
+                  className="flex items-center gap-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-bold transition-colors"
                   aria-label="Chat on WhatsApp"
                 >
                   <svg
@@ -1321,17 +1381,17 @@ export default function LandingPage() {
           </div>
 
           {/* Bottom Copyright Row */}
-          <div className="flex flex-col gap-6 border-t border-white/5 pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-6 border-t border-zinc-200/80 pt-8 sm:flex-row sm:items-center sm:justify-between dark:border-white/5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-              <span className="text-[11px] font-medium text-slate-500">
+              <span className={`text-[11px] font-medium ${LANDING_MUTED}`}>
                 © 2026 ANSH HR. All rights reserved.
               </span>
               <MsmeBadge variant="landing" />
             </div>
-            <div className="flex gap-4.5 text-[11px] font-medium text-slate-500">
-              <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms & Conditions</Link>
-              <a href="mailto:hello@anshapps.com" className="hover:text-slate-300 transition-colors">Contact Us</a>
+            <div className={`flex gap-4.5 text-[11px] font-medium ${LANDING_MUTED}`}>
+              <Link href="/privacy" className="hover:text-violet-600 dark:hover:text-slate-300 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-violet-600 dark:hover:text-slate-300 transition-colors">Terms & Conditions</Link>
+              <a href="mailto:hello@anshapps.com" className="hover:text-violet-600 dark:hover:text-slate-300 transition-colors">Contact Us</a>
             </div>
           </div>
         </div>
