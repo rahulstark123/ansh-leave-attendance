@@ -86,56 +86,9 @@ const defaultSettings: SystemSettings = {
     annualLimit: 15,
     sickLimit: 8,
     casualLimit: 6,
-    customLeaveTypes: [
-      {
-        id: "clt-maternity",
-        name: "Maternity Leave",
-        days: 90,
-        color: "purple",
-        allowRollover: false,
-        description: "Paid time off for expecting mothers before and after childbirth.",
-        applicableGender: "Female",
-        accrualPolicy: "One-time",
-        requiresProof: true
-      },
-      {
-        id: "clt-paternity",
-        name: "Paternity Leave",
-        days: 15,
-        color: "indigo",
-        allowRollover: false,
-        description: "Paid time off for new fathers following childbirth or adoption.",
-        applicableGender: "Male",
-        accrualPolicy: "One-time",
-        requiresProof: true
-      },
-      {
-        id: "clt-marriage",
-        name: "Marriage Leave",
-        days: 5,
-        color: "pink",
-        allowRollover: false,
-        description: "Paid days off granted to employees celebrating their own marriage.",
-        applicableGender: "All",
-        accrualPolicy: "One-time",
-        requiresProof: true
-      },
-      {
-        id: "clt-bereavement",
-        name: "Bereavement Leave",
-        days: 7,
-        color: "slate",
-        allowRollover: false,
-        description: "Compassionate paid leave granted upon the loss of an immediate family member.",
-        applicableGender: "All",
-        accrualPolicy: "One-time",
-        requiresProof: false
-      }
-    ],
-    policyDocuments: [
-      { id: "doc-handbook", name: "ANSH_Apps_Leave_Policy_Handbook_2026.pdf", uploadedAt: "2026-05-15", size: "2.4 MB" },
-      { id: "doc-remote", name: "Hybrid_and_Remote_Work_Guidelines.pdf", uploadedAt: "2026-05-20", size: "1.1 MB" }
-    ],
+    customLeaveTypes: [],
+    // Policy documents are stored per-workspace in the PolicyDocument DB table, not here.
+    policyDocuments: [],
     companyHolidays: [
       { id: "hol-ny", name: "New Year's Day", date: "2026-01-01", type: "Gazetted", branchId: "All" },
       { id: "hol-rd", name: "Republic Day", date: "2026-01-26", type: "Gazetted", branchId: "All" },
@@ -166,12 +119,12 @@ const defaultSettings: SystemSettings = {
     name: "ANSH Solutions",
     address: "123 Business Park, Mumbai, India",
     employeeCount: "11-50",
-    industry: "Software & Technology",
-    foundYear: "2021",
-    registrationNumber: "CIN-U72900MH2021PTC361284",
-    contactEmail: "contact@ansh.com",
-    contactPhone: "+91 22 4567 8901",
-    websiteUrl: "https://ansh.com"
+    industry: "",
+    foundYear: "",
+    registrationNumber: "",
+    contactEmail: "",
+    contactPhone: "",
+    websiteUrl: ""
   }
 };
 

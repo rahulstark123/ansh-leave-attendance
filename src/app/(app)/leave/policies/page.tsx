@@ -43,19 +43,17 @@ export default function LeavePoliciesPage() {
       try {
         const token = sessionStorage.getItem("ansh_auth_token") || "";
         setAuthToken(token);
-        const res = await fetch("/api/settings", {
+        const res = await fetch("/api/settings/policy", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.settings && data.settings.leaveSettings) {
-            setPolicyDocuments(data.settings.leaveSettings.policyDocuments || []);
-          }
+          setPolicyDocuments(data.policyDocuments || []);
         }
       } catch (err) {
-        console.error("Failed to load settings:", err);
+        console.error("Failed to load policies:", err);
       } finally {
         setFetching(false);
       }

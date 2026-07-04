@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
-import { getSystemSettings } from "@/lib/settings";
+import { prisma } from "@/lib/db";
 import { fetchR2Object } from "@/lib/storage/r2";
 
 export async function GET(req: Request) {
@@ -19,9 +19,9 @@ export async function GET(req: Request) {
       return new Response("Bad Request: Missing document ID", { status: 400 });
     }
 
-    // 3. Find document inside settings JSON database
-    const settings = getSystemSettings();
-    const doc = (settings.leaveSettings.policyDocuments || []).find((d) => d.id === id);
+    // 3. Find document in the workspace-scoped policy registry
+    const wid = employee.wid ?? 1;
+    const doc = await prisma.policyDocument.findFirst({ where: { id, wid } });
 
     if (!doc) {
       return new Response("Document Not Found", { status: 404 });

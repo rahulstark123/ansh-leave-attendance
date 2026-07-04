@@ -102,7 +102,39 @@ export default function AttendancePage() {
   const onTimeCount = timeFilteredHistory.filter(
     (p) => p.status === "On-time" || p.status === "WFH" || p.status === "Regularized"
   ).length;
-  const onTimePercentage = totalDays > 0 ? Math.round((onTimeCount / totalDays) * 100) : 100;
+  const onTimePercentage = totalDays > 0 ? Math.round((onTimeCount / totalDays) * 100) : 0;
+
+  const parseDurationToMinutes = (duration?: string | null) => {
+    if (!duration) return 0;
+    const match = duration.match(/(\d+)h\s*(\d+)m/);
+    if (match) {
+      const hours = parseInt(match[1], 10);
+      const minutes = parseInt(match[2], 10);
+      return hours * 60 + minutes;
+    }
+    const hoursMatch = duration.match(/(\d+)h/);
+    if (hoursMatch) {
+      return parseInt(hoursMatch[1], 10) * 60;
+    }
+    const minsMatch = duration.match(/(\d+)m/);
+    if (minsMatch) {
+      return parseInt(minsMatch[1], 10);
+    }
+    return 0;
+  };
+
+  const completedShifts = timeFilteredHistory.filter((p) => p.punchOut !== null);
+  let averageShiftLengthText = "0h 00m";
+  if (completedShifts.length > 0) {
+    let totalMinutes = 0;
+    completedShifts.forEach((p) => {
+      totalMinutes += parseDurationToMinutes(p.duration);
+    });
+    const avgMinutes = Math.round(totalMinutes / completedShifts.length);
+    const avgHours = Math.floor(avgMinutes / 60);
+    const remainingMins = avgMinutes % 60;
+    averageShiftLengthText = `${avgHours}h ${remainingMins.toString().padStart(2, "0")}m`;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -196,7 +228,7 @@ export default function AttendancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-extrabold text-slate-800 dark:text-white">
-              8h 35m
+              {averageShiftLengthText}
             </div>
             <p className="mt-1.5 text-xs text-slate-400">Productive hours ratio</p>
           </CardContent>

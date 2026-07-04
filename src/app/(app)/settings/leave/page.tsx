@@ -9,6 +9,7 @@ import { useLeaveStore } from "@/stores/leave-store";
 import {
   Loader2,
   Calendar,
+  Building,
   ShieldAlert,
   CheckCircle,
   Sliders,
@@ -402,12 +403,22 @@ export default function LeaveSettingPage() {
               setAnnualLimit(data.settings.leaveSettings.annualLimit);
               setSickLimit(data.settings.leaveSettings.sickLimit);
               setCasualLimit(data.settings.leaveSettings.casualLimit);
-              setPolicyDocuments(data.settings.leaveSettings.policyDocuments || []);
             }
             if (data.settings.branches) {
               setBranches(data.settings.branches);
             }
           }
+        }
+
+        // Fetch policy documents from the database (filtered by workspace WID)
+        const polRes = await fetch("/api/settings/policy", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (polRes.ok) {
+          const polData = await polRes.json();
+          setPolicyDocuments(polData.policyDocuments || []);
         }
 
         // Fetch custom leave types from the database (filtered by workspace WID)
@@ -459,7 +470,6 @@ export default function LeaveSettingPage() {
             annualLimit,
             sickLimit,
             casualLimit,
-            policyDocuments,
             companyHolidays,
             ...updatedSettings
           },
@@ -472,7 +482,6 @@ export default function LeaveSettingPage() {
 
       const data = await res.json();
       if (data.settings?.leaveSettings) {
-        setPolicyDocuments(data.settings.leaveSettings.policyDocuments || []);
         setCompanyHolidays(data.settings.leaveSettings.companyHolidays || []);
       }
       setSuccessMsg("System leave settings updated successfully!");

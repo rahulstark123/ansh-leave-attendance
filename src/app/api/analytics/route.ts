@@ -67,25 +67,34 @@ export async function GET(req: Request) {
     const approvedLeaves = leaves.filter((l) => l.status === "Approved");
     const totalApprovedLeaves = approvedLeaves.reduce((sum, curr) => sum + curr.totalDays, 0);
 
-    // annualLeavesTaken
-    const annualLeavesTaken = approvedLeaves
-      .filter((l) => l.type === "Annual")
-      .reduce((sum, curr) => sum + curr.totalDays, 0);
+    // 4. Fetch custom leave categories to group leave distribution dynamically
+    const customCategories = await prisma.leaveCategory.findMany({
+      where: { wid },
+    });
 
-    // sickLeavesTaken
-    const sickLeavesTaken = approvedLeaves
-      .filter((l) => l.type === "Sick")
-      .reduce((sum, curr) => sum + curr.totalDays, 0);
+    const approvedTypes = Array.from(new Set(approvedLeaves.map((l) => l.type)));
+    const leaveDistribution = approvedTypes.map((typeName) => {
+      const catConfig = customCategories.find((c) => c.name === typeName);
+      const daysTaken = approvedLeaves
+        .filter((l) => l.type === typeName)
+        .reduce((sum, curr) => sum + curr.totalDays, 0);
+      return {
+        name: typeName,
+        daysTaken,
+        color: catConfig?.color || "slate",
+      };
+    });
 
-    // casualLeavesTaken
-    const casualLeavesTaken = approvedLeaves
-      .filter((l) => l.type === "Casual")
-      .reduce((sum, curr) => sum + curr.totalDays, 0);
-
-    // unpaidOrOtherLeaves
-    const unpaidOrOtherLeaves = approvedLeaves
-      .filter((l) => l.type === "Unpaid" || l.type === "Maternity/Paternity")
-      .reduce((sum, curr) => sum + curr.totalDays, 0);
+    // Add any defined categories that haven't been taken yet (as 0 days)
+    customCategories.forEach((cat) => {
+      if (!leaveDistribution.some((item) => item.name === cat.name)) {
+        leaveDistribution.push({
+          name: cat.name,
+          daysTaken: 0,
+          color: cat.color || "slate",
+        });
+      }
+    });
 
     // punctualityRate: percentage of punch records where status is "On-time"
     const onTimePunchesCount = punches.filter((p) => p.status === "On-time").length;
@@ -177,10 +186,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       absenceRate: Math.round(absenceRate * 10) / 10,
       totalApprovedLeaves,
-      annualLeavesTaken,
-      sickLeavesTaken,
-      casualLeavesTaken,
-      unpaidOrOtherLeaves,
+      leaveDistribution,
       punctualityRate: Math.round(punctualityRate * 10) / 10,
       resourceAvailability: Math.round(resourceAvailability * 10) / 10,
       departments,

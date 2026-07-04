@@ -259,6 +259,16 @@ exports.Prisma.CompanyHolidayScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PolicyDocumentScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  uploadedAt: 'uploadedAt',
+  size: 'size',
+  s3Key: 's3Key',
+  wid: 'wid',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ShiftScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -391,6 +401,7 @@ exports.Prisma.ModelName = {
   Transaction: 'Transaction',
   LeaveCategory: 'LeaveCategory',
   CompanyHoliday: 'CompanyHoliday',
+  PolicyDocument: 'PolicyDocument',
   Shift: 'Shift',
   Designation: 'Designation',
   AttendanceRegularization: 'AttendanceRegularization',

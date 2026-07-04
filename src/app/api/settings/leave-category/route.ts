@@ -3,48 +3,7 @@ import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 
 // Default leave categories to seed when a workspace has none
-const defaultCategories = [
-  {
-    name: "Maternity Leave",
-    days: 90,
-    color: "purple",
-    allowRollover: false,
-    description: "Paid time off for expecting mothers before and after childbirth.",
-    applicableGender: "Female",
-    accrualPolicy: "One-time",
-    requiresProof: true
-  },
-  {
-    name: "Paternity Leave",
-    days: 15,
-    color: "indigo",
-    allowRollover: false,
-    description: "Paid time off for new fathers following childbirth or adoption.",
-    applicableGender: "Male",
-    accrualPolicy: "One-time",
-    requiresProof: true
-  },
-  {
-    name: "Marriage Leave",
-    days: 5,
-    color: "pink",
-    allowRollover: false,
-    description: "Paid days off granted to employees celebrating their own marriage.",
-    applicableGender: "All",
-    accrualPolicy: "One-time",
-    requiresProof: true
-  },
-  {
-    name: "Bereavement Leave",
-    days: 7,
-    color: "slate",
-    allowRollover: false,
-    description: "Compassionate paid leave granted upon the loss of an immediate family member.",
-    applicableGender: "All",
-    accrualPolicy: "One-time",
-    requiresProof: false
-  }
-];
+const defaultCategories: any[] = [];
 
 export async function GET(req: Request) {
   try {

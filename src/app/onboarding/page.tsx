@@ -2,18 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Sparkles, Briefcase, Shield, User, CheckCircle2, Circle, Calendar, Building, MapPin, Users } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Sparkles, Briefcase, Shield, User, CheckCircle2, Circle, Building, Building2, MapPin, Users, Factory } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 export default function OnboardingPage() {
   const router = useRouter();
 
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [department, setDepartment] = useState("Engineering");
+  const [customDepartment, setCustomDepartment] = useState("");
   const [role, setRole] = useState("Employee");
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
   const [employeeCount, setEmployeeCount] = useState("1-10");
+  // Extended company profile
+  const [industry, setIndustry] = useState("");
+  const [companyPincode, setCompanyPincode] = useState("");
+  const [companyPincodeLoading, setCompanyPincodeLoading] = useState(false);
+  // Initial branch (Main HQ - auto-registered)
+  const [branchAddress, setBranchAddress] = useState("");
+  const [branchPincode, setBranchPincode] = useState("");
+  const [branchPincodeLoading, setBranchPincodeLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -64,11 +76,75 @@ export default function OnboardingPage() {
     checkAuth();
   }, [router]);
 
+  // Company address pincode autofill
+  useEffect(() => {
+    if (companyPincode.length === 6 && /^\d+$/.test(companyPincode)) {
+      const fetchLocation = async () => {
+        setCompanyPincodeLoading(true);
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${companyPincode}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data[0] && data[0].Status === "Success" && data[0].PostOffice?.[0]) {
+              const po = data[0].PostOffice[0];
+              const city = po.District || po.Division || "";
+              const state = po.State || "";
+              setCompanyAddress(`${po.Name ? po.Name + ", " : ""}${city}, ${state} - ${companyPincode}`);
+            }
+          }
+        } catch (err) {
+          console.error("Company pincode lookup error:", err);
+        } finally {
+          setCompanyPincodeLoading(false);
+        }
+      };
+      fetchLocation();
+    }
+  }, [companyPincode]);
+
+  // Branch address pincode autofill
+  useEffect(() => {
+    if (branchPincode.length === 6 && /^\d+$/.test(branchPincode)) {
+      const fetchLocation = async () => {
+        setBranchPincodeLoading(true);
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${branchPincode}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data[0] && data[0].Status === "Success" && data[0].PostOffice?.[0]) {
+              const po = data[0].PostOffice[0];
+              const city = po.District || po.Division || "";
+              const state = po.State || "";
+              setBranchAddress(`${po.Name ? po.Name + ", " : ""}${city}, ${state} - ${branchPincode}`);
+            }
+          }
+        } catch (err) {
+          console.error("Branch pincode lookup error:", err);
+        } finally {
+          setBranchPincodeLoading(false);
+        }
+      };
+      fetchLocation();
+    }
+  }, [branchPincode]);
+
   const handleNextStep1 = (e: React.MouseEvent) => {
     e.preventDefault();
     setErrorMsg("");
     if (!name.trim()) {
       setErrorMsg("Please enter your name.");
+      return;
+    }
+    if (!phoneNumber) {
+      setErrorMsg("Please enter your phone number.");
+      return;
+    }
+    if (!isValidPhoneNumber(phoneNumber)) {
+      setErrorMsg("Please enter a valid phone number.");
+      return;
+    }
+    if (department === "Other" && !customDepartment.trim()) {
+      setErrorMsg("Please enter your department name.");
       return;
     }
     setStep(2);
@@ -86,6 +162,18 @@ export default function OnboardingPage() {
 
     if (!name.trim()) {
       setErrorMsg("Please enter your name.");
+      setStep(1);
+      return;
+    }
+
+    if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+      setErrorMsg("Please enter a valid phone number.");
+      setStep(1);
+      return;
+    }
+
+    if (department === "Other" && !customDepartment.trim()) {
+      setErrorMsg("Please enter your department name.");
       setStep(1);
       return;
     }
@@ -129,11 +217,20 @@ export default function OnboardingPage() {
         },
         body: JSON.stringify({
           name: name.trim(),
-          department,
+          phoneNumber: phoneNumber,
+          department: department === "Other" ? customDepartment.trim() : department,
           role,
           companyName: !isInvited ? companyName.trim() : null,
           companyAddress: !isInvited ? companyAddress.trim() : null,
           employeeCount: !isInvited ? employeeCount : null,
+          industry: !isInvited ? industry.trim() : null,
+          initialBranch: !isInvited
+            ? {
+                name: "Main HQ",
+                address: branchAddress.trim() || companyAddress.trim(),
+                allowWFH: true,
+              }
+            : null,
         }),
       });
 
@@ -326,7 +423,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* RIGHT PANE - Form Input Panel */}
-      <div className="flex w-full items-center justify-center bg-slate-950 px-6 py-12 lg:w-1/2 select-none overflow-y-auto min-h-screen">
+      <div className="flex w-full items-center justify-center bg-white px-6 py-12 lg:w-1/2 select-none overflow-y-auto min-h-screen">
         <div className="w-full max-w-[420px] space-y-8 py-8 animate-in fade-in duration-500">
           
           {/* Header Description */}
@@ -336,17 +433,17 @@ export default function OnboardingPage() {
                 <Sparkles className="h-5.5 w-5.5" />
               </div>
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
               {header.title}
             </h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-500 leading-relaxed">
               {header.desc}
             </p>
           </div>
 
           {/* Form Message Alerts */}
           {errorMsg && (
-            <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-xs font-bold text-rose-400 animate-in fade-in duration-200">
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-600 animate-in fade-in duration-200">
               {errorMsg}
             </div>
           )}
@@ -361,7 +458,7 @@ export default function OnboardingPage() {
                     Full Name
                   </label>
                   <div className="mt-2 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                       <User className="h-4.5 w-4.5" />
                     </div>
                     <input
@@ -370,12 +467,28 @@ export default function OnboardingPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Priya Sharma"
-                      className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all placeholder:text-slate-650 focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 py-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500/40"
                     />
                   </div>
-                  <p className="mt-1.5 text-[9px] text-slate-500">
+                  <p className="mt-1.5 text-[9px] text-slate-400">
                     * Pre-filled from your signup form. You can adjust it here if needed.
                   </p>
+                </div>
+
+                {/* PHONE NUMBER */}
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                    Phone Number
+                  </label>
+                  <div className="phone-input-container">
+                    <PhoneInput
+                      international
+                      defaultCountry="IN"
+                      placeholder="Enter phone number"
+                      value={phoneNumber}
+                      onChange={(val) => setPhoneNumber(val || "")}
+                    />
+                  </div>
                 </div>
 
                 {/* DEPARTMENT */}
@@ -384,13 +497,13 @@ export default function OnboardingPage() {
                     Department Registry
                   </label>
                   <div className="mt-2 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                       <Briefcase className="h-4.5 w-4.5" />
                     </div>
                     <select
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="block w-full rounded-2xl border border-white/5 bg-slate-950/80 pl-11 pr-4 py-3.5 text-sm text-white shadow-inner outline-none transition-all focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/40 appearance-none cursor-pointer"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 py-3.5 text-sm text-slate-900 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500/40 appearance-none cursor-pointer"
                     >
                       <option value="Engineering">Engineering</option>
                       <option value="Human Resources">Human Resources</option>
@@ -398,8 +511,22 @@ export default function OnboardingPage() {
                       <option value="Data Analytics">Data Analytics</option>
                       <option value="Executive">Executive</option>
                       <option value="Marketing">Marketing</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
+
+                  {/* CUSTOM DEPARTMENT (shown when "Other" is selected) */}
+                  {department === "Other" && (
+                    <div className="mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <input
+                        type="text"
+                        value={customDepartment}
+                        onChange={(e) => setCustomDepartment(e.target.value)}
+                        placeholder="Enter your department name"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500/40"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-2">
@@ -438,18 +565,18 @@ export default function OnboardingPage() {
                           onClick={() => setRole(item.value)}
                           className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center cursor-pointer ${
                             active
-                              ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400"
-                              : "bg-slate-950/50 border-white/5 text-slate-500 hover:bg-slate-950/80"
+                              ? "bg-emerald-50 border-emerald-500/50 text-emerald-600"
+                              : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
                           }`}
                         >
-                          <Shield className={`h-4.5 w-4.5 mb-1.5 ${active ? "text-emerald-400" : "text-slate-600"}`} />
+                          <Shield className={`h-4.5 w-4.5 mb-1.5 ${active ? "text-emerald-600" : "text-slate-400"}`} />
                           <span className="text-xs font-bold block">{item.label}</span>
-                          <span className="text-[9px] text-slate-500 block mt-0.5 leading-none">{item.desc}</span>
+                          <span className="text-[9px] text-slate-400 block mt-0.5 leading-none">{item.desc}</span>
                         </button>
                       );
                     })}
                   </div>
-                  <p className="mt-2 text-[9px] text-slate-500 leading-normal">
+                  <p className="mt-2 text-[9px] text-slate-400 leading-normal">
                     * Account role sets your workspace privileges level. HR Manager & Admins gain access to approvals, settings, and company configurations.
                   </p>
                 </div>
@@ -458,7 +585,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-slate-800 hover:text-white active:scale-[0.98] cursor-pointer"
+                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] cursor-pointer"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Back
@@ -492,15 +619,15 @@ export default function OnboardingPage() {
             {/* STEP 3: Company Setup */}
             {step === 3 && !isInvited && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
-                <div className="rounded-2xl border border-sky-500/10 bg-sky-500/5 p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-sky-400 border-b border-sky-500/10 pb-2">
+                <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5 space-y-4">
+                  <div className="flex items-center gap-2 text-sky-600 border-b border-sky-200 pb-2">
                     <Building className="h-4.5 w-4.5" />
                     <span className="text-xs font-bold uppercase tracking-wider">Company Workspace Setup</span>
                   </div>
 
                   {/* COMPANY NAME */}
                   <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       Company Name
                     </label>
                     <div className="mt-1.5 relative">
@@ -510,24 +637,24 @@ export default function OnboardingPage() {
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         placeholder="e.g. ANSH Solutions"
-                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 px-3.5 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40"
+                        className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/40"
                       />
                     </div>
                   </div>
 
                   {/* EMPLOYEES COUNT */}
                   <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       Company Employee Size
                     </label>
                     <div className="mt-1.5 relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Users className="h-3.5 w-3.5" />
                       </div>
                       <select
                         value={employeeCount}
                         onChange={(e) => setEmployeeCount(e.target.value)}
-                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 appearance-none cursor-pointer"
+                        className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/40 appearance-none cursor-pointer"
                       >
                         <option value="1-10">1 - 10 employees</option>
                         <option value="11-50">11 - 50 employees</option>
@@ -538,21 +665,125 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* COMPANY ADDRESS */}
-                  <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      Company Address
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Company Pincode
+                        {companyPincodeLoading && (
+                          <span className="ml-2 text-sky-500 normal-case font-normal">Looking up...</span>
+                        )}
+                      </label>
+                      <div className="mt-1.5 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <MapPin className="h-3.5 w-3.5" />
+                        </div>
+                        <input
+                          type="text"
+                          value={companyPincode}
+                          onChange={(e) => setCompanyPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="Enter 6-digit pincode to auto-fill address"
+                          maxLength={6}
+                          className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/40"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                        Company Address
+                        {companyAddress && companyPincode.length === 6 && (
+                          <span className="ml-2 text-sky-500 normal-case font-normal">✓ Auto-filled</span>
+                        )}
+                      </label>
+                      <div className="mt-1.5 relative">
+                        <div className="absolute top-3 left-3 text-slate-400">
+                          <MapPin className="h-3.5 w-3.5" />
+                        </div>
+                        <textarea
+                          required
+                          rows={2}
+                          value={companyAddress}
+                          onChange={(e) => setCompanyAddress(e.target.value)}
+                          placeholder="Auto-fills from pincode, or type your full address"
+                          className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/40 resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {/* INDUSTRY TYPE */}
+                  <div className="border-t border-sky-200 pt-3">
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                      Industry Type <span className="text-slate-400 font-normal normal-case">(optional)</span>
                     </label>
                     <div className="mt-1.5 relative">
-                      <div className="absolute top-3 left-3 text-slate-500">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Factory className="h-3.5 w-3.5" />
+                      </div>
+                      <input
+                        type="text"
+                        value={industry}
+                        onChange={(e) => setIndustry(e.target.value)}
+                        placeholder="e.g. Software & Technology"
+                        className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/40"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* MAIN HQ BRANCH */}
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 space-y-4">
+                  <div className="flex items-center gap-2 text-emerald-700 border-b border-emerald-200 pb-2">
+                    <Building2 className="h-4.5 w-4.5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Main HQ Branch</span>
+                    <span className="ml-auto text-[9px] font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Auto-registered
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 leading-relaxed">
+                    Your primary HQ branch will be created automatically. Enter the branch pincode to auto-fill its address, or leave blank to use the company address.
+                  </p>
+
+                  {/* BRANCH PINCODE */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                      Branch Pincode
+                      {branchPincodeLoading && (
+                        <span className="ml-2 text-emerald-500 normal-case font-normal">Looking up...</span>
+                      )}
+                    </label>
+                    <div className="mt-1.5 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <MapPin className="h-3.5 w-3.5" />
+                      </div>
+                      <input
+                        type="text"
+                        value={branchPincode}
+                        onChange={(e) => setBranchPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="e.g. 110001"
+                        maxLength={6}
+                        className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* BRANCH ADDRESS (auto-filled) */}
+                  <div>
+                    <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+                      Branch Address
+                      {branchAddress && (
+                        <span className="ml-2 text-emerald-500 normal-case font-normal">✓ Auto-filled</span>
+                      )}
+                    </label>
+                    <div className="mt-1.5 relative">
+                      <div className="absolute top-3 left-3 text-slate-400">
                         <MapPin className="h-3.5 w-3.5" />
                       </div>
                       <textarea
-                        required
                         rows={2}
-                        value={companyAddress}
-                        onChange={(e) => setCompanyAddress(e.target.value)}
-                        placeholder="e.g. 123 Business Park, Mumbai, India"
-                        className="block w-full rounded-xl border border-white/5 bg-slate-950/90 pl-9 pr-3 py-2.5 text-xs text-white outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/40 resize-none"
+                        value={branchAddress}
+                        onChange={(e) => setBranchAddress(e.target.value)}
+                        placeholder="Auto-fills from pincode, or leave blank to use company address"
+                        className="block w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 resize-none"
                       />
                     </div>
                   </div>
@@ -562,7 +793,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={handleBack}
-                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-slate-800 hover:text-white active:scale-[0.98] cursor-pointer"
+                    className="flex flex-1 justify-center items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] cursor-pointer"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Back

@@ -163,10 +163,7 @@ export default function ReportsPage() {
   const {
     absenceRate,
     totalApprovedLeaves,
-    annualLeavesTaken,
-    sickLeavesTaken,
-    casualLeavesTaken,
-    unpaidOrOtherLeaves,
+    leaveDistribution,
     punctualityRate,
     resourceAvailability,
     departments,
@@ -263,84 +260,56 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Annual Holidays</span>
-                <span className="font-semibold text-slate-500">{annualLeavesTaken} days</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 transition-all duration-500"
-                  style={{
-                    width: `${
-                      totalApprovedLeaves > 0
-                        ? (annualLeavesTaken / totalApprovedLeaves) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Sick & Medical Leaves</span>
-                <span className="font-semibold text-slate-500">{sickLeavesTaken} days</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-sky-500 transition-all duration-500"
-                  style={{
-                    width: `${
-                      totalApprovedLeaves > 0
-                        ? (sickLeavesTaken / totalApprovedLeaves) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Casual / Emergency Leaves</span>
-                <span className="font-semibold text-slate-500">{casualLeavesTaken} days</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-purple-500 transition-all duration-500"
-                  style={{
-                    width: `${
-                      totalApprovedLeaves > 0
-                        ? (casualLeavesTaken / totalApprovedLeaves) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Unpaid / Maternity / Other</span>
-                <span className="font-semibold text-slate-500">{unpaidOrOtherLeaves} days</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-slate-400 transition-all duration-500"
-                  style={{
-                    width: `${
-                      totalApprovedLeaves > 0
-                        ? (unpaidOrOtherLeaves / totalApprovedLeaves) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {totalApprovedLeaves === 0 && (
+            {(!leaveDistribution || leaveDistribution.length === 0) ? (
               <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3.5 text-xs text-slate-500 dark:bg-slate-900/40">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-slate-400" />
+                <span>No leave types defined yet.</span>
+              </div>
+            ) : (
+              leaveDistribution.map((item: any) => {
+                let progressBg = "bg-primary";
+                if (item.color === "sky") progressBg = "bg-sky-500";
+                else if (item.color === "purple") progressBg = "bg-purple-500";
+                else if (item.color === "pink") progressBg = "bg-pink-500";
+                else if (item.color === "indigo") progressBg = "bg-indigo-500";
+                else if (item.color === "amber") progressBg = "bg-amber-500";
+                else if (item.color === "emerald") progressBg = "bg-emerald-500";
+                else if (item.color === "slate") progressBg = "bg-slate-400";
+                else if (item.color && (item.color.startsWith("#") || item.color.startsWith("rgb"))) {
+                  progressBg = "";
+                }
+
+                const percentage =
+                  totalApprovedLeaves > 0
+                    ? (item.daysTaken / totalApprovedLeaves) * 100
+                    : 0;
+
+                return (
+                  <div key={item.name} className="space-y-1.5 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">
+                        {item.name}
+                      </span>
+                      <span className="font-semibold text-slate-500">
+                        {item.daysTaken} day{item.daysTaken !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className={`h-full ${progressBg} transition-all duration-500`}
+                        style={{
+                          width: `${percentage}%`,
+                          backgroundColor: progressBg === "" ? item.color : undefined,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            {totalApprovedLeaves === 0 && leaveDistribution && leaveDistribution.length > 0 && (
+              <div className="flex items-center gap-2 rounded-xl bg-slate-50 p-3.5 text-xs text-slate-500 dark:bg-slate-900/40 mt-4">
                 <AlertTriangle className="h-4 w-4 shrink-0 text-slate-400" />
                 <span>No approved leave allocations recorded yet to distribute.</span>
               </div>

@@ -306,7 +306,7 @@ export default function LeavePage() {
   const [open, setOpen] = useState(false);
 
   // Form State (Apply)
-  const [type, setType] = useState<LeaveType>("Annual");
+  const [type, setType] = useState<LeaveType>("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [halfDay, setHalfDay] = useState(false);
@@ -318,7 +318,7 @@ export default function LeavePage() {
   // Edit State
   const [editOpen, setEditOpen] = useState(false);
   const [editRequest, setEditRequest] = useState<any | null>(null);
-  const [editType, setEditType] = useState<LeaveType>("Annual");
+  const [editType, setEditType] = useState<LeaveType>("");
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [editHalfDay, setEditHalfDay] = useState(false);
@@ -370,7 +370,12 @@ export default function LeavePage() {
         const res = await fetch("/api/settings/leave-category", { headers });
         if (res.ok) {
           const data = await res.json();
-          setCustomLeaveTypes(data.leaveCategories || []);
+          const cats = data.leaveCategories || [];
+          setCustomLeaveTypes(cats);
+          if (cats.length > 0) {
+            setType(cats[0].name);
+            setEditType(cats[0].name);
+          }
         }
       } catch (err) {
         console.error("Failed to load leave categories:", err);
@@ -451,24 +456,18 @@ export default function LeavePage() {
   const paginatedRequests = filteredRequests.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
 
   // Custom Select Options definition
-  const selectOptions: CustomSelectOption[] = [
-    { value: "Annual", label: "Annual (Paid Holiday)", description: "Paid holiday allowance", colorPreview: "bg-emerald-500" },
-    { value: "Sick", label: "Sick Leave", description: "Medical leaves with pay", colorPreview: "bg-sky-500" },
-    { value: "Casual", label: "Casual Leave", description: "Personal emergencies allowance", colorPreview: "bg-purple-500" },
-    { value: "Unpaid", label: "Unpaid Leave", description: "Time off without salary", colorPreview: "bg-slate-400" },
-    ...customLeaveTypes
-      .filter((cat) => {
-        if (!cat.branchId || cat.branchId === "All") return true;
-        if (!currentUser?.branch) return false;
-        return cat.branchId.toLowerCase() === currentUser.branch.toLowerCase();
-      })
-      .map((cat) => ({
-        value: cat.name,
-        label: `${cat.name} (${cat.days} Days)`,
-        description: cat.description || "Custom leave category",
-        colorPreview: cat.color || "bg-primary-500",
-      })),
-  ];
+  const selectOptions: CustomSelectOption[] = customLeaveTypes
+    .filter((cat) => {
+      if (!cat.branchId || cat.branchId === "All") return true;
+      if (!currentUser?.branch) return false;
+      return cat.branchId.toLowerCase() === currentUser.branch.toLowerCase();
+    })
+    .map((cat) => ({
+      value: cat.name,
+      label: `${cat.name} (${cat.days} Days)`,
+      description: cat.description || "Custom leave category",
+      colorPreview: cat.color || "bg-primary-500",
+    }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -555,7 +554,11 @@ export default function LeavePage() {
         attachments,
       });
 
-      setType("Annual");
+      if (customLeaveTypes.length > 0) {
+        setType(customLeaveTypes[0].name);
+      } else {
+        setType("");
+      }
       setStartDate("");
       setEndDate("");
       setHalfDay(false);
@@ -707,38 +710,6 @@ export default function LeavePage() {
 
       {/* LEAVE BALANCES GRID */}
       <div className="flex flex-wrap gap-6">
-        <Card className="crm-card border-l-4 border-l-emerald-500 w-full sm:w-[200px]">
-          <CardContent className="p-4 flex flex-col items-start gap-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Annual Leave
-            </span>
-            <span className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {currentUser.leaveBalance.Annual} days
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="crm-card border-l-4 border-l-sky-500 w-full sm:w-[200px]">
-          <CardContent className="p-4 flex flex-col items-start gap-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Sick Leave
-            </span>
-            <span className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {currentUser.leaveBalance.Sick} days
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="crm-card border-l-4 border-l-purple-500 w-full sm:w-[200px]">
-          <CardContent className="p-4 flex flex-col items-start gap-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Casual Leave
-            </span>
-            <span className="text-lg font-extrabold text-slate-900 dark:text-white">
-              {currentUser.leaveBalance.Casual} days
-            </span>
-          </CardContent>
-        </Card>
 
         {customLeaveTypes
           .filter((cat) => {

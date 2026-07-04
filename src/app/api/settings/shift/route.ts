@@ -2,12 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 
-// Default rosters to seed when a workspace has none
-const defaultShifts = [
-  { name: "General Shift", startTime: "09:00 AM", endTime: "06:00 PM", gracePeriod: 15, workingHours: 9, branchId: "All" },
-  { name: "Morning Shift", startTime: "07:00 AM", endTime: "04:00 PM", gracePeriod: 15, workingHours: 9, branchId: "All" },
-  { name: "Night Shift", startTime: "10:00 PM", endTime: "07:00 AM", gracePeriod: 15, workingHours: 9, branchId: "All" }
-];
+const defaultShifts: any[] = [];
 
 export async function GET(req: Request) {
   try {

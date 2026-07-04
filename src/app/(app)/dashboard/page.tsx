@@ -170,6 +170,28 @@ function CustomSelect({
   );
 }
 
+const getBorderColorStyle = (color?: string) => {
+  if (!color) return {};
+  if (color.startsWith("#") || color.startsWith("rgb")) {
+    return { borderLeftColor: color };
+  }
+  return {};
+};
+
+const getBorderColorClass = (color?: string) => {
+  if (!color) return "border-l-slate-400";
+  if (color.startsWith("#") || color.startsWith("rgb")) {
+    return "";
+  }
+  if (color.startsWith("border-l-")) {
+    return color;
+  }
+  if (color.startsWith("bg-")) {
+    return color.replace("bg-", "border-l-");
+  }
+  return `border-l-${color}-500`;
+};
+
 export default function DashboardPage() {
   const {
     currentUser,
@@ -185,7 +207,7 @@ export default function DashboardPage() {
 
   // Apply Leave form state
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
-  const [leaveType, setLeaveType] = useState<string>("Annual");
+  const [leaveType, setLeaveType] = useState<string>("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [halfDay, setHalfDay] = useState(false);
@@ -232,7 +254,11 @@ export default function DashboardPage() {
         const res = await fetch("/api/settings/leave-category", { headers });
         if (res.ok) {
           const data = await res.json();
-          setCustomLeaveTypes(data.leaveCategories || []);
+          const cats = data.leaveCategories || [];
+          setCustomLeaveTypes(cats);
+          if (cats.length > 0) {
+            setLeaveType(cats[0].name);
+          }
         }
       } catch (err) {
         console.error("Failed to load leave categories:", err);
@@ -241,24 +267,18 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const selectOptions: CustomSelectOption[] = [
-    { value: "Annual", label: "Annual (Paid Holiday)", description: "Paid holiday allowance", colorPreview: "bg-emerald-500" },
-    { value: "Sick", label: "Sick Leave", description: "Medical leaves with pay", colorPreview: "bg-sky-500" },
-    { value: "Casual", label: "Casual Leave", description: "Personal emergencies allowance", colorPreview: "bg-purple-500" },
-    { value: "Unpaid", label: "Unpaid Leave", description: "Time off without salary", colorPreview: "bg-slate-400" },
-    ...customLeaveTypes
-      .filter((cat) => {
-        if (!cat.branchId || cat.branchId === "All") return true;
-        if (!currentUser?.branch) return false;
-        return cat.branchId.toLowerCase() === currentUser.branch.toLowerCase();
-      })
-      .map((cat) => ({
-        value: cat.name,
-        label: `${cat.name} (${cat.days} Days)`,
-        description: cat.description || "Custom leave category",
-        colorPreview: cat.color || "bg-primary-500",
-      })),
-  ];
+  const selectOptions: CustomSelectOption[] = customLeaveTypes
+    .filter((cat) => {
+      if (!cat.branchId || cat.branchId === "All") return true;
+      if (!currentUser?.branch) return false;
+      return cat.branchId.toLowerCase() === currentUser.branch.toLowerCase();
+    })
+    .map((cat) => ({
+      value: cat.name,
+      label: `${cat.name} (${cat.days} Days)`,
+      description: cat.description || "Custom leave category",
+      colorPreview: cat.color || "bg-primary-500",
+    }));
 
   const getExcludedHolidays = (startStr: string, endStr: string) => {
     if (!startStr || !endStr) return [];
@@ -359,7 +379,11 @@ export default function DashboardPage() {
       });
 
       // Reset Form & Close Modal
-      setLeaveType("Annual");
+      if (customLeaveTypes.length > 0) {
+        setLeaveType(customLeaveTypes[0].name);
+      } else {
+        setLeaveType("");
+      }
       setStartDate("");
       setEndDate("");
       setHalfDay(false);
@@ -554,38 +578,53 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-emerald-50/50 p-3 dark:bg-emerald-950/20 border border-emerald-500/10">
-                <span className="block text-2xl font-extrabold text-primary">
-                  {currentUser.leaveBalance.Annual}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  Annual
-                </span>
+            {customLeaveTypes.length === 0 ? (
+              <div className="text-center py-6 text-xs text-slate-400">
+                No leave types defined yet.
               </div>
-              <div className="rounded-xl bg-sky-50/50 p-3 dark:bg-sky-950/20 border border-sky-500/10">
-                <span className="block text-2xl font-extrabold text-sky-600 dark:text-sky-400">
-                  {currentUser.leaveBalance.Sick}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  Sick
-                </span>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 text-center max-h-48 overflow-y-auto pr-1">
+                {customLeaveTypes
+                  .filter((cat) => {
+                    if (!cat.branchId || cat.branchId === "All") return true;
+                    if (!currentUser?.branch) return false;
+                    return cat.branchId.toLowerCase() === currentUser.branch.toLowerCase();
+                  })
+                  .map((cat) => {
+                    const approvedDaysTaken = leaves
+                      .filter((r) => r.type === cat.name && r.status === "Approved")
+                      .reduce((acc, curr) => acc + curr.totalDays, 0);
+                    const balance = cat.days - approvedDaysTaken;
+                    const borderClass = getBorderColorClass(cat.color);
+                    const borderStyle = getBorderColorStyle(cat.color);
+                    
+                    return (
+                      <div
+                        key={cat.id}
+                        className={`rounded-xl p-3 border-l-4 ${borderClass} border bg-slate-50/50 dark:bg-slate-950/20`}
+                        style={borderStyle}
+                      >
+                        <span className="block text-xl font-extrabold text-slate-800 dark:text-white leading-tight">
+                          {balance}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-450 uppercase tracking-wider block mt-0.5 truncate" title={cat.name}>
+                          {cat.name}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
-              <div className="rounded-xl bg-purple-50/50 p-3 dark:bg-purple-950/20 border border-purple-500/10">
-                <span className="block text-2xl font-extrabold text-purple-600 dark:text-purple-400">
-                  {currentUser.leaveBalance.Casual}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  Casual
-                </span>
-              </div>
-            </div>
-
+            )}
+ 
             <div className="mt-5">
               <Button
                 onClick={() => {
                   setErrorMsg("");
-                  setLeaveType("Annual");
+                  if (customLeaveTypes.length > 0) {
+                    setLeaveType(customLeaveTypes[0].name);
+                  } else {
+                    setLeaveType("");
+                  }
                   setStartDate("");
                   setEndDate("");
                   setHalfDay(false);

@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
-import { getSystemSettings, saveSystemSettings } from "@/lib/settings";
+import { prisma } from "@/lib/db";
 import { buildObjectKey, deleteFromR2, sanitizeFilename, uploadToR2 } from "@/lib/storage/r2";
 
-// 1. GET: Retrieve list of policy documents
+// 1. GET: Retrieve list of policy documents for this workspace
 export async function GET(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
     if (!employee) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const settings = getSystemSettings();
-    return NextResponse.json({ policyDocuments: settings.leaveSettings.policyDocuments || [] });
+
+    const wid = employee.wid ?? 1;
+    const policyDocuments = await prisma.policyDocument.findMany({
+      where: { wid },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ policyDocuments });
   } catch (error) {
     console.error("API /api/settings/policy GET error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// 2. POST: Upload a new policy document (R2 + system-settings.json registry)
+// 2. POST: Upload a new policy document (R2 + workspace-scoped DB registry)
 export async function POST(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
@@ -51,36 +57,32 @@ export async function POST(req: Request) {
 
     await uploadToR2(objectKey, buffer, file.type || "application/pdf");
 
-    const settings = getSystemSettings();
-    const currentDocs = settings.leaveSettings.policyDocuments || [];
-    
     // Ensure file name ends with the correct extension
     let savedName = documentName.trim();
     if (!savedName.toLowerCase().endsWith(`.${extension.toLowerCase()}`)) {
       savedName = `${savedName}.${extension}`;
     }
 
-    const fileSizeFormatted = file.size > 1024 * 1024 
-      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+    const fileSizeFormatted = file.size > 1024 * 1024
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
       : `${(file.size / 1024).toFixed(0)} KB`;
 
-    const newDoc = {
-      id: `doc-${Date.now()}`,
-      name: savedName,
-      uploadedAt: new Date().toISOString().split("T")[0],
-      size: fileSizeFormatted,
-      s3Key: objectKey,
-    };
-
-    const updatedDocs = [...currentDocs, newDoc];
-    const updated = saveSystemSettings({
-      leaveSettings: {
-        ...settings.leaveSettings,
-        policyDocuments: updatedDocs,
+    await prisma.policyDocument.create({
+      data: {
+        name: savedName,
+        uploadedAt: new Date().toISOString().split("T")[0],
+        size: fileSizeFormatted,
+        s3Key: objectKey,
+        wid,
       },
     });
 
-    return NextResponse.json({ settings: updated, policyDocuments: updatedDocs });
+    const policyDocuments = await prisma.policyDocument.findMany({
+      where: { wid },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ policyDocuments });
   } catch (error) {
     console.error("API /api/settings/policy POST error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -107,15 +109,13 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Bad Request: Missing document ID or name" }, { status: 400 });
     }
 
-    const settings = getSystemSettings();
-    const currentDocs = settings.leaveSettings.policyDocuments || [];
-    const targetDocIndex = currentDocs.findIndex((d) => d.id === id);
+    const wid = employee.wid ?? 1;
+    const doc = await prisma.policyDocument.findFirst({ where: { id, wid } });
 
-    if (targetDocIndex === -1) {
+    if (!doc) {
       return NextResponse.json({ error: "Document Not Found" }, { status: 404 });
     }
 
-    const doc = currentDocs[targetDocIndex];
     // Keep file extension from current name if not explicitly specified
     const extension = doc.name.split(".").pop() || "pdf";
     let newSavedName = name.trim();
@@ -123,27 +123,24 @@ export async function PATCH(req: Request) {
       newSavedName = `${newSavedName}.${extension}`;
     }
 
-    // Update document name while retaining s3Key and size
-    currentDocs[targetDocIndex] = {
-      ...doc,
-      name: newSavedName,
-    };
-
-    const updated = saveSystemSettings({
-      leaveSettings: {
-        ...settings.leaveSettings,
-        policyDocuments: currentDocs,
-      },
+    await prisma.policyDocument.update({
+      where: { id },
+      data: { name: newSavedName },
     });
 
-    return NextResponse.json({ settings: updated, policyDocuments: currentDocs });
+    const policyDocuments = await prisma.policyDocument.findMany({
+      where: { wid },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ policyDocuments });
   } catch (error) {
     console.error("API /api/settings/policy PATCH error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// 4. DELETE: Remove policy document from settings database and R2
+// 4. DELETE: Remove policy document from the workspace registry and R2
 export async function DELETE(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
@@ -163,9 +160,8 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Bad Request: Missing document ID" }, { status: 400 });
     }
 
-    const settings = getSystemSettings();
-    const currentDocs = settings.leaveSettings.policyDocuments || [];
-    const doc = currentDocs.find((d) => d.id === id);
+    const wid = employee.wid ?? 1;
+    const doc = await prisma.policyDocument.findFirst({ where: { id, wid } });
 
     if (!doc) {
       return NextResponse.json({ error: "Document Not Found" }, { status: 404 });
@@ -179,16 +175,14 @@ export async function DELETE(req: Request) {
       }
     }
 
-    // Update system settings database
-    const updatedDocs = currentDocs.filter((d) => d.id !== id);
-    const updated = saveSystemSettings({
-      leaveSettings: {
-        ...settings.leaveSettings,
-        policyDocuments: updatedDocs,
-      },
+    await prisma.policyDocument.delete({ where: { id } });
+
+    const policyDocuments = await prisma.policyDocument.findMany({
+      where: { wid },
+      orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ settings: updated, policyDocuments: updatedDocs });
+    return NextResponse.json({ policyDocuments });
   } catch (error) {
     console.error("API /api/settings/policy DELETE error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

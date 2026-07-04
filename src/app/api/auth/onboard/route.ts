@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { createWorkspaceWithTrial } from "@/lib/billing/workspace-billing";
-import { getSystemSettings } from "@/lib/settings";
+import { getSystemSettings, saveSystemSettings } from "@/lib/settings";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +12,22 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, department, role, companyName, companyAddress, employeeCount } = body;
+    const {
+      name,
+      phoneNumber,
+      department,
+      role,
+      companyName,
+      companyAddress,
+      employeeCount,
+      industry,
+      foundYear,
+      registrationNumber,
+      contactEmail,
+      contactPhone,
+      websiteUrl,
+      initialBranch,
+    } = body;
 
     if (!name || !department || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -63,6 +78,7 @@ export async function POST(req: Request) {
             email: user.email!,
             role: role,
             department: department,
+            phoneNumber: phoneNumber || null,
             avatarInitials: avatarInitials,
             status: existingEmployee.status || "Active",
             annualBalance: existingEmployee.annualBalance,
@@ -140,6 +156,7 @@ export async function POST(req: Request) {
           email: user.email!,
           role: role,
           department: department,
+          phoneNumber: phoneNumber || null,
           avatarInitials: avatarInitials,
           status: "Active",
           annualBalance: 15,
@@ -152,6 +169,39 @@ export async function POST(req: Request) {
           branch: isNewWorkspace ? defaultBranch : null,
           acceptedTerms: true,
           acceptedPrivacy: true,
+        },
+      });
+    }
+
+    // If this is a new workspace, also persist extended company profile + initial branch to settings
+    if (isNewWorkspace && companyName) {
+      const currentSettings = getSystemSettings();
+      const updatedBranches = initialBranch
+        ? [
+            {
+              id: `branch-hq-${Date.now()}`,
+              name: initialBranch.name || "Main HQ",
+              address: initialBranch.address || companyAddress || "",
+              city: initialBranch.city || undefined,
+              state: initialBranch.state || undefined,
+              pincode: initialBranch.pincode || undefined,
+              allowWFH: initialBranch.allowWFH ?? true,
+            },
+          ]
+        : currentSettings.branches;
+
+      saveSystemSettings({
+        branches: updatedBranches,
+        companyProfile: {
+          name: companyName || currentSettings.companyProfile?.name || "",
+          address: companyAddress || currentSettings.companyProfile?.address || "",
+          employeeCount: employeeCount || currentSettings.companyProfile?.employeeCount || "1-10",
+          industry: industry || currentSettings.companyProfile?.industry || "",
+          foundYear: foundYear || currentSettings.companyProfile?.foundYear || "",
+          registrationNumber: registrationNumber || currentSettings.companyProfile?.registrationNumber || "",
+          contactEmail: contactEmail || currentSettings.companyProfile?.contactEmail || "",
+          contactPhone: contactPhone || currentSettings.companyProfile?.contactPhone || "",
+          websiteUrl: websiteUrl || currentSettings.companyProfile?.websiteUrl || "",
         },
       });
     }

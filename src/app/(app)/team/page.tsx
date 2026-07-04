@@ -58,8 +58,51 @@ const BLOOD_GROUP_OPTIONS: CustomSelectOption[] = [
   { value: "O-", label: "O-" },
 ];
 
+const getLeaveColorClasses = (color?: string) => {
+  switch (color) {
+    case "purple":
+      return { bg: "bg-purple-50/50 dark:bg-purple-950/20", text: "text-purple-600 dark:text-purple-400" };
+    case "indigo":
+      return { bg: "bg-indigo-50/50 dark:bg-indigo-950/20", text: "text-indigo-600 dark:text-indigo-400" };
+    case "pink":
+      return { bg: "bg-pink-50/50 dark:bg-pink-950/20", text: "text-pink-600 dark:text-pink-400" };
+    case "slate":
+      return { bg: "bg-slate-50/50 dark:bg-slate-950/20", text: "text-slate-650 dark:text-slate-450" };
+    case "amber":
+      return { bg: "bg-amber-50/50 dark:bg-amber-950/20", text: "text-amber-600 dark:text-amber-400" };
+    case "emerald":
+      return { bg: "bg-emerald-50/50 dark:bg-emerald-950/20", text: "text-emerald-600 dark:text-emerald-400" };
+    case "sky":
+      return { bg: "bg-sky-50/50 dark:bg-sky-950/20", text: "text-sky-600 dark:text-sky-400" };
+    default:
+      return { bg: "bg-slate-50/50 dark:bg-slate-950/20", text: "text-slate-650 dark:text-slate-450" };
+  }
+};
+
+const getBorderColorStyle = (color?: string) => {
+  if (!color) return {};
+  if (color.startsWith("#") || color.startsWith("rgb")) {
+    return { borderLeftColor: color };
+  }
+  return {};
+};
+
+const getBorderColorClass = (color?: string) => {
+  if (!color) return "border-l-slate-400";
+  if (color.startsWith("#") || color.startsWith("rgb")) {
+    return "";
+  }
+  if (color.startsWith("border-l-")) {
+    return color;
+  }
+  if (color.startsWith("bg-")) {
+    return color.replace("bg-", "border-l-");
+  }
+  return `border-l-${color}-500`;
+};
+
 export default function TeamPage() {
-  const { employees, currentUser, initialize } = useLeaveStore();
+  const { employees, currentUser, initialize, leaves } = useLeaveStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [scopeFilter, setScopeFilter] = useState<"All" | "My Team">("All");
@@ -71,13 +114,14 @@ export default function TeamPage() {
   const [branches, setBranches] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
   const [designations, setDesignations] = useState<any[]>([]);
+  const [customLeaveTypes, setCustomLeaveTypes] = useState<any[]>([]);
 
   // Fetch branch and shift dropdown values on mount
   useEffect(() => {
     const loadDropdowns = async () => {
       try {
         const token = sessionStorage.getItem("ansh_auth_token");
-        const [settingsRes, shiftRes, designationRes] = await Promise.all([
+        const [settingsRes, shiftRes, designationRes, catRes] = await Promise.all([
           fetch("/api/settings", {
             headers: { Authorization: `Bearer ${token}` }
           }),
@@ -85,6 +129,9 @@ export default function TeamPage() {
             headers: { Authorization: `Bearer ${token}` }
           }),
           fetch("/api/settings/designation", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch("/api/settings/leave-category", {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
@@ -109,6 +156,10 @@ export default function TeamPage() {
           if (!designation && list.length > 0) {
             setDesignation(list[0].name);
           }
+        }
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCustomLeaveTypes(catData.leaveCategories || []);
         }
       } catch (err) {
         console.error("Failed to load team dropdown data:", err);
@@ -930,26 +981,38 @@ export default function TeamPage() {
                   <span className="text-slate-500 dark:text-slate-300">Remaining</span>
                 </div>
 
-                <div className="mt-2.5 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="rounded-lg bg-emerald-50/50 p-2 dark:bg-emerald-950/20">
-                    <span className="block font-bold text-emerald-600 dark:text-emerald-400">
-                      {emp.leaveBalance?.Annual ?? 0}
-                    </span>
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider">Annual</span>
+                {customLeaveTypes.length === 0 ? (
+                  <div className="mt-2 text-center text-[10px] text-slate-400 py-2 border border-dashed border-border/60 rounded-xl">
+                    No leave types defined
                   </div>
-                  <div className="rounded-lg bg-sky-50/50 p-2 dark:bg-sky-950/20">
-                    <span className="block font-bold text-sky-600 dark:text-sky-400">
-                      {emp.leaveBalance?.Sick ?? 0}
-                    </span>
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider">Sick</span>
+                ) : (
+                  <div className="mt-2.5 grid grid-cols-3 gap-2 text-center text-xs max-h-24 overflow-y-auto pr-0.5">
+                    {customLeaveTypes
+                      .filter((cat) => {
+                        if (!cat.branchId || cat.branchId === "All") return true;
+                        if (!emp.branch) return false;
+                        return cat.branchId.toLowerCase() === emp.branch.toLowerCase();
+                      })
+                      .map((cat) => {
+                        const approvedDaysTaken = leaves
+                          .filter((r) => r.employeeId === emp.id && r.type === cat.name && r.status === "Approved")
+                          .reduce((acc, curr) => acc + curr.totalDays, 0);
+                        const balance = cat.days - approvedDaysTaken;
+                        const colors = getLeaveColorClasses(cat.color);
+
+                        return (
+                          <div key={cat.id} className={`rounded-lg p-2 ${colors.bg}`}>
+                            <span className={`block font-bold ${colors.text}`}>
+                              {balance}
+                            </span>
+                            <span className="text-[9px] text-slate-450 dark:text-slate-400 uppercase tracking-wider block truncate" title={cat.name}>
+                              {cat.name}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
-                  <div className="rounded-lg bg-purple-50/50 p-2 dark:bg-purple-950/20">
-                    <span className="block font-bold text-purple-600 dark:text-purple-400">
-                      {emp.leaveBalance?.Casual ?? 0}
-                    </span>
-                    <span className="text-[9px] text-slate-400 uppercase tracking-wider">Casual</span>
-                  </div>
-                </div>
+                )}
 
                 {/* VIEW DETAILS ACTION FOOTER */}
                 <div className="mt-4 pt-4 border-t border-border/30">
@@ -2084,26 +2147,43 @@ export default function TeamPage() {
                       <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
                         Remaining Leave Balances
                       </span>
-                      <div className="grid grid-cols-3 gap-3 text-center">
-                        <div className="rounded-2xl bg-emerald-50/50 p-3.5 border border-emerald-500/10 dark:bg-emerald-950/20">
-                          <span className="block text-lg font-black text-emerald-600 dark:text-emerald-400">
-                            {selectedMemberForDetail.leaveBalance?.Annual ?? 0}
-                          </span>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Annual</span>
+                      {customLeaveTypes.length === 0 ? (
+                        <div className="text-center py-4 text-xs text-slate-400">
+                          No leave types defined yet.
                         </div>
-                        <div className="rounded-2xl bg-sky-50/50 p-3.5 border border-sky-500/10 dark:bg-sky-950/20">
-                          <span className="block text-lg font-black text-sky-600 dark:text-sky-400">
-                            {selectedMemberForDetail.leaveBalance?.Sick ?? 0}
-                          </span>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Sick</span>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3 text-center max-h-48 overflow-y-auto pr-1">
+                          {customLeaveTypes
+                            .filter((cat) => {
+                              if (!cat.branchId || cat.branchId === "All") return true;
+                              if (!selectedMemberForDetail?.branch) return false;
+                              return cat.branchId.toLowerCase() === selectedMemberForDetail.branch.toLowerCase();
+                            })
+                            .map((cat) => {
+                              const approvedDaysTaken = detailLeaves
+                                .filter((r) => r.type === cat.name && r.status === "Approved")
+                                .reduce((acc, curr) => acc + curr.totalDays, 0);
+                              const balance = cat.days - approvedDaysTaken;
+                              const borderClass = getBorderColorClass(cat.color);
+                              const borderStyle = getBorderColorStyle(cat.color);
+
+                              return (
+                                <div
+                                  key={cat.id}
+                                  className={`rounded-2xl p-3 border-l-4 ${borderClass} border bg-slate-50/50 dark:bg-slate-950/20`}
+                                  style={borderStyle}
+                                >
+                                  <span className="block text-lg font-black text-slate-800 dark:text-white leading-tight">
+                                    {balance}
+                                  </span>
+                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold block mt-0.5 truncate" title={cat.name}>
+                                    {cat.name}
+                                  </span>
+                                </div>
+                              );
+                            })}
                         </div>
-                        <div className="rounded-2xl bg-purple-50/50 p-3.5 border border-purple-500/10 dark:bg-purple-950/20">
-                          <span className="block text-lg font-black text-purple-600 dark:text-purple-400">
-                            {selectedMemberForDetail.leaveBalance?.Casual ?? 0}
-                          </span>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold">Casual</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Leave History List */}

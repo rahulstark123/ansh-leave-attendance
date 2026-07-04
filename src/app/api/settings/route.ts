@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { leaveSettings, attendanceSettings, billingSettings, branches } = body;
+    const { leaveSettings, attendanceSettings, billingSettings, branches, companyProfile } = body;
 
     // Billing plan changes must go through Razorpay checkout — block direct upgrades
     if (billingSettings) {
@@ -51,6 +51,7 @@ export async function POST(req: Request) {
       attendanceSettings,
       billingSettings,
       branches,
+      companyProfile,
     });
 
     // If leaveSettings were updated, let's update all employees' baseline balances
