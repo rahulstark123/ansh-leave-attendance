@@ -1,11 +1,12 @@
-"use client";
+import { AppLayoutClient } from "./app-layout-client";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-import { AppShell } from "@/components/layout/app-shell";
+export const metadata = createPageMetadata({
+  title: "Workspace",
+  description: "Private ANSH HR workspace.",
+  noIndex: true,
+});
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <AppShell>{children}</AppShell>;
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return <AppLayoutClient>{children}</AppLayoutClient>;
 }

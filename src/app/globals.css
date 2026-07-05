@@ -407,4 +407,57 @@
   animation-play-state: paused;
 }
 
+/* Premium silver shimmer tagline (footer / brand) */
+@keyframes ansh-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.ansh-shimmer-tagline {
+  position: relative;
+  display: block;
+}
+
+.ansh-shimmer-base {
+  color: rgb(113 113 122);
+}
+
+.dark .ansh-shimmer-base {
+  color: rgb(161 161 170);
+}
+
+.ansh-shimmer-overlay {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: ansh-shimmer 8s linear infinite;
+  pointer-events: none;
+}
+
+.dark .ansh-shimmer-overlay {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+}
 

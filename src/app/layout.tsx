@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
 const sansFont = Plus_Jakarta_Sans({
@@ -15,12 +15,12 @@ const monoFont = JetBrains_Mono({
   weight: ["400", "500"],
 });
 
-export const metadata: Metadata = {
-  title: "Ansh HR",
-  description: "A premium, state-of-the-art workspace dashboard for managing employee leave requests, attendance tracking, and HR analytics.",
+export const metadata = {
+  ...rootMetadata,
   icons: {
     icon: "/anshFavicon.png",
     shortcut: "/anshFavicon.png",
+    apple: "/logoAnshapps.png",
   },
 };
 

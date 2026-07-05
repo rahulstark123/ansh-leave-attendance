@@ -80,7 +80,7 @@ export function TrustCompliance({
                     compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
                   )}
                 >
-                  Built from Bharat, Ready for the World
+                  Built for Bharat, Ready for the World
                 </h2>
               </div>
             </div>
