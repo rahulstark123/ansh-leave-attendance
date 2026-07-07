@@ -15,14 +15,7 @@ const monoFont = JetBrains_Mono({
   weight: ["400", "500"],
 });
 
-export const metadata = {
-  ...rootMetadata,
-  icons: {
-    icon: "/anshFavicon.png",
-    shortcut: "/anshFavicon.png",
-    apple: "/logoAnshapps.png",
-  },
-};
+export const metadata = rootMetadata;
 
 export default function RootLayout({
   children,

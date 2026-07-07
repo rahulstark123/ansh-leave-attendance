@@ -6,7 +6,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/login", "/signup", "/privacy", "/terms"],
+        allow: [
+          "/",
+          "/login",
+          "/signup",
+          "/privacy",
+          "/terms",
+          "/favicon.png",
+          "/icon-48.png",
+          "/icon-192.png",
+          "/logoAnshapps.png",
+        ],
         disallow: [
           "/api/",
           "/adminpanel/",

@@ -4,6 +4,11 @@ export const SITE_URL =
   "https://hr.anshapps.com";
 
 export const SITE_NAME = "ANSH HR";
+export const SITE_ALTERNATE_NAMES = [
+  "Ansh HR",
+  "ANSH Leave & Attendance",
+  "ANSH HR Leave & Attendance",
+] as const;
 export const SITE_TAGLINE = "Leave & Attendance Management for MSMEs";
 export const SITE_DESCRIPTION =
   "ANSH HR is a modern leave and attendance platform for Indian MSMEs. Face-verified punch-ins, live shift tracking, leave approvals, team directory, and HR analytics — free for up to 3 teammates.";

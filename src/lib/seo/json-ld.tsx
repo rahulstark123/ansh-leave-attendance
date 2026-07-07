@@ -1,5 +1,6 @@
 import {
   COMPANY,
+  SITE_ALTERNATE_NAMES,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -29,7 +30,7 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
-function JsonLdScript({ data }: { data: Record<string, unknown> | Record<string, unknown>[] }) {
+function JsonLdScript({ data }: { data: Record<string, unknown> }) {
   return (
     <script
       type="application/ld+json"
@@ -39,78 +40,85 @@ function JsonLdScript({ data }: { data: Record<string, unknown> | Record<string,
 }
 
 export function HomePageJsonLd() {
-  const organization = {
+  const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: COMPANY.name,
-    url: COMPANY.parentSite,
-    logo: absoluteUrl("/logoAnshapps.png"),
-    email: COMPANY.email,
-    telephone: COMPANY.phone,
-    sameAs: [COMPANY.parentSite, SITE_URL],
-  };
-
-  const website = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: SITE_NAME,
-    url: SITE_URL,
-    description: SITE_DESCRIPTION,
-    publisher: { "@type": "Organization", name: COMPANY.name },
-    inLanguage: "en-IN",
-  };
-
-  const software = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: SITE_NAME,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    url: SITE_URL,
-    description: SITE_DESCRIPTION,
-    offers: [
+    "@graph": [
       {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "INR",
-        description: "Free plan for up to 3 teammates",
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
+        name: SITE_NAME,
+        alternateName: [...SITE_ALTERNATE_NAMES],
+        url: SITE_URL,
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl("/logoAnshapps.png"),
+          width: 500,
+          height: 500,
+        },
+        image: absoluteUrl("/logoAnshapps.png"),
+        email: COMPANY.email,
+        telephone: COMPANY.phone,
+        parentOrganization: {
+          "@type": "Organization",
+          name: COMPANY.name,
+          url: COMPANY.parentSite,
+        },
       },
       {
-        "@type": "Offer",
-        price: "199",
-        priceCurrency: "INR",
-        description: "Pro plan per user per month",
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        name: SITE_NAME,
+        alternateName: [...SITE_ALTERNATE_NAMES],
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        publisher: { "@id": `${SITE_URL}/#organization` },
+        inLanguage: "en-IN",
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${SITE_URL}/#software`,
+        name: SITE_NAME,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        offers: [
+          {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "INR",
+            description: "Free plan for up to 3 teammates",
+          },
+          {
+            "@type": "Offer",
+            price: "199",
+            priceCurrency: "INR",
+            description: "Pro plan per user per month",
+          },
+        ],
+        featureList: [
+          "Facial recognition punch-in",
+          "Leave management",
+          "Attendance tracking",
+          "Team directory",
+          "HR analytics",
+        ],
+        provider: { "@id": `${SITE_URL}/#organization` },
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${SITE_URL}/#faq`,
+        mainEntity: FAQ_ITEMS.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
       },
     ],
-    featureList: [
-      "Facial recognition punch-in",
-      "Leave management",
-      "Attendance tracking",
-      "Team directory",
-      "HR analytics",
-    ],
-    provider: { "@type": "Organization", name: COMPANY.name },
   };
 
-  const faq = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: FAQ_ITEMS.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
-
-  return (
-    <>
-      <JsonLdScript data={organization} />
-      <JsonLdScript data={website} />
-      <JsonLdScript data={software} />
-      <JsonLdScript data={faq} />
-    </>
-  );
+  return <JsonLdScript data={structuredData} />;
 }

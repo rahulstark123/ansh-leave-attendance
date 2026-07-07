@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import {
-  COMPANY,
+  SITE_ALTERNATE_NAMES,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/site-config";
 
 const DEFAULT_OG_IMAGE = "/ANSH HR.jpg";
+const FAVICON_URL = "/favicon.png";
 
 type PageMetadataOptions = {
   title?: string;
@@ -39,9 +40,9 @@ export function createPageMetadata(options: PageMetadataOptions = {}): Metadata 
       : { default: fullTitle, template: `%s | ${SITE_NAME}` },
     description,
     keywords,
-    authors: [{ name: COMPANY.name, url: COMPANY.parentSite }],
-    creator: COMPANY.name,
-    publisher: COMPANY.name,
+    authors: [{ name: SITE_NAME, url: SITE_URL }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
     applicationName: SITE_NAME,
     category: "Business",
     alternates: {
@@ -86,6 +87,15 @@ export function createPageMetadata(options: PageMetadataOptions = {}): Metadata 
     ...(googleVerification
       ? { verification: { google: googleVerification } }
       : {}),
+    icons: {
+      icon: [
+        { url: FAVICON_URL, sizes: "48x48", type: "image/png" },
+        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/logoAnshapps.png", sizes: "512x512", type: "image/png" },
+      ],
+      shortcut: FAVICON_URL,
+      apple: "/logoAnshapps.png",
+    },
   };
 }
 
