@@ -10,7 +10,7 @@ import {
 } from "@/lib/site-config";
 
 const DEFAULT_OG_IMAGE = "/ANSH HR.jpg";
-const FAVICON_URL = "/favicon.png";
+const FAVICON_URL = "/anshFavicon.png";
 
 type PageMetadataOptions = {
   title?: string;
@@ -88,13 +88,9 @@ export function createPageMetadata(options: PageMetadataOptions = {}): Metadata 
       ? { verification: { google: googleVerification } }
       : {}),
     icons: {
-      icon: [
-        { url: FAVICON_URL, sizes: "48x48", type: "image/png" },
-        { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-        { url: "/logoAnshapps.png", sizes: "512x512", type: "image/png" },
-      ],
+      icon: FAVICON_URL,
       shortcut: FAVICON_URL,
-      apple: "/logoAnshapps.png",
+      apple: FAVICON_URL,
     },
   };
 }

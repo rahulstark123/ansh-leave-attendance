@@ -12,9 +12,7 @@ export default function robots(): MetadataRoute.Robots {
           "/signup",
           "/privacy",
           "/terms",
-          "/favicon.png",
-          "/icon-48.png",
-          "/icon-192.png",
+          "/anshFavicon.png",
           "/logoAnshapps.png",
         ],
         disallow: [
