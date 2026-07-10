@@ -50,3 +50,24 @@ export async function canAccessEmployee(
   }
   return accessible.includes(targetEmployeeId);
 }
+
+/** Admin/Owner can approve anyone in scope (including self). Manager/HR: team only, not self. */
+export async function canApproveForEmployee(
+  viewer: ScopeEmployee,
+  targetEmployeeId: string
+): Promise<boolean> {
+  if (viewer.role === "Admin" || viewer.role === "Owner") {
+    return canAccessEmployee(viewer, targetEmployeeId);
+  }
+  if (targetEmployeeId === viewer.id) return false;
+  return canAccessEmployee(viewer, targetEmployeeId);
+}
+
+export function canViewTeamApprovals(role: string): boolean {
+  return (
+    role === "Admin" ||
+    role === "Owner" ||
+    role === "Manager" ||
+    role === "HR Manager"
+  );
+}

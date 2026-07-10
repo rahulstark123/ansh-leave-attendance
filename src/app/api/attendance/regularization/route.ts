@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
+import { getAccessibleEmployeeIds } from "@/lib/team-scope";
+
+const employeeInclude = {
+  employee: {
+    select: {
+      name: true,
+      role: true,
+      avatarInitials: true,
+      branch: true,
+    },
+  },
+} as const;
 
 export async function GET(req: Request) {
   try {
@@ -10,55 +22,16 @@ export async function GET(req: Request) {
     }
 
     const wid = employee.wid ?? 1;
+    const accessibleIds = await getAccessibleEmployeeIds(employee);
 
-    const employeeInclude = {
-      employee: {
-        select: {
-          name: true,
-          role: true,
-          avatarInitials: true,
-          branch: true,
-        },
-      },
-    };
-
-    let requests;
-    if (
-      employee.role === "Admin" ||
-      employee.role === "HR Manager" ||
-      employee.role === "Owner"
-    ) {
-      requests = await prisma.attendanceRegularization.findMany({
-        where: { wid },
-        include: employeeInclude,
-        orderBy: { appliedAt: "desc" },
-      });
-    } else if (employee.role === "Manager") {
-      const reports = await prisma.employee.findMany({
-        where: {
-          wid,
-          OR: [
-            { id: employee.id },
-            { reportingManager: { equals: employee.name, mode: "insensitive" } },
-            { reportingHR: { equals: employee.name, mode: "insensitive" } },
-          ],
-        },
-        select: { id: true },
-      });
-      const accessibleIds = reports.map((r) => r.id);
-
-      requests = await prisma.attendanceRegularization.findMany({
-        where: { wid, employeeId: { in: accessibleIds } },
-        include: employeeInclude,
-        orderBy: { appliedAt: "desc" },
-      });
-    } else {
-      requests = await prisma.attendanceRegularization.findMany({
-        where: { employeeId: employee.id, wid },
-        include: employeeInclude,
-        orderBy: { appliedAt: "desc" },
-      });
-    }
+    const requests = await prisma.attendanceRegularization.findMany({
+      where:
+        accessibleIds === "all"
+          ? { wid }
+          : { wid, employeeId: { in: accessibleIds } },
+      include: employeeInclude,
+      orderBy: { appliedAt: "desc" },
+    });
 
     const formattedRequests = requests.map((r) => ({
       id: r.id,
@@ -120,7 +93,7 @@ export async function POST(req: Request) {
         requestedOut,
         reason,
         status: "Pending",
-        wid: employee.wid ?? 1,
+        wid,
       },
     });
 

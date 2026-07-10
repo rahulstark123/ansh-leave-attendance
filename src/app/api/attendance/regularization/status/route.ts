@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { calculateShiftDuration } from "@/lib/regularization-utils";
+import { canApproveForEmployee, canViewTeamApprovals } from "@/lib/team-scope";
 
 export async function POST(req: Request) {
   try {
@@ -10,8 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const isAuthorized = employee.role === "Admin" || employee.role === "HR Manager" || employee.role === "Owner" || employee.role === "Manager";
-    if (!isAuthorized) {
+    if (!canViewTeamApprovals(employee.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -36,26 +36,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Regularization request already processed" }, { status: 400 });
     }
 
-    // Admin, Owner, and HR Manager can approve any workspace request.
-    // Managers may only approve their direct reports.
-    const canApproveAny =
-      employee.role === "Admin" ||
-      employee.role === "Owner" ||
-      employee.role === "HR Manager";
-    if (!canApproveAny) {
-      const requester = await prisma.employee.findUnique({
-        where: { id: request.employeeId },
-      });
-      if (!requester) {
-        return NextResponse.json({ error: "Requester not found" }, { status: 404 });
-      }
-      const managerName = employee.name.toLowerCase();
-      const isReportingManager =
-        (requester.reportingManager && requester.reportingManager.toLowerCase() === managerName) ||
-        (requester.reportingHR && requester.reportingHR.toLowerCase() === managerName);
-      if (!isReportingManager) {
-        return NextResponse.json({ error: "Forbidden: You are not authorized to approve/reject regularizations for this employee" }, { status: 403 });
-      }
+    // Admin/Owner → anyone in workspace; Manager/HR → their team only
+    const allowed = await canApproveForEmployee(employee, request.employeeId);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Forbidden: You are not authorized to approve/reject regularizations for this employee" },
+        { status: 403 }
+      );
     }
 
     // Update regularization request status

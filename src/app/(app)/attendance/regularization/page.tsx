@@ -166,6 +166,14 @@ export default function RegularizationPage() {
     fetchRequests();
   }, []);
 
+  // Refresh when opening Team Approvals so new submissions appear
+  useEffect(() => {
+    if (activeTab === "team" && isAuthorized) {
+      void fetchRequests();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // Helper to format HH:MM into HH:MM AM/PM
   const formatTimeToAMPM = (time24: string) => {
     if (!time24) return "";
@@ -267,15 +275,24 @@ export default function RegularizationPage() {
     }
   };
 
+  const myId = currentUser?.id || "";
+  const isOwnerOrAdmin =
+    currentUser?.role === "Owner" || currentUser?.role === "Admin";
+
   const myRequests = sortByAppliedAtRecentFirst(
-    requests.filter((r) => r.employeeId === currentUser.id)
+    requests.filter((r) => r.employeeId === myId)
   );
-  const pendingTeamRequests = sortByAppliedAtRecentFirst(
-    requests.filter((r) => r.status === "Pending" && r.employeeId !== currentUser.id)
-  );
-  const allTeamRequests = sortByAppliedAtRecentFirst(
-    requests.filter((r) => r.employeeId !== currentUser.id)
-  );
+
+  // Owner/Admin: all workspace requests (including own) so they can approve everything.
+  // Manager/HR: team requests only, excluding their own.
+  const allTeamRequests = requests
+    .filter((r) => (isOwnerOrAdmin ? true : r.employeeId !== myId))
+    .sort((a, b) => {
+      if (a.status === "Pending" && b.status !== "Pending") return -1;
+      if (b.status === "Pending" && a.status !== "Pending") return 1;
+      return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+    });
+  const pendingTeamRequests = allTeamRequests.filter((r) => r.status === "Pending");
 
   if (loading) {
     return (
@@ -454,7 +471,7 @@ export default function RegularizationPage() {
         <Card className="crm-card">
           <CardHeader className="border-b border-border/40 pb-4">
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              Pending Shift Corrections
+              Team Shift Corrections
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
