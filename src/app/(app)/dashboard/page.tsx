@@ -204,6 +204,7 @@ export default function DashboardPage() {
     dashboardEmployees: employees,
     faceEnrolled,
     applyLeave,
+    todayPresentCount,
   } = useLeaveStore();
 
   // Apply Leave form state
@@ -441,12 +442,11 @@ export default function DashboardPage() {
   // Derived statistics
   const pendingLeavesCount = leaves.filter((r) => r.status === "Pending").length;
   const onLeaveCount = employees.filter((e) => e.status === "On Leave").length;
-  const activeEmployeesCount = employees.filter((e) => e.status === "Active").length;
-  const attendanceRate = Math.round(
-    ((activeEmployeesCount + employees.filter((e) => e.status === "Half-day").length) /
-      employees.length) *
-      100
-  );
+  const teamSize = employees.length;
+  // Present = actually punched in today (not employee status "Active")
+  const presentTodayCount = todayPresentCount;
+  const attendanceRate =
+    teamSize > 0 ? Math.round((presentTodayCount / teamSize) * 100) : 0;
 
   const formattedTime = currentTime
     ? currentTime.toLocaleTimeString("en-US", {
@@ -641,7 +641,7 @@ export default function DashboardPage() {
             <div className="mt-1 flex items-center gap-1.5 text-xs text-emerald-500 font-semibold">
               <TrendingUp className="h-3 w-3" />
               <span>
-                {activeEmployeesCount} active of {employees.length} team members
+                {presentTodayCount} punched in of {teamSize} team members
               </span>
             </div>
           </CardContent>

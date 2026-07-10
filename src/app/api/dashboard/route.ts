@@ -95,6 +95,29 @@ export async function GET(req: Request) {
     const accessibleEmployeeIds = new Set(scopedEmployees.map((e) => e.id));
     const scopedLeaves = formattedAllLeaves.filter((l) => accessibleEmployeeIds.has(l.employeeId));
 
+    // Today's attendance = employees who actually punched in today (not status field)
+    const today = new Date().toISOString().split("T")[0];
+    const scopedIds = scopedEmployees.map((e) => e.id);
+    const todayPresentIds = new Set<string>();
+
+    if (scopedIds.length > 0) {
+      const todayPunches = await prisma.punchRecord.findMany({
+        where: { wid, date: today, employeeId: { in: scopedIds } },
+        select: { employeeId: true },
+        distinct: ["employeeId"],
+      });
+      for (const punch of todayPunches) {
+        todayPresentIds.add(punch.employeeId);
+      }
+    }
+
+    // Include anyone currently punched in (open shift) even if punch row is missing
+    for (const emp of scopedEmployees) {
+      if (emp.currentPunchIn) {
+        todayPresentIds.add(emp.id);
+      }
+    }
+
     // 3. Fetch personal punch history for the logged-in employee
     const punches = await prisma.punchRecord.findMany({
       where: { employeeId: employee.id, wid },
@@ -118,6 +141,7 @@ export async function GET(req: Request) {
         },
       });
       punches.unshift(backfilled);
+      todayPresentIds.add(employee.id);
     }
 
     const faceEnrolled = isFaceEnrolled(employee.facePhotos, employee.faceEmbedding);
@@ -128,6 +152,7 @@ export async function GET(req: Request) {
       leaves: generalLeaves,                 // General list for Leave Manager Page
       dashboardEmployees: scopedEmployees,   // Scoped list for Dashboard metrics
       dashboardLeaves: scopedLeaves,         // Scoped list for Dashboard metrics
+      todayPresentCount: todayPresentIds.size,
       punchHistory: punches,
       currentPunchIn: employee.currentPunchIn,
       currentPunchInPhoto: employee.currentPunchInPhoto,

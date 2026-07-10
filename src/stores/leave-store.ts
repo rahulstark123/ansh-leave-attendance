@@ -73,6 +73,8 @@ interface LeaveState {
   leaves: LeaveRequest[];
   dashboardEmployees: Employee[];
   dashboardLeaves: LeaveRequest[];
+  /** Employees in scope who punched in today (actual attendance, not status field). */
+  todayPresentCount: number;
   punchHistory: PunchRecord[];
   currentPunchIn: string | null; // ISO String of when user punched in
   currentPunchInPhoto: string | null; // S3 URL of punch-in selfie
@@ -321,6 +323,7 @@ export const useLeaveStore = create<LeaveState>()(
       leaves: [],
       dashboardEmployees: [],
       dashboardLeaves: [],
+      todayPresentCount: 0,
       punchHistory: [],
       currentPunchIn: null,
       currentPunchInPhoto: null,
@@ -358,13 +361,17 @@ export const useLeaveStore = create<LeaveState>()(
           const currentPunchInLat = data.currentPunchInLat || null;
           const currentPunchInLng = data.currentPunchInLng || null;
           const faceEnrolled = data.faceEnrolled || false;
+          const scopedTeam = dashboardEmployees.length ? dashboardEmployees : [currentUser];
+          const todayPresentCount =
+            typeof data.todayPresentCount === "number" ? data.todayPresentCount : 0;
 
           set({
             currentUser,
             employees: employees.length ? employees : [currentUser],
             leaves,
-            dashboardEmployees: dashboardEmployees.length ? dashboardEmployees : [currentUser],
+            dashboardEmployees: scopedTeam,
             dashboardLeaves,
+            todayPresentCount,
             punchHistory,
             currentPunchIn,
             currentPunchInPhoto,
@@ -459,12 +466,21 @@ export const useLeaveStore = create<LeaveState>()(
             currentPunchInLng: data.currentPunchInLng ?? null,
           });
           if (data.punchRecord) {
-            set((state) => ({
-              punchHistory: sortPunchRecordsRecentFirst([
-                data.punchRecord,
-                ...state.punchHistory.filter((p) => p.id !== data.punchRecord.id),
-              ]),
-            }));
+            set((state) => {
+              const today = new Date().toISOString().split("T")[0];
+              const hadTodayBefore = state.punchHistory.some(
+                (p) => p.date === today && p.id !== data.punchRecord.id
+              );
+              return {
+                punchHistory: sortPunchRecordsRecentFirst([
+                  data.punchRecord,
+                  ...state.punchHistory.filter((p) => p.id !== data.punchRecord.id),
+                ]),
+                todayPresentCount: hadTodayBefore
+                  ? state.todayPresentCount
+                  : state.todayPresentCount + 1,
+              };
+            });
           }
           set((state) => ({
             currentUser: { ...state.currentUser, status: "Active" },
