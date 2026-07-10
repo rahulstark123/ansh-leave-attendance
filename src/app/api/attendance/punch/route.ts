@@ -7,6 +7,7 @@ import { isFaceEnrolled } from "@/lib/face-enrollment";
 import { resolveCoordsFromRequest } from "@/lib/ip-geolocation";
 import { calculatePunchStatus, formatPunchTime } from "@/lib/punch-utils";
 import { canWorkspacePunchIn } from "@/lib/billing/workspace-access";
+import { canAccessEmployee } from "@/lib/team-scope";
 
 function parseCoord(value: unknown): number | null {
   if (value === undefined || value === null || value === "") return null;
@@ -22,28 +23,50 @@ export async function GET(req: Request) {
     }
 
     const wid = employee.wid ?? 1;
+    const { searchParams } = new URL(req.url);
+    const requestedEmployeeId = searchParams.get("employeeId") || employee.id;
+
+    const allowed = await canAccessEmployee(employee, requestedEmployeeId);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "You do not have access to this employee's attendance" },
+        { status: 403 }
+      );
+    }
+
+    const targetEmployee =
+      requestedEmployeeId === employee.id
+        ? employee
+        : await prisma.employee.findFirst({
+            where: { id: requestedEmployeeId, wid },
+          });
+
+    if (!targetEmployee) {
+      return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+    }
+
     const punches = await prisma.punchRecord.findMany({
-      where: { employeeId: employee.id, wid },
+      where: { employeeId: targetEmployee.id, wid },
       orderBy: [{ date: "desc" }, { id: "desc" }],
     });
 
     // Backfill open row for employees punched in before create-on-check-in was deployed
-    if (employee.currentPunchIn) {
+    if (targetEmployee.currentPunchIn) {
       const hasOpenRecord = punches.some((p) => p.punchOut === null);
       if (!hasOpenRecord) {
-        const pinTime = new Date(employee.currentPunchIn);
+        const pinTime = new Date(targetEmployee.currentPunchIn);
         const backfilled = await prisma.punchRecord.create({
           data: {
-            employeeId: employee.id,
+            employeeId: targetEmployee.id,
             date: pinTime.toISOString().split("T")[0],
             punchIn: formatPunchTime(pinTime),
             punchOut: null,
             duration: null,
             status: calculatePunchStatus(pinTime),
             wid,
-            punchInPhoto: employee.currentPunchInPhoto,
-            punchInLat: employee.currentPunchInLat,
-            punchInLng: employee.currentPunchInLng,
+            punchInPhoto: targetEmployee.currentPunchInPhoto,
+            punchInLat: targetEmployee.currentPunchInLat,
+            punchInLng: targetEmployee.currentPunchInLng,
           },
         });
         punches.unshift(backfilled);
@@ -51,12 +74,14 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      currentPunchIn: employee.currentPunchIn,
-      currentPunchInPhoto: employee.currentPunchInPhoto,
-      currentPunchInLat: employee.currentPunchInLat,
-      currentPunchInLng: employee.currentPunchInLng,
+      employeeId: targetEmployee.id,
+      employeeName: targetEmployee.name,
+      currentPunchIn: targetEmployee.currentPunchIn,
+      currentPunchInPhoto: targetEmployee.currentPunchInPhoto,
+      currentPunchInLat: targetEmployee.currentPunchInLat,
+      currentPunchInLng: targetEmployee.currentPunchInLng,
       punchHistory: punches,
-      faceEnrolled: isFaceEnrolled(employee.facePhotos, employee.faceEmbedding),
+      faceEnrolled: isFaceEnrolled(targetEmployee.facePhotos, targetEmployee.faceEmbedding),
     });
   } catch (error) {
     console.error("API /api/attendance/punch GET error:", error);

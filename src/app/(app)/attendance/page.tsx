@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,22 +17,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   CalendarDays,
-  Clock,
-  AlertOctagon,
-  Award,
-  TrendingUp,
-  MapPin,
-  ChevronRight,
   Filter,
   Eye,
   ChevronDown,
   Check,
+  Loader2,
+  User,
+  MapPin,
 } from "lucide-react";
 
 export default function AttendancePage() {
-  const { punchHistory, currentUser } = useLeaveStore();
+  const { punchHistory, currentUser, dashboardEmployees } = useLeaveStore();
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [timeFilter, setTimeFilter] = useState<string>("This Week");
+  const [userFilter, setUserFilter] = useState<string>("");
+  const [viewedHistory, setViewedHistory] = useState<PunchRecord[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPunchForMap, setSelectedPunchForMap] = useState<PunchRecord | null>(null);
   const [selectedSelfieAudit, setSelectedSelfieAudit] = useState<{
@@ -40,6 +40,79 @@ export default function AttendancePage() {
     url: string;
     type: "Check-in" | "Check-out";
   } | null>(null);
+
+  const canFilterUsers =
+    currentUser?.role === "Admin" ||
+    currentUser?.role === "Owner" ||
+    currentUser?.role === "HR Manager" ||
+    currentUser?.role === "Manager";
+
+  const selectableUsers = useMemo(() => {
+    const list = dashboardEmployees.length
+      ? dashboardEmployees
+      : currentUser?.id
+        ? [currentUser]
+        : [];
+    return [...list].sort((a, b) => {
+      if (a.id === currentUser?.id) return -1;
+      if (b.id === currentUser?.id) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [dashboardEmployees, currentUser]);
+
+  // Default to self once currentUser is available
+  useEffect(() => {
+    if (currentUser?.id && !userFilter) {
+      setUserFilter(currentUser.id);
+    }
+  }, [currentUser?.id, userFilter]);
+
+  const loadPunchHistory = useCallback(async (employeeId: string, isSelf: boolean) => {
+    if (!employeeId) return;
+    setLoadingLogs(true);
+
+    try {
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const res = await fetch(`/api/attendance/punch?employeeId=${encodeURIComponent(employeeId)}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (!res.ok) {
+        if (!isSelf) setViewedHistory([]);
+        return;
+      }
+      const data = await res.json();
+      setViewedHistory(sortPunchRecordsRecentFirst(data.punchHistory || []));
+    } catch (err) {
+      console.error("Failed to load attendance logs:", err);
+      if (!isSelf) setViewedHistory([]);
+    } finally {
+      setLoadingLogs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userFilter) return;
+    const isSelf = userFilter === currentUser?.id;
+    if (isSelf) {
+      setViewedHistory(sortPunchRecordsRecentFirst(punchHistory));
+    }
+    void loadPunchHistory(userFilter, isSelf);
+    // Only refetch when the selected user changes (not on every punchHistory update)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userFilter, currentUser?.id, loadPunchHistory]);
+
+  // Keep self view in sync when store punchHistory updates (e.g. after punch)
+  useEffect(() => {
+    if (userFilter && userFilter === currentUser?.id) {
+      setViewedHistory(sortPunchRecordsRecentFirst(punchHistory));
+    }
+  }, [punchHistory, userFilter, currentUser?.id]);
+
+  const selectedUser =
+    selectableUsers.find((u) => u.id === userFilter) ||
+    (userFilter === currentUser?.id ? currentUser : null);
 
   const isDateWithinRange = (dateStr: string, range: string) => {
     const recordDate = new Date(dateStr);
@@ -83,7 +156,7 @@ export default function AttendancePage() {
   };
 
   const timeFilteredHistory = sortPunchRecordsRecentFirst(
-    punchHistory.filter((p) => isDateWithinRange(p.date, timeFilter))
+    viewedHistory.filter((p) => isDateWithinRange(p.date, timeFilter))
   );
 
   const filteredHistory = timeFilteredHistory.filter(
@@ -136,15 +209,63 @@ export default function AttendancePage() {
     averageShiftLengthText = `${avgHours}h ${remainingMins.toString().padStart(2, "0")}m`;
   }
 
+  const viewingSelf = !selectedUser || selectedUser.id === currentUser?.id;
+  const userLabel = selectedUser
+    ? selectedUser.id === currentUser?.id
+      ? `Me (${selectedUser.name})`
+      : selectedUser.name
+    : "Select user";
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader
         eyebrow="Time & Attendance Tracking"
         title="Attendance Logs"
-        description="Review your monthly punch in/out timestamps, check-in statuses, and cumulative working shift hours."
+        description={
+          viewingSelf
+            ? "Review your monthly punch in/out timestamps, check-in statuses, and cumulative working shift hours."
+            : `Reviewing attendance logs for ${selectedUser?.name}.`
+        }
         toolbar={
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Filter:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {canFilterUsers && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex h-10 min-w-[10rem] max-w-[14rem] items-center justify-between gap-2 rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/20 cursor-pointer select-none">
+                  <span className="flex items-center gap-1.5 truncate">
+                    <User className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    <span className="truncate">{userLabel}</span>
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="max-h-72 w-56 overflow-y-auto bg-card/95 dark:bg-slate-950/95 shadow-2xl backdrop-blur-md border border-border dark:border-slate-700/80 p-1 space-y-0.5 select-none z-[100] animate-in fade-in slide-in-from-top-1 duration-150"
+                >
+                  {selectableUsers.map((user) => {
+                    const label =
+                      user.id === currentUser?.id ? `Me (${user.name})` : user.name;
+                    const active = userFilter === user.id;
+                    return (
+                      <DropdownMenuItem
+                        key={user.id}
+                        onClick={() => {
+                          setUserFilter(user.id);
+                          setCurrentPage(1);
+                        }}
+                        className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-all cursor-pointer outline-none ${
+                          active
+                            ? "bg-primary/10 text-primary font-bold"
+                            : "text-slate-650 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <span className="truncate">{label}</span>
+                        {active && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex h-10 w-40 items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none transition-all hover:bg-slate-50/50 dark:hover:bg-slate-800/20 cursor-pointer select-none">
                 <span>{timeFilter}</span>
@@ -186,7 +307,7 @@ export default function AttendancePage() {
             <div className="text-3xl font-extrabold text-slate-800 dark:text-white">
               {totalDays} shifts
             </div>
-            <p className="mt-1.5 text-xs text-slate-400">Punches logged this month</p>
+            <p className="mt-1.5 text-xs text-slate-400">Punches logged this period</p>
           </CardContent>
         </Card>
 
@@ -260,22 +381,40 @@ export default function AttendancePage() {
         </div>
 
         <div className="flex items-center gap-2 text-xs text-slate-400 font-semibold">
-          <Filter className="h-3.5 w-3.5" />
-          <span>Showing {filteredHistory.length} logs</span>
+          {loadingLogs ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Loading logs…</span>
+            </>
+          ) : (
+            <>
+              <Filter className="h-3.5 w-3.5" />
+              <span>Showing {filteredHistory.length} logs</span>
+            </>
+          )}
         </div>
       </div>
 
       {/* ATTENDANCE TABLE CARD */}
       <Card className="crm-card">
         <CardContent className="p-0">
-          {filteredHistory.length === 0 ? (
+          {loadingLogs && viewedHistory.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-16 text-center">
+              <Loader2 className="h-8 w-8 text-slate-300 mb-4 animate-spin" />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                Loading attendance logs…
+              </p>
+            </div>
+          ) : filteredHistory.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-16 text-center">
               <CalendarDays className="h-10 w-10 text-slate-300 mb-4" />
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                 No attendance punches logged
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                Records appear here after you check in.
+                {viewingSelf
+                  ? "Records appear here after you check in."
+                  : `No punches found for ${selectedUser?.name} in this period.`}
               </p>
             </div>
           ) : (
@@ -288,7 +427,7 @@ export default function AttendancePage() {
                       <th className="px-6 py-4">Punch In Time</th>
                       <th className="px-6 py-4">Punch Out Time</th>
                       <th className="px-6 py-4 text-center">Shift Duration</th>
-                      <th className="px-6 py-4">Status Status</th>
+                      <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-center">Location</th>
                       <th className="px-6 py-4 text-right">Remarks</th>
                     </tr>
@@ -459,8 +598,8 @@ export default function AttendancePage() {
         isOpen={selectedSelfieAudit !== null}
         onClose={() => setSelectedSelfieAudit(null)}
         selfieUrl={selectedSelfieAudit?.url || null}
-        employeeId={currentUser?.id || "unknown"}
-        employeeName={currentUser?.name || "Employee"}
+        employeeId={selectedUser?.id || currentUser?.id || "unknown"}
+        employeeName={selectedUser?.name || currentUser?.name || "Employee"}
         punchTime={selectedSelfieAudit?.type === "Check-in" ? selectedSelfieAudit.punch.punchIn : (selectedSelfieAudit?.punch.punchOut || "")}
         punchDate={selectedSelfieAudit?.punch.date || ""}
         type={selectedSelfieAudit?.type || "Check-in"}
