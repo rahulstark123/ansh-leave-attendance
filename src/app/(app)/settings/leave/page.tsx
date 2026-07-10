@@ -336,12 +336,6 @@ export default function LeaveSettingPage() {
   const [holidayToDelete, setHolidayToDelete] = useState<CompanyHoliday | null>(null);
   const [editHoliday, setEditHoliday] = useState<CompanyHoliday | null>(null);
 
-  // Global standard limit state
-  const [annualLimit, setAnnualLimit] = useState(15);
-  const [sickLimit, setSickLimit] = useState(8);
-  const [casualLimit, setCasualLimit] = useState(6);
-
-  // Expanded HR items state
   const [customLeaveTypes, setCustomLeaveTypes] = useState<CustomLeaveType[]>([]);
   const [policyDocuments, setPolicyDocuments] = useState<PolicyDocument[]>([]);
   const [companyHolidays, setCompanyHolidays] = useState<CompanyHoliday[]>([]);
@@ -399,11 +393,6 @@ export default function LeaveSettingPage() {
         if (res.ok) {
           const data = await res.json();
           if (data.settings) {
-            if (data.settings.leaveSettings) {
-              setAnnualLimit(data.settings.leaveSettings.annualLimit);
-              setSickLimit(data.settings.leaveSettings.sickLimit);
-              setCasualLimit(data.settings.leaveSettings.casualLimit);
-            }
             if (data.settings.branches) {
               setBranches(data.settings.branches);
             }
@@ -467,9 +456,6 @@ export default function LeaveSettingPage() {
         },
         body: JSON.stringify({
           leaveSettings: {
-            annualLimit,
-            sickLimit,
-            casualLimit,
             companyHolidays,
             ...updatedSettings
           },

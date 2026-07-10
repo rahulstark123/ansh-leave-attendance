@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
+import { getAvailableLeaveBalance } from "@/lib/leave-balance";
 import { useLeaveStore } from "@/stores/leave-store";
 import { AttachmentPicker } from "@/components/AttachmentPicker";
 import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
@@ -334,31 +335,15 @@ export default function DashboardPage() {
       }
     }
 
-    // Verify balance
-    const isMainLeaveType = leaveType === "Annual" || leaveType === "Sick" || leaveType === "Casual";
-    if (isMainLeaveType) {
-      const balanceType = leaveType as "Annual" | "Sick" | "Casual";
-      const available = currentUser.leaveBalance[balanceType];
-      if (totalDays > available) {
-        setErrorMsg(
-          `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${leaveType} leaves left.`
-        );
-        return;
-      }
-    } else {
-      const customType = customLeaveTypes.find((cat) => cat.name === leaveType);
-      if (customType) {
-        const approvedDaysTaken = leaves
-          .filter((r) => r.type === leaveType && r.status === "Approved")
-          .reduce((acc, curr) => acc + curr.totalDays, 0);
-        const available = customType.days - approvedDaysTaken;
-        if (totalDays > available) {
-          setErrorMsg(
-            `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${leaveType} leaves left.`
-          );
-          return;
-        }
-      }
+    // Verify balance from leave categories
+    const available = getAvailableLeaveBalance(leaveType, customLeaveTypes, leaves, {
+      employeeId: currentUser.id,
+    });
+    if (available !== null && totalDays > available) {
+      setErrorMsg(
+        `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${leaveType} leaves left.`
+      );
+      return;
     }
 
     setApplying(true);

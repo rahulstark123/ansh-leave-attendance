@@ -56,9 +56,6 @@ export interface CompanyProfile {
 
 export interface SystemSettings {
   leaveSettings: {
-    annualLimit: number;
-    sickLimit: number;
-    casualLimit: number;
     customLeaveTypes?: CustomLeaveType[];
     policyDocuments?: PolicyDocument[];
     companyHolidays?: CompanyHoliday[];
@@ -83,9 +80,6 @@ const SETTINGS_FILE = path.join(process.cwd(), "src/config/system-settings.json"
 
 const defaultSettings: SystemSettings = {
   leaveSettings: {
-    annualLimit: 15,
-    sickLimit: 8,
-    casualLimit: 6,
     customLeaveTypes: [],
     // Policy documents are stored per-workspace in the PolicyDocument DB table, not here.
     policyDocuments: [],

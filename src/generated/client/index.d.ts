@@ -2756,9 +2756,6 @@ export namespace Prisma {
   }
 
   export type EmployeeAvgAggregateOutputType = {
-    annualBalance: number | null
-    sickBalance: number | null
-    casualBalance: number | null
     currentPunchInLat: number | null
     currentPunchInLng: number | null
     wid: number | null
@@ -2766,9 +2763,6 @@ export namespace Prisma {
   }
 
   export type EmployeeSumAggregateOutputType = {
-    annualBalance: number | null
-    sickBalance: number | null
-    casualBalance: number | null
     currentPunchInLat: number | null
     currentPunchInLng: number | null
     wid: number | null
@@ -2783,9 +2777,6 @@ export namespace Prisma {
     department: string | null
     avatarInitials: string | null
     status: string | null
-    annualBalance: number | null
-    sickBalance: number | null
-    casualBalance: number | null
     currentPunchIn: string | null
     currentPunchInPhoto: string | null
     currentPunchInLat: number | null
@@ -2822,9 +2813,6 @@ export namespace Prisma {
     department: string | null
     avatarInitials: string | null
     status: string | null
-    annualBalance: number | null
-    sickBalance: number | null
-    casualBalance: number | null
     currentPunchIn: string | null
     currentPunchInPhoto: string | null
     currentPunchInLat: number | null
@@ -2861,9 +2849,6 @@ export namespace Prisma {
     department: number
     avatarInitials: number
     status: number
-    annualBalance: number
-    sickBalance: number
-    casualBalance: number
     currentPunchIn: number
     currentPunchInPhoto: number
     currentPunchInLat: number
@@ -2897,9 +2882,6 @@ export namespace Prisma {
 
 
   export type EmployeeAvgAggregateInputType = {
-    annualBalance?: true
-    sickBalance?: true
-    casualBalance?: true
     currentPunchInLat?: true
     currentPunchInLng?: true
     wid?: true
@@ -2907,9 +2889,6 @@ export namespace Prisma {
   }
 
   export type EmployeeSumAggregateInputType = {
-    annualBalance?: true
-    sickBalance?: true
-    casualBalance?: true
     currentPunchInLat?: true
     currentPunchInLng?: true
     wid?: true
@@ -2924,9 +2903,6 @@ export namespace Prisma {
     department?: true
     avatarInitials?: true
     status?: true
-    annualBalance?: true
-    sickBalance?: true
-    casualBalance?: true
     currentPunchIn?: true
     currentPunchInPhoto?: true
     currentPunchInLat?: true
@@ -2963,9 +2939,6 @@ export namespace Prisma {
     department?: true
     avatarInitials?: true
     status?: true
-    annualBalance?: true
-    sickBalance?: true
-    casualBalance?: true
     currentPunchIn?: true
     currentPunchInPhoto?: true
     currentPunchInLat?: true
@@ -3002,9 +2975,6 @@ export namespace Prisma {
     department?: true
     avatarInitials?: true
     status?: true
-    annualBalance?: true
-    sickBalance?: true
-    casualBalance?: true
     currentPunchIn?: true
     currentPunchInPhoto?: true
     currentPunchInLat?: true
@@ -3130,9 +3100,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance: number
-    sickBalance: number
-    casualBalance: number
     currentPunchIn: string | null
     currentPunchInPhoto: string | null
     currentPunchInLat: number | null
@@ -3190,9 +3157,6 @@ export namespace Prisma {
     department?: boolean
     avatarInitials?: boolean
     status?: boolean
-    annualBalance?: boolean
-    sickBalance?: boolean
-    casualBalance?: boolean
     currentPunchIn?: boolean
     currentPunchInPhoto?: boolean
     currentPunchInLat?: boolean
@@ -3241,9 +3205,6 @@ export namespace Prisma {
     department?: boolean
     avatarInitials?: boolean
     status?: boolean
-    annualBalance?: boolean
-    sickBalance?: boolean
-    casualBalance?: boolean
     currentPunchIn?: boolean
     currentPunchInPhoto?: boolean
     currentPunchInLat?: boolean
@@ -3282,9 +3243,6 @@ export namespace Prisma {
     department?: boolean
     avatarInitials?: boolean
     status?: boolean
-    annualBalance?: boolean
-    sickBalance?: boolean
-    casualBalance?: boolean
     currentPunchIn?: boolean
     currentPunchInPhoto?: boolean
     currentPunchInLat?: boolean
@@ -3323,9 +3281,6 @@ export namespace Prisma {
     department?: boolean
     avatarInitials?: boolean
     status?: boolean
-    annualBalance?: boolean
-    sickBalance?: boolean
-    casualBalance?: boolean
     currentPunchIn?: boolean
     currentPunchInPhoto?: boolean
     currentPunchInLat?: boolean
@@ -3356,7 +3311,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type EmployeeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "role" | "department" | "avatarInitials" | "status" | "annualBalance" | "sickBalance" | "casualBalance" | "currentPunchIn" | "currentPunchInPhoto" | "currentPunchInLat" | "currentPunchInLng" | "companyName" | "companyAddress" | "employeeCount" | "wid" | "employeeCode" | "phoneNumber" | "joiningDate" | "designation" | "employmentType" | "reportingManager" | "reportingHR" | "workLocation" | "branch" | "rosterShift" | "personalEmail" | "dateOfBirth" | "emergencyContactName" | "emergencyContactPhone" | "bloodGroup" | "faceEmbedding" | "facePhotos" | "acceptedTerms" | "acceptedPrivacy" | "createdAt", ExtArgs["result"]["employee"]>
+  export type EmployeeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "role" | "department" | "avatarInitials" | "status" | "currentPunchIn" | "currentPunchInPhoto" | "currentPunchInLat" | "currentPunchInLng" | "companyName" | "companyAddress" | "employeeCount" | "wid" | "employeeCode" | "phoneNumber" | "joiningDate" | "designation" | "employmentType" | "reportingManager" | "reportingHR" | "workLocation" | "branch" | "rosterShift" | "personalEmail" | "dateOfBirth" | "emergencyContactName" | "emergencyContactPhone" | "bloodGroup" | "faceEmbedding" | "facePhotos" | "acceptedTerms" | "acceptedPrivacy" | "createdAt", ExtArgs["result"]["employee"]>
   export type EmployeeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     leaves?: boolean | Employee$leavesArgs<ExtArgs>
     punches?: boolean | Employee$punchesArgs<ExtArgs>
@@ -3393,9 +3348,6 @@ export namespace Prisma {
       department: string
       avatarInitials: string
       status: string
-      annualBalance: number
-      sickBalance: number
-      casualBalance: number
       currentPunchIn: string | null
       currentPunchInPhoto: string | null
       currentPunchInLat: number | null
@@ -3863,9 +3815,6 @@ export namespace Prisma {
     readonly department: FieldRef<"Employee", 'String'>
     readonly avatarInitials: FieldRef<"Employee", 'String'>
     readonly status: FieldRef<"Employee", 'String'>
-    readonly annualBalance: FieldRef<"Employee", 'Float'>
-    readonly sickBalance: FieldRef<"Employee", 'Float'>
-    readonly casualBalance: FieldRef<"Employee", 'Float'>
     readonly currentPunchIn: FieldRef<"Employee", 'String'>
     readonly currentPunchInPhoto: FieldRef<"Employee", 'String'>
     readonly currentPunchInLat: FieldRef<"Employee", 'Float'>
@@ -24949,9 +24898,6 @@ export namespace Prisma {
     department: 'department',
     avatarInitials: 'avatarInitials',
     status: 'status',
-    annualBalance: 'annualBalance',
-    sickBalance: 'sickBalance',
-    casualBalance: 'casualBalance',
     currentPunchIn: 'currentPunchIn',
     currentPunchInPhoto: 'currentPunchInPhoto',
     currentPunchInLat: 'currentPunchInLat',
@@ -25359,9 +25305,6 @@ export namespace Prisma {
     department?: StringFilter<"Employee"> | string
     avatarInitials?: StringFilter<"Employee"> | string
     status?: StringFilter<"Employee"> | string
-    annualBalance?: FloatFilter<"Employee"> | number
-    sickBalance?: FloatFilter<"Employee"> | number
-    casualBalance?: FloatFilter<"Employee"> | number
     currentPunchIn?: StringNullableFilter<"Employee"> | string | null
     currentPunchInPhoto?: StringNullableFilter<"Employee"> | string | null
     currentPunchInLat?: FloatNullableFilter<"Employee"> | number | null
@@ -25409,9 +25352,6 @@ export namespace Prisma {
     department?: SortOrder
     avatarInitials?: SortOrder
     status?: SortOrder
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchIn?: SortOrderInput | SortOrder
     currentPunchInPhoto?: SortOrderInput | SortOrder
     currentPunchInLat?: SortOrderInput | SortOrder
@@ -25462,9 +25402,6 @@ export namespace Prisma {
     department?: StringFilter<"Employee"> | string
     avatarInitials?: StringFilter<"Employee"> | string
     status?: StringFilter<"Employee"> | string
-    annualBalance?: FloatFilter<"Employee"> | number
-    sickBalance?: FloatFilter<"Employee"> | number
-    casualBalance?: FloatFilter<"Employee"> | number
     currentPunchIn?: StringNullableFilter<"Employee"> | string | null
     currentPunchInPhoto?: StringNullableFilter<"Employee"> | string | null
     currentPunchInLat?: FloatNullableFilter<"Employee"> | number | null
@@ -25512,9 +25449,6 @@ export namespace Prisma {
     department?: SortOrder
     avatarInitials?: SortOrder
     status?: SortOrder
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchIn?: SortOrderInput | SortOrder
     currentPunchInPhoto?: SortOrderInput | SortOrder
     currentPunchInLat?: SortOrderInput | SortOrder
@@ -25561,9 +25495,6 @@ export namespace Prisma {
     department?: StringWithAggregatesFilter<"Employee"> | string
     avatarInitials?: StringWithAggregatesFilter<"Employee"> | string
     status?: StringWithAggregatesFilter<"Employee"> | string
-    annualBalance?: FloatWithAggregatesFilter<"Employee"> | number
-    sickBalance?: FloatWithAggregatesFilter<"Employee"> | number
-    casualBalance?: FloatWithAggregatesFilter<"Employee"> | number
     currentPunchIn?: StringNullableWithAggregatesFilter<"Employee"> | string | null
     currentPunchInPhoto?: StringNullableWithAggregatesFilter<"Employee"> | string | null
     currentPunchInLat?: FloatNullableWithAggregatesFilter<"Employee"> | number | null
@@ -26986,9 +26917,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -27036,9 +26964,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -27086,9 +27011,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27136,9 +27058,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27186,9 +27105,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -27227,9 +27143,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27268,9 +27181,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -28820,17 +28730,6 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type FloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type StringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -28993,9 +28892,6 @@ export namespace Prisma {
     department?: SortOrder
     avatarInitials?: SortOrder
     status?: SortOrder
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchIn?: SortOrder
     currentPunchInPhoto?: SortOrder
     currentPunchInLat?: SortOrder
@@ -29027,9 +28923,6 @@ export namespace Prisma {
   }
 
   export type EmployeeAvgOrderByAggregateInput = {
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchInLat?: SortOrder
     currentPunchInLng?: SortOrder
     wid?: SortOrder
@@ -29044,9 +28937,6 @@ export namespace Prisma {
     department?: SortOrder
     avatarInitials?: SortOrder
     status?: SortOrder
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchIn?: SortOrder
     currentPunchInPhoto?: SortOrder
     currentPunchInLat?: SortOrder
@@ -29083,9 +28973,6 @@ export namespace Prisma {
     department?: SortOrder
     avatarInitials?: SortOrder
     status?: SortOrder
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchIn?: SortOrder
     currentPunchInPhoto?: SortOrder
     currentPunchInLat?: SortOrder
@@ -29115,9 +29002,6 @@ export namespace Prisma {
   }
 
   export type EmployeeSumOrderByAggregateInput = {
-    annualBalance?: SortOrder
-    sickBalance?: SortOrder
-    casualBalance?: SortOrder
     currentPunchInLat?: SortOrder
     currentPunchInLng?: SortOrder
     wid?: SortOrder
@@ -29140,22 +29024,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
-  }
-
-  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -29230,6 +29098,17 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type EmployeeScalarRelationFilter = {
     is?: EmployeeWhereInput
     isNot?: EmployeeWhereInput
@@ -29286,6 +29165,22 @@ export namespace Prisma {
   export type LeaveRequestSumOrderByAggregateInput = {
     totalDays?: SortOrder
     wid?: SortOrder
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type PunchRecordCountOrderByAggregateInput = {
@@ -30292,14 +30187,6 @@ export namespace Prisma {
     set?: string
   }
 
-  export type FloatFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
   }
@@ -30598,6 +30485,14 @@ export namespace Prisma {
     create?: XOR<EmployeeCreateWithoutLeavesInput, EmployeeUncheckedCreateWithoutLeavesInput>
     connectOrCreate?: EmployeeCreateOrConnectWithoutLeavesInput
     connect?: EmployeeWhereUniqueInput
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type LeaveRequestUpdateattachmentsInput = {
@@ -31102,17 +30997,6 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -31193,22 +31077,6 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
-  }
-
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -31278,6 +31146,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
@@ -31886,9 +31781,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -31935,9 +31827,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32000,9 +31889,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32049,9 +31935,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32098,9 +31981,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32147,9 +32027,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32212,9 +32089,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32261,9 +32135,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32704,9 +32575,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32753,9 +32621,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32818,9 +32683,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32867,9 +32729,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -32916,9 +32775,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -32965,9 +32821,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33030,9 +32883,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33079,9 +32929,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33128,9 +32975,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33177,9 +33021,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33292,9 +33133,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33341,9 +33179,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33449,9 +33284,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33498,9 +33330,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33596,9 +33425,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33645,9 +33471,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33694,9 +33517,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33743,9 +33563,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33824,9 +33641,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33873,9 +33687,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -33938,9 +33749,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -33987,9 +33795,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -34080,9 +33885,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -34129,9 +33931,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -34178,9 +33977,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -34227,9 +34023,6 @@ export namespace Prisma {
     department: string
     avatarInitials: string
     status: string
-    annualBalance?: number
-    sickBalance?: number
-    casualBalance?: number
     currentPunchIn?: string | null
     currentPunchInPhoto?: string | null
     currentPunchInLat?: number | null
@@ -34318,9 +34111,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -34367,9 +34157,6 @@ export namespace Prisma {
     department?: StringFieldUpdateOperationsInput | string
     avatarInitials?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    annualBalance?: FloatFieldUpdateOperationsInput | number
-    sickBalance?: FloatFieldUpdateOperationsInput | number
-    casualBalance?: FloatFieldUpdateOperationsInput | number
     currentPunchIn?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInPhoto?: NullableStringFieldUpdateOperationsInput | string | null
     currentPunchInLat?: NullableFloatFieldUpdateOperationsInput | number | null

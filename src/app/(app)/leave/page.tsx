@@ -19,6 +19,7 @@ import { AttachmentPicker } from "@/components/AttachmentPicker";
 import { AttachmentLinks } from "@/components/AttachmentLinks";
 import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
 import { getWFHBranchError, resolveEmployeeBranch } from "@/lib/branch-utils";
+import { getAvailableLeaveBalance } from "@/lib/leave-balance";
 import { sortByAppliedAtRecentFirst } from "@/lib/sort-recent-first";
 import {
   DropdownMenu,
@@ -510,31 +511,15 @@ export default function LeavePage() {
       }
     }
 
-    // Verify balance
-    const isMainLeaveType = type === "Annual" || type === "Sick" || type === "Casual";
-    if (isMainLeaveType) {
-      const balanceType = type as "Annual" | "Sick" | "Casual";
-      const available = currentUser.leaveBalance[balanceType];
-      if (totalDays > available) {
-        setErrorMsg(
-          `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${type} leaves left.`
-        );
-        return;
-      }
-    } else {
-      const customType = customLeaveTypes.find((cat) => cat.name === type);
-      if (customType) {
-        const approvedDaysTaken = myRequests
-          .filter((r) => r.type === type && r.status === "Approved")
-          .reduce((acc, curr) => acc + curr.totalDays, 0);
-        const available = customType.days - approvedDaysTaken;
-        if (totalDays > available) {
-          setErrorMsg(
-            `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${type} leaves left.`
-          );
-          return;
-        }
-      }
+    // Verify balance from leave categories
+    const available = getAvailableLeaveBalance(type, customLeaveTypes, myRequests, {
+      employeeId: currentUser.id,
+    });
+    if (available !== null && totalDays > available) {
+      setErrorMsg(
+        `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${type} leaves left.`
+      );
+      return;
     }
 
     setSubmitting(true);
@@ -615,31 +600,16 @@ export default function LeavePage() {
       }
     }
 
-    // Verify balance
-    const isMainLeaveType = editType === "Annual" || editType === "Sick" || editType === "Casual";
-    if (isMainLeaveType) {
-      const balanceType = editType as "Annual" | "Sick" | "Casual";
-      const available = currentUser.leaveBalance[balanceType];
-      if (totalDays > available) {
-        setEditErrorMsg(
-          `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${editType} leaves left.`
-        );
-        return;
-      }
-    } else {
-      const customType = customLeaveTypes.find((cat) => cat.name === editType);
-      if (customType) {
-        const approvedDaysTaken = myRequests
-          .filter((r) => r.type === editType && r.status === "Approved" && r.id !== editRequest?.id)
-          .reduce((acc, curr) => acc + curr.totalDays, 0);
-        const available = customType.days - approvedDaysTaken;
-        if (totalDays > available) {
-          setEditErrorMsg(
-            `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${editType} leaves left.`
-          );
-          return;
-        }
-      }
+    // Verify balance from leave categories
+    const available = getAvailableLeaveBalance(editType, customLeaveTypes, myRequests, {
+      employeeId: currentUser.id,
+      excludeLeaveId: editRequest?.id,
+    });
+    if (available !== null && totalDays > available) {
+      setEditErrorMsg(
+        `Insufficient balance! You requested ${totalDays} days, but only have ${available} ${editType} leaves left.`
+      );
+      return;
     }
 
     if (editRequest) {

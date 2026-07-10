@@ -17,9 +17,6 @@ model Employee {
   department            String
   avatarInitials        String
   status                String // "Active" | "On Leave" | "Half-day" | "Off"
-  annualBalance         Float                      @default(15)
-  sickBalance           Float                      @default(8)
-  casualBalance         Float                      @default(6)
   currentPunchIn        String? // Active punch-in timestamp
   currentPunchInPhoto   String? // S3 URL of the punch-in selfie photo
   currentPunchInLat     Float? // Check-in location latitude

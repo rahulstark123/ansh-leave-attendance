@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { getSystemSettings, saveSystemSettings } from "@/lib/settings";
-import { prisma } from "@/lib/db";
 
 export async function GET(req: Request) {
   try {
@@ -53,23 +52,6 @@ export async function POST(req: Request) {
       branches,
       companyProfile,
     });
-
-    // If leaveSettings were updated, let's update all employees' baseline balances
-    if (leaveSettings) {
-      const annualLimit = parseFloat(leaveSettings.annualLimit);
-      const sickLimit = parseFloat(leaveSettings.sickLimit);
-      const casualLimit = parseFloat(leaveSettings.casualLimit);
-
-      if (!isNaN(annualLimit) && !isNaN(sickLimit) && !isNaN(casualLimit)) {
-        await prisma.employee.updateMany({
-          data: {
-            annualBalance: annualLimit,
-            sickBalance: sickLimit,
-            casualBalance: casualLimit,
-          },
-        });
-      }
-    }
 
     return NextResponse.json({ settings: updated });
   } catch (error) {

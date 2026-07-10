@@ -50,11 +50,6 @@ export interface Employee {
   department: string;
   avatarInitials: string;
   status: EmployeeStatus;
-  leaveBalance: {
-    Annual: number;
-    Sick: number;
-    Casual: number;
-  };
   branch?: string;
   reportingManager?: string;
   reportingHR?: string;
@@ -106,7 +101,6 @@ const initialEmployees: Employee[] = [
     department: "Human Resources",
     avatarInitials: "RR",
     status: "Active",
-    leaveBalance: { Annual: 14, Sick: 7, Casual: 6 },
   },
   {
     id: "emp-2",
@@ -116,7 +110,6 @@ const initialEmployees: Employee[] = [
     department: "Engineering",
     avatarInitials: "PS",
     status: "Active",
-    leaveBalance: { Annual: 12, Sick: 5, Casual: 4 },
   },
   {
     id: "emp-3",
@@ -126,7 +119,6 @@ const initialEmployees: Employee[] = [
     department: "Product Design",
     avatarInitials: "AP",
     status: "On Leave",
-    leaveBalance: { Annual: 8, Sick: 6, Casual: 3 },
   },
   {
     id: "emp-4",
@@ -136,7 +128,6 @@ const initialEmployees: Employee[] = [
     department: "Data Analytics",
     avatarInitials: "SR",
     status: "Half-day",
-    leaveBalance: { Annual: 16, Sick: 8, Casual: 5 },
   },
   {
     id: "emp-5",
@@ -146,7 +137,6 @@ const initialEmployees: Employee[] = [
     department: "Engineering (QA)",
     avatarInitials: "RG",
     status: "Active",
-    leaveBalance: { Annual: 10, Sick: 6, Casual: 4 },
   },
   {
     id: "emp-6",
@@ -156,7 +146,6 @@ const initialEmployees: Employee[] = [
     department: "Executive",
     avatarInitials: "VM",
     status: "Active",
-    leaveBalance: { Annual: 20, Sick: 10, Casual: 8 },
   },
 ];
 
@@ -295,11 +284,6 @@ const mapDbEmployee = (dbEmp: any): Employee => {
     department: dbEmp.department,
     avatarInitials: dbEmp.avatarInitials,
     status: dbEmp.status as EmployeeStatus,
-    leaveBalance: {
-      Annual: dbEmp.annualBalance,
-      Sick: dbEmp.sickBalance,
-      Casual: dbEmp.casualBalance,
-    },
     branch: dbEmp.branch || undefined,
     reportingManager: dbEmp.reportingManager || undefined,
     reportingHR: dbEmp.reportingHR || undefined,
@@ -350,7 +334,6 @@ export const useLeaveStore = create<LeaveState>()(
         department: "",
         avatarInitials: "...",
         status: "Active",
-        leaveBalance: { Annual: 0, Sick: 0, Casual: 0 },
       },
       faceEnrolled: false,
       setFaceEnrolled: (enrolled: boolean) => set({ faceEnrolled: enrolled }),
@@ -426,41 +409,11 @@ export const useLeaveStore = create<LeaveState>()(
           });
           if (!res.ok) throw new Error("Failed to approve leave");
           
-          set((state) => {
-            const updatedLeaves = state.leaves.map((l) => {
-              if (l.id === id) {
-                const days = l.totalDays;
-                const type = l.type as "Annual" | "Sick" | "Casual";
-                
-                if (type === "Annual" || type === "Sick" || type === "Casual") {
-                  state.employees = state.employees.map((e) => {
-                    if (e.id === l.employeeId && e.leaveBalance[type] !== undefined) {
-                      return {
-                        ...e,
-                        leaveBalance: {
-                          ...e.leaveBalance,
-                          [type]: Math.max(0, e.leaveBalance[type] - days),
-                        },
-                      };
-                    }
-                    return e;
-                  });
-                }
-
-                return { ...l, status: "Approved" as LeaveStatus };
-              }
-              return l;
-            });
-
-            const activeUser = state.currentUser;
-            const updatedCurrentUser = state.employees.find((e) => e.id === activeUser.id) || activeUser;
-
-            return {
-              leaves: updatedLeaves,
-              employees: [...state.employees],
-              currentUser: updatedCurrentUser,
-            };
-          });
+          set((state) => ({
+            leaves: state.leaves.map((leave) =>
+              leave.id === id ? { ...leave, status: "Approved" as LeaveStatus } : leave
+            ),
+          }));
           await useLeaveStore.getState().initialize();
         } catch (error) {
           console.error(error);

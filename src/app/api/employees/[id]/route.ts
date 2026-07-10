@@ -48,9 +48,6 @@ export async function PATCH(
       department,
       role,
       status,
-      annualBalance,
-      sickBalance,
-      casualBalance,
       employeeCode,
       phoneNumber,
       joiningDate,
@@ -91,9 +88,6 @@ export async function PATCH(
       if (department !== undefined) updateData.department = department;
       if (role !== undefined) updateData.role = role;
       if (status !== undefined) updateData.status = status;
-      if (annualBalance !== undefined) updateData.annualBalance = parseFloat(annualBalance);
-      if (sickBalance !== undefined) updateData.sickBalance = parseFloat(sickBalance);
-      if (casualBalance !== undefined) updateData.casualBalance = parseFloat(casualBalance);
       if (employeeCode !== undefined) updateData.employeeCode = employeeCode || null;
       if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber || null;
       if (joiningDate !== undefined) updateData.joiningDate = joiningDate || null;

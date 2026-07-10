@@ -28,9 +28,6 @@ async function main() {
       department: "Human Resources",
       avatarInitials: "RR",
       status: "Active",
-      annualBalance: 14,
-      sickBalance: 7,
-      casualBalance: 6,
       wid: wid,
     },
   });
@@ -44,9 +41,6 @@ async function main() {
       department: "Engineering",
       avatarInitials: "PS",
       status: "Active",
-      annualBalance: 12,
-      sickBalance: 5,
-      casualBalance: 4,
       wid: wid,
     },
   });
@@ -60,9 +54,6 @@ async function main() {
       department: "Product Design",
       avatarInitials: "AP",
       status: "On Leave",
-      annualBalance: 8,
-      sickBalance: 6,
-      casualBalance: 3,
       wid: wid,
     },
   });
@@ -76,9 +67,6 @@ async function main() {
       department: "Data Analytics",
       avatarInitials: "SR",
       status: "Half-day",
-      annualBalance: 16,
-      sickBalance: 8,
-      casualBalance: 5,
       wid: wid,
     },
   });
@@ -92,9 +80,6 @@ async function main() {
       department: "Engineering (QA)",
       avatarInitials: "RG",
       status: "Active",
-      annualBalance: 10,
-      sickBalance: 6,
-      casualBalance: 4,
       wid: wid,
     },
   });
@@ -108,11 +93,17 @@ async function main() {
       department: "Executive",
       avatarInitials: "VM",
       status: "Active",
-      annualBalance: 20,
-      sickBalance: 10,
-      casualBalance: 8,
       wid: wid,
     },
+  });
+
+  console.log("Seeding leave categories...");
+  await prisma.leaveCategory.createMany({
+    data: [
+      { name: "Annual", days: 15, color: "violet", wid },
+      { name: "Sick", days: 8, color: "sky", wid },
+      { name: "Casual", days: 6, color: "emerald", wid },
+    ],
   });
 
   console.log("Seeding leave requests...");

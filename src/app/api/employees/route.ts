@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
-import { getSystemSettings } from "@/lib/settings";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getWorkspaceAccess } from "@/lib/billing/workspace-access";
 import { FREE_MAX_USERS } from "@/lib/billing/plans";
@@ -78,6 +77,13 @@ export async function POST(req: Request) {
       );
     }
 
+    const avatarInitials = name
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
     // Default current user's wid if not set
     let wid = employee.wid;
     if (wid === null || wid === undefined) {
@@ -135,19 +141,6 @@ export async function POST(req: Request) {
     }
     const authUserId = createResult.data.user.id;
 
-    // Get baseline leave settings
-    const settings = getSystemSettings();
-    const annualLimit = settings.leaveSettings?.annualLimit ?? 15;
-    const sickLimit = settings.leaveSettings?.sickLimit ?? 8;
-    const casualLimit = settings.leaveSettings?.casualLimit ?? 6;
-
-    const avatarInitials = name
-      .split(" ")
-      .map((n: string) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-
     // Create new employee with detailed parameters
     const newEmp = await prisma.employee.create({
       data: {
@@ -158,9 +151,6 @@ export async function POST(req: Request) {
         department,
         avatarInitials,
         status: status || "Active",
-        annualBalance: annualLimit,
-        sickBalance: sickLimit,
-        casualBalance: casualLimit,
         wid,
         employeeCode: employeeCode || null,
         phoneNumber: phoneNumber || null,

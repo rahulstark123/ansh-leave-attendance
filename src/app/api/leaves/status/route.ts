@@ -53,25 +53,11 @@ export async function POST(req: Request) {
       });
 
       if (status === "Approved") {
-        const type = leave.type;
-        const days = leave.totalDays;
-        const employee = leave.employee;
-
-        let balanceField: "annualBalance" | "sickBalance" | "casualBalance" | null = null;
-        if (type === "Annual") balanceField = "annualBalance";
-        else if (type === "Sick") balanceField = "sickBalance";
-        else if (type === "Casual") balanceField = "casualBalance";
-
-        if (balanceField) {
-          const currentBalance = Number(employee[balanceField]);
-          const newBalance = Math.max(0, currentBalance - days);
-
+        const today = new Date().toISOString().split("T")[0];
+        if (leave.startDate === today) {
           await tx.employee.update({
-            where: { id: employee.id },
-            data: {
-              [balanceField]: newBalance,
-              status: leave.startDate === new Date().toISOString().split("T")[0] ? "On Leave" : employee.status,
-            },
+            where: { id: leave.employeeId },
+            data: { status: "On Leave" },
           });
         }
       }

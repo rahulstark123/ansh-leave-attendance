@@ -1,8 +1,5 @@
 {
   "leaveSettings": {
-    "annualLimit": 15,
-    "sickLimit": 8,
-    "casualLimit": 6,
     "customLeaveTypes": [],
     "policyDocuments": [],
     "companyHolidays": [
