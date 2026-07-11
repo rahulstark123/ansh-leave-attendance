@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { getAuthEmployee } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 
+function normalizeAttachments(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+    .slice(0, 3);
+}
+
 export async function GET(req: Request) {
   try {
     const employee = await getAuthEmployee(req);
@@ -56,6 +63,7 @@ export async function GET(req: Request) {
       category: t.category,
       subject: t.subject,
       description: t.description,
+      attachments: t.attachments ?? [],
       status: t.status,
       priority: t.priority,
       createdAt: t.createdAt.toISOString(),
@@ -63,6 +71,7 @@ export async function GET(req: Request) {
       replies: t.replies.map((r) => ({
         id: r.id,
         message: r.message,
+        attachments: r.attachments ?? [],
         isAdmin: r.isAdmin,
         authorName: r.authorName,
         createdAt: r.createdAt.toISOString(),
@@ -85,8 +94,9 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { category, subject, description, priority } = body;
+    const attachments = normalizeAttachments(body?.attachments);
 
-    if (!category || !subject || !description || !priority) {
+    if (!category || !subject?.trim() || !description?.trim() || !priority) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -94,8 +104,9 @@ export async function POST(req: Request) {
       data: {
         employeeId: employee.id,
         category,
-        subject,
-        description,
+        subject: String(subject).trim(),
+        description: String(description).trim(),
+        attachments,
         priority,
         status: "Open",
         wid: employee.wid ?? 1,
@@ -112,10 +123,12 @@ export async function POST(req: Request) {
       category: ticket.category,
       subject: ticket.subject,
       description: ticket.description,
+      attachments: ticket.attachments ?? [],
       status: ticket.status,
       priority: ticket.priority,
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString(),
+      replies: [] as [],
     };
 
     return NextResponse.json({ ticket: formattedTicket });
@@ -149,7 +162,6 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Access control: creator or management
     const isOwner = ticket.employeeId === employee.id;
     const isManagement =
       employee.role === "Admin" ||

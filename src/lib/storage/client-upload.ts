@@ -1,6 +1,6 @@
 import { prepareAttachment } from "@/lib/attachment-compress";
 
-export type UploadFolder = "leaves" | "announcements";
+export type UploadFolder = "leaves" | "announcements" | "support";
 
 function getAuthHeaders(): HeadersInit {
   const token =

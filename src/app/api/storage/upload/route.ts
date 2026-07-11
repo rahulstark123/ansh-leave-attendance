@@ -11,7 +11,7 @@ import {
 } from "@/lib/storage/r2";
 import { getPublicObjectUrl } from "@/lib/storage/public-url";
 
-const ALLOWED_FOLDERS = new Set(["leaves", "announcements"]);
+const ALLOWED_FOLDERS = new Set(["leaves", "announcements", "support"]);
 
 export async function POST(req: Request) {
   try {

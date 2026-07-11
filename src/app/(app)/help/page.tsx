@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,32 +22,42 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useLeaveStore } from "@/stores/leave-store";
+import { AttachmentPicker } from "@/components/AttachmentPicker";
+import { AttachmentLinks } from "@/components/AttachmentLinks";
+import { uploadAttachmentFiles } from "@/lib/storage/client-upload";
 import {
   HelpCircle,
   Plus,
   Search,
   ChevronDown,
-  Check,
   Loader2,
   AlertCircle,
   CheckCircle2,
   Clock,
   BookOpen,
   Eye,
-  Filter,
   MoreVertical,
   Calendar,
   FileText,
   User,
-  ShieldAlert,
   Camera,
   MapPin,
   Laptop,
   Trash2,
   MessagesSquare,
+  Send,
 } from "lucide-react";
 
 // Types
+interface SupportTicketReply {
+  id: string;
+  message: string;
+  attachments?: string[];
+  isAdmin: boolean;
+  authorName: string;
+  createdAt: string;
+}
+
 interface SupportTicket {
   id: string;
   employeeId: string;
@@ -58,17 +68,12 @@ interface SupportTicket {
   category: string;
   subject: string;
   description: string;
+  attachments?: string[];
   status: "Open" | "In_Progress" | "Resolved";
   priority: "Low" | "Medium" | "High";
   createdAt: string;
   updatedAt: string;
-  replies?: {
-    id: string;
-    message: string;
-    isAdmin: boolean;
-    authorName: string;
-    createdAt: string;
-  }[];
+  replies?: SupportTicketReply[];
 }
 
 interface InteractiveGuide {
@@ -242,12 +247,15 @@ export default function HelpPage() {
   const [description, setDescription] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [createAttachments, setCreateAttachments] = useState<File[]>([]);
 
-  // Preview / Edit Status State (Admin panel)
+  // Preview / chat state
   const [previewTicket, setPreviewTicket] = useState<SupportTicket | null>(null);
-  const [adminStatus, setAdminStatus] = useState<"Open" | "In_Progress" | "Resolved">("Open");
-  const [adminPriority, setAdminPriority] = useState<"Low" | "Medium" | "High">("Medium");
-  const [updatingTicket, setUpdatingTicket] = useState(false);
+  const [detailTab, setDetailTab] = useState<"info" | "chat">("info");
+  const [replyMessage, setReplyMessage] = useState("");
+  const [replyAttachments, setReplyAttachments] = useState<File[]>([]);
+  const [sendingReply, setSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState("");
 
   // Delete Ticket State
   const [ticketToDelete, setTicketToDelete] = useState<SupportTicket | null>(null);
@@ -305,55 +313,87 @@ export default function HelpPage() {
 
     setSubmitting(true);
     try {
+      let attachments: string[] = [];
+      if (createAttachments.length > 0) {
+        attachments = await uploadAttachmentFiles(createAttachments, "support");
+      }
+
       const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ category, subject, description, priority }),
+        body: JSON.stringify({
+          category,
+          subject: subject.trim(),
+          description: description.trim(),
+          priority,
+          attachments,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
-        setTickets((prev) => [data.ticket, ...prev]);
+        setTickets((prev) => [
+          { ...data.ticket, replies: data.ticket.replies || [], attachments: data.ticket.attachments || [] },
+          ...prev,
+        ]);
         setCreateOpen(false);
         setSubject("");
         setDescription("");
         setCategory("Leave Issue");
         setPriority("Medium");
+        setCreateAttachments([]);
       } else {
         const errData = await res.json();
         setFormError(errData.error || "Failed to submit ticket.");
       }
     } catch (err) {
-      setFormError("Server error. Please try again later.");
+      setFormError(
+        err instanceof Error ? err.message : "Server error. Please try again later."
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleUpdateTicketStatus = async () => {
+  const handleSendReply = async () => {
     if (!previewTicket) return;
-    setUpdatingTicket(true);
+    if (!replyMessage.trim() && replyAttachments.length === 0) return;
+    setReplyError("");
+    setSendingReply(true);
     try {
-      const res = await fetch("/api/support/tickets/status", {
-        method: "PATCH",
+      let attachments: string[] = [];
+      if (replyAttachments.length > 0) {
+        attachments = await uploadAttachmentFiles(replyAttachments, "support");
+      }
+
+      const res = await fetch("/api/support/tickets/reply", {
+        method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          id: previewTicket.id,
-          status: adminStatus,
-          priority: adminPriority,
+          ticketId: previewTicket.id,
+          message: replyMessage.trim(),
+          attachments,
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        // Update local ticket list
-        setTickets((prev) =>
-          prev.map((t) => (t.id === previewTicket.id ? data.ticket : t))
-        );
-        setPreviewTicket(data.ticket);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setReplyError(data.error || "Failed to send message.");
+        return;
       }
-    } catch (error) {
-      console.error("Error updating ticket status:", error);
+
+      const nextReplies = [...(previewTicket.replies || []), data.reply];
+      const updatedTicket = { ...previewTicket, replies: nextReplies };
+      setPreviewTicket(updatedTicket);
+      setTickets((prev) =>
+        prev.map((t) => (t.id === previewTicket.id ? updatedTicket : t))
+      );
+      setReplyMessage("");
+      setReplyAttachments([]);
+    } catch (err) {
+      setReplyError(
+        err instanceof Error ? err.message : "Server error. Please try again."
+      );
     } finally {
-      setUpdatingTicket(false);
+      setSendingReply(false);
     }
   };
 
@@ -716,8 +756,10 @@ export default function HelpPage() {
                                 <DropdownMenuItem
                                   onClick={() => {
                                     setPreviewTicket(ticket);
-                                    setAdminStatus(ticket.status);
-                                    setAdminPriority(ticket.priority);
+                                    setDetailTab("info");
+                                    setReplyMessage("");
+                                    setReplyAttachments([]);
+                                    setReplyError("");
                                   }}
                                   className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-slate-650 hover:bg-slate-100 cursor-pointer outline-none font-semibold"
                                 >
@@ -747,7 +789,16 @@ export default function HelpPage() {
       )}
 
       {/* CREATE TICKET DIALOG */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) {
+            setCreateAttachments([]);
+            setFormError("");
+          }
+        }}
+      >
         <DialogContent className="max-w-md border border-border bg-card/95 backdrop-blur-md dark:bg-slate-900/95 p-6 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-base font-extrabold text-slate-900 dark:text-white">
@@ -771,32 +822,38 @@ export default function HelpPage() {
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
                   Category
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="flex h-11 w-full items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
-                >
-                  <option value="Leave Issue">Leave Issue</option>
-                  <option value="Attendance Correction">Attendance Correction</option>
-                  <option value="Profile Update">Profile Update</option>
-                  <option value="IT Support">IT Support</option>
-                  <option value="Other">Other</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="flex h-11 w-full appearance-none items-center rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 pr-9 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
+                  >
+                    <option value="Leave Issue">Leave Issue</option>
+                    <option value="Attendance Correction">Attendance Correction</option>
+                    <option value="Profile Update">Profile Update</option>
+                    <option value="IT Support">IT Support</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                </div>
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
                   Priority
                 </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="flex h-11 w-full items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as "Low" | "Medium" | "High")}
+                    className="flex h-11 w-full appearance-none items-center rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 pr-9 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                </div>
               </div>
             </div>
 
@@ -821,9 +878,15 @@ export default function HelpPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                className="flex w-full rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2.5 text-xs outline-none focus:border-primary/45 cursor-pointer text-slate-700 dark:text-slate-200 resize-none hover:bg-slate-50/50 dark:hover:bg-slate-800/20"
+                className="flex w-full rounded-xl border border-border bg-card dark:bg-slate-900 px-3.5 py-2.5 text-xs outline-none focus:border-primary/45 text-slate-700 dark:text-slate-200 resize-none hover:bg-slate-50/50 dark:hover:bg-slate-800/20 break-words"
               />
             </div>
+
+            <AttachmentPicker
+              files={createAttachments}
+              onChange={setCreateAttachments}
+              disabled={submitting}
+            />
 
             <DialogFooter className="pt-2 border-t border-border/40 gap-2">
               <Button
@@ -853,13 +916,24 @@ export default function HelpPage() {
         </DialogContent>
       </Dialog>
 
-      {/* PREVIEW TICKET DIALOG (WITH ADMIN STATUS UPDATE CONTROLS) */}
-      <Dialog open={!!previewTicket} onOpenChange={() => setPreviewTicket(null)}>
-        <DialogContent className="max-w-md border border-border bg-card/95 backdrop-blur-md dark:bg-slate-900/95 p-6 rounded-2xl">
+      {/* PREVIEW TICKET DIALOG */}
+      <Dialog
+        open={!!previewTicket}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewTicket(null);
+            setDetailTab("info");
+            setReplyMessage("");
+            setReplyAttachments([]);
+            setReplyError("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[min(90vh,640px)] grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden border border-border bg-card/95 backdrop-blur-md dark:bg-slate-900/95 p-0 rounded-2xl gap-0">
           {previewTicket && (
             <>
-              <DialogHeader className="border-b border-border/40 pb-4">
-                <div className="flex items-center gap-2 mb-1.5">
+              <DialogHeader className="shrink-0 px-6 pt-6 pb-3 pr-12">
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
                   <Badge className={`border-0 font-bold px-2 py-0.5 rounded-md text-[10px] ${getPriorityColor(previewTicket.priority)}`}>
                     {previewTicket.priority} Priority
                   </Badge>
@@ -867,139 +941,203 @@ export default function HelpPage() {
                     {getStatusLabel(previewTicket.status)}
                   </Badge>
                 </div>
-                <DialogTitle className="text-base font-extrabold text-slate-900 dark:text-white leading-snug">
+                <DialogTitle className="text-base font-extrabold text-slate-900 dark:text-white leading-snug break-words [overflow-wrap:anywhere] line-clamp-2 pr-2">
                   {previewTicket.subject}
                 </DialogTitle>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2">
-                  <span>Category: <b>{previewTicket.category}</b></span>
-                  <span>
-                    Submitted: {new Date(previewTicket.createdAt).toLocaleString()}
-                  </span>
-                </div>
               </DialogHeader>
 
-              <div className="py-4 space-y-4">
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                    Employee Details
-                  </h4>
-                  <div className="rounded-xl border border-border bg-slate-50/30 dark:bg-slate-900/30 p-3 flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
-                      {previewTicket.avatarInitials}
+              {/* Detail tabs */}
+              <div className="shrink-0 flex border-b border-border/60 px-2">
+                <button
+                  type="button"
+                  onClick={() => setDetailTab("info")}
+                  className={`flex flex-1 items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold border-b-2 transition-all outline-none cursor-pointer ${
+                    detailTab === "info"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                  Ticket Info
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetailTab("chat")}
+                  className={`flex flex-1 items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold border-b-2 transition-all outline-none cursor-pointer ${
+                    detailTab === "chat"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <MessagesSquare className="h-3.5 w-3.5 shrink-0" />
+                  Chat
+                  {(previewTicket.replies || []).length > 0 && (
+                    <Badge className="ml-0.5 bg-primary/15 text-primary border-0 font-extrabold text-[9px] px-1.5 py-0 rounded-full">
+                      {(previewTicket.replies || []).length}
+                    </Badge>
+                  )}
+                </button>
+              </div>
+
+              {detailTab === "info" ? (
+                <div className="min-h-0 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400">
+                    <span className="min-w-0 truncate">
+                      Category:{" "}
+                      <b className="text-slate-600 dark:text-slate-300">{previewTicket.category}</b>
                     </span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                        {previewTicket.employeeName}
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        {previewTicket.employeeRole} • {previewTicket.employeeEmail}
-                      </p>
+                    <span className="shrink-0">
+                      Submitted: {new Date(previewTicket.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      Employee Details
+                    </h4>
+                    <div className="rounded-xl border border-border bg-slate-50/30 dark:bg-slate-900/30 p-3 flex items-center gap-3 min-w-0">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                        {previewTicket.avatarInitials}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                          {previewTicket.employeeName}
+                        </p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {previewTicket.employeeRole} • {previewTicket.employeeEmail}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                    Issue Description
-                  </h4>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-border/60 p-4">
-                    {previewTicket.description}
+                  <div className="min-w-0">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                      Issue Description
+                    </h4>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-border/60 p-4 max-h-40 overflow-y-auto">
+                      {previewTicket.description}
+                    </p>
+                  </div>
+
+                  <AttachmentLinks attachments={previewTicket.attachments} label="Ticket attachments" />
+
+                  <p className="text-[10px] text-slate-400">
+                    Status and priority are managed by ANSH Support only.
                   </p>
                 </div>
-
-                {previewTicket.replies && previewTicket.replies.length > 0 && (
-                  <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                      Support Responses
-                    </h4>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {previewTicket.replies.map((reply) => (
+              ) : (
+                <div className="min-h-0 flex flex-col overflow-hidden px-6 py-4 gap-3">
+                  <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden space-y-2 rounded-xl border border-border/60 bg-slate-50/30 dark:bg-slate-900/20 p-3">
+                    {(previewTicket.replies || []).length === 0 ? (
+                      <div className="flex h-full min-h-[10rem] flex-col items-center justify-center text-center px-4">
+                        <MessagesSquare className="h-8 w-8 text-slate-300 mb-2" />
+                        <p className="text-[11px] text-slate-400">
+                          No messages yet. ANSH Support will reply here.
+                        </p>
+                      </div>
+                    ) : (
+                      (previewTicket.replies || []).map((reply) => (
                         <div
                           key={reply.id}
-                          className={`rounded-xl border p-3 text-xs leading-relaxed ${
+                          className={`min-w-0 max-w-full rounded-xl border p-3 text-xs leading-relaxed ${
                             reply.isAdmin
                               ? "border-primary/30 bg-primary/5 text-slate-700 dark:text-slate-300"
-                              : "border-border/60 bg-slate-50/50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-300"
+                              : "ml-2 sm:ml-4 border-border/60 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
                           }`}
                         >
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="font-bold text-[10px]">{reply.authorName}</span>
-                            <span className="text-[10px] text-slate-400">
+                          <div className="mb-1 flex items-start justify-between gap-2 min-w-0">
+                            <span className="font-bold text-[10px] truncate min-w-0">
+                              {reply.isAdmin ? "ANSH Support" : reply.authorName}
+                            </span>
+                            <span className="text-[10px] text-slate-400 shrink-0 whitespace-nowrap">
                               {new Date(reply.createdAt).toLocaleString()}
                             </span>
                           </div>
-                          {reply.message}
+                          <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                            {reply.message}
+                          </p>
+                          {!!reply.attachments?.length && (
+                            <div className="mt-2 min-w-0">
+                              <AttachmentLinks attachments={reply.attachments} label="Attachments" />
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      ))
+                    )}
                   </div>
-                )}
 
-                {/* Management Update Desk */}
-                {isManagement && (
-                  <div className="border-t border-border/40 pt-4 space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
-                      <ShieldAlert className="h-3.5 w-3.5" />
-                      Administration Control Panel
-                    </h4>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                          Update Status
-                        </label>
-                        <select
-                          value={adminStatus}
-                          onChange={(e) => setAdminStatus(e.target.value as any)}
-                          className="flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
-                        >
-                          <option value="Open">Open</option>
-                          <option value="In_Progress">In Progress</option>
-                          <option value="Resolved">Resolved</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                          Update Priority
-                        </label>
-                        <select
-                          value={adminPriority}
-                          onChange={(e) => setAdminPriority(e.target.value as any)}
-                          className="flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
-                        >
-                          <option value="Low">Low</option>
-                          <option value="Medium">Medium</option>
-                          <option value="High">High</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleUpdateTicketStatus}
-                      disabled={updatingTicket}
-                      className="h-10 text-xs font-bold btn-primary w-full rounded-xl gap-2 mt-2"
-                    >
-                      {updatingTicket ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Updating Ticket...
-                        </>
-                      ) : (
-                        "Update Ticket Config"
+                  {previewTicket.employeeId === currentUser?.id &&
+                  (previewTicket.status === "Open" ||
+                    previewTicket.status === "In_Progress") ? (
+                    <div className="shrink-0 space-y-2 border-t border-border/40 pt-3">
+                      {replyError && (
+                        <div className="rounded-xl bg-rose-500/10 p-2.5 border border-rose-500/20 text-rose-500 text-[11px] font-semibold break-words">
+                          {replyError}
+                        </div>
                       )}
-                    </Button>
-                  </div>
-                )}
-              </div>
+                      <AttachmentPicker
+                        files={replyAttachments}
+                        onChange={setReplyAttachments}
+                        disabled={sendingReply}
+                        maxFiles={3}
+                      />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Input
+                          placeholder="Type your message to support..."
+                          value={replyMessage}
+                          onChange={(e) => setReplyMessage(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              void handleSendReply();
+                            }
+                          }}
+                          className="h-10 min-w-0 flex-1 border-border rounded-xl text-xs"
+                          disabled={sendingReply}
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => void handleSendReply()}
+                          disabled={
+                            sendingReply ||
+                            (!replyMessage.trim() && replyAttachments.length === 0)
+                          }
+                          className="h-10 w-10 shrink-0 p-0 btn-primary rounded-xl"
+                          aria-label="Send message"
+                        >
+                          {sendingReply ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : previewTicket.status === "Resolved" ? (
+                    <p className="shrink-0 text-[11px] text-slate-400 text-center py-1">
+                      This ticket is resolved. Chat is closed.
+                    </p>
+                  ) : (
+                    <p className="shrink-0 text-[11px] text-slate-400 text-center py-1">
+                      Only the ticket creator can send messages.
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <DialogFooter className="pt-2 border-t border-border/40">
+              <DialogFooter className="shrink-0 px-6 py-3 border-t border-border/40">
                 <Button
                   variant="ghost"
-                  onClick={() => setPreviewTicket(null)}
+                  onClick={() => {
+                    setPreviewTicket(null);
+                    setDetailTab("info");
+                    setReplyMessage("");
+                    setReplyAttachments([]);
+                    setReplyError("");
+                  }}
                   className="h-10 text-xs font-bold hover:bg-slate-100 w-full rounded-xl"
                 >
-                  Close Detail logs
+                  Close
                 </Button>
               </DialogFooter>
             </>

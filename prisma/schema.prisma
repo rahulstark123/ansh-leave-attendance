@@ -279,6 +279,7 @@ model SupportTicket {
   category    String               // "Leave Issue" | "Attendance Correction" | "IT Support" | "Profile Update" | "Other"
   subject     String
   description String
+  attachments String[]             @default([])
   status      String               // "Open" | "In_Progress" | "Resolved"
   priority    String               // "Low" | "Medium" | "High"
   createdAt   DateTime             @default(now())
@@ -288,13 +289,14 @@ model SupportTicket {
 }
 
 model SupportTicketReply {
-  id        String        @id @default(cuid())
-  ticketId  String
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  message   String
-  isAdmin   Boolean       @default(false)
-  authorName String
-  createdAt DateTime      @default(now())
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message     String
+  attachments String[]      @default([])
+  isAdmin     Boolean       @default(false)
+  authorName  String
+  createdAt   DateTime      @default(now())
 
   @@index([ticketId])
 }
