@@ -181,6 +181,21 @@ export function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <a
+              href="https://saathi.anshapps.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open ANSH Saathi"
+              className="ansh-saathi-outline group relative inline-flex shrink-0 rounded-full p-[1.5px] shadow-sm transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40"
+            >
+              <span className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-[11px] font-black tracking-wide text-slate-800 transition-colors group-hover:bg-slate-50 dark:bg-slate-950 dark:text-white dark:group-hover:bg-slate-900">
+                ANSH Saathi
+              </span>
+            </a>
+            <div
+              aria-hidden
+              className="hidden sm:block h-7 w-px shrink-0 bg-zinc-200 dark:bg-slate-700"
+            />
             <LandingThemeToggle />
             {sessionActive ? (
               <Link href="/dashboard">
@@ -909,7 +924,7 @@ export function LandingPage() {
               Flexible Plans Tailored for Your Scale
             </h2>
             <p className={`text-xs sm:text-sm ${LANDING_SUBTEXT}`}>
-              Start with core leave and attendance for free. Compare what each plan includes — you can manage billing inside your workspace when you are ready.
+              Start with core leave and attendance for free. Compare what each plan includes — you can manage billing inside your workspace when you are ready. India (INR) prices show base rate; 18% GST is added at checkout.
             </p>
           </div>
 
@@ -971,6 +986,12 @@ export function LandingPage() {
                   <span className="text-3xl font-black tracking-tight">₹199</span>
                   <span className={`ml-1 text-[11px] font-semibold ${LANDING_MUTED}`}>/ user / month</span>
                 </div>
+                <p className={`text-[11px] font-semibold text-violet-600 dark:text-violet-400`}>
+                  + 18% GST for India (INR)
+                </p>
+                <p className={`text-[10px] ${LANDING_MUTED}`}>
+                  ≈ ₹235 / user / month incl. GST at checkout · International pricing billed in USD without GST
+                </p>
                 <ul className={`space-y-3.5 pt-4 text-xs font-medium ${LANDING_BODY}`}>
                   <li className="flex items-center gap-2.5">
                     <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" strokeWidth={3} />
@@ -1097,7 +1118,7 @@ export function LandingPage() {
             },
             {
               q: "What does the Pro plan unlock?",
-              a: "Pro is billed per user per month based on your current team size — you pay ₹199 for each teammate when you subscribe. You get unlimited punch-ins plus a shift roster manager with custom timings, custom leave categories and rules, company holiday calendars by branch, policy document uploads, and team analytics with punctuality reports. CSV/PDF exports and audit trails are planned and marked as coming soon."
+              a: "Pro is billed per user per month based on your current team size — you pay ₹199 for each teammate when you subscribe, plus 18% GST on INR payments in India (≈ ₹235/user/month incl. GST at checkout). International workspaces are charged in USD without GST. You get unlimited punch-ins plus a shift roster manager with custom timings, custom leave categories and rules, company holiday calendars by branch, policy document uploads, and team analytics with punctuality reports. CSV/PDF exports and audit trails are planned and marked as coming soon."
             },
             {
               q: "Do new workspaces get a Pro trial?",
