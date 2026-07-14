@@ -198,6 +198,7 @@ exports.Prisma.WorkspaceScalarFieldEnum = {
   planExpiresAt: 'planExpiresAt',
   trialEndsAt: 'trialEndsAt',
   maxUsers: 'maxUsers',
+  saathiCode: 'saathiCode',
   createdAt: 'createdAt'
 };
 
@@ -211,6 +212,7 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   billingCycle: 'billingCycle',
   amountPaisa: 'amountPaisa',
   currency: 'currency',
+  saathiCode: 'saathiCode',
   razorpayOrderId: 'razorpayOrderId',
   startsAt: 'startsAt',
   expiresAt: 'expiresAt',
@@ -343,6 +345,7 @@ exports.Prisma.SupportTicketScalarFieldEnum = {
   category: 'category',
   subject: 'subject',
   description: 'description',
+  attachments: 'attachments',
   status: 'status',
   priority: 'priority',
   createdAt: 'createdAt',
@@ -354,6 +357,7 @@ exports.Prisma.SupportTicketReplyScalarFieldEnum = {
   id: 'id',
   ticketId: 'ticketId',
   message: 'message',
+  attachments: 'attachments',
   isAdmin: 'isAdmin',
   authorName: 'authorName',
   createdAt: 'createdAt'

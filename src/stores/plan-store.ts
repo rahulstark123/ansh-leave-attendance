@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type { PlanFeature, PlanFeatureId } from "@/lib/billing/features";
 import { getPlanFeature } from "@/lib/billing/features";
 
+export type CheckoutIntent = "upgrade" | "add_seats";
+
 interface PlanState {
   loaded: boolean;
   hasProAccess: boolean;
@@ -12,18 +14,25 @@ interface PlanState {
   trialEndsAt: string | null;
   plan: string;
   planName: string;
+  isProActive: boolean;
+  seatsCount: number;
+  maxUsers: number;
   modalOpen: boolean;
   checkoutModalOpen: boolean;
+  checkoutIntent: CheckoutIntent;
   checkoutOnSuccess: (() => void | Promise<void>) | null;
   blockedFeature: PlanFeature | null;
   fetchPlan: () => Promise<void>;
   requestUpgrade: (featureId: PlanFeatureId) => void;
   closeModal: () => void;
-  openCheckoutModal: (onSuccess?: () => void | Promise<void>) => void;
+  openCheckoutModal: (
+    onSuccess?: () => void | Promise<void>,
+    intent?: CheckoutIntent
+  ) => void;
   closeCheckoutModal: () => void;
 }
 
-export const usePlanStore = create<PlanState>((set, get) => ({
+export const usePlanStore = create<PlanState>((set) => ({
   loaded: false,
   hasProAccess: true,
   isTrialActive: false,
@@ -33,8 +42,12 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   trialEndsAt: null,
   plan: "free",
   planName: "ANSH HR Free Edition",
+  isProActive: false,
+  seatsCount: 3,
+  maxUsers: 3,
   modalOpen: false,
   checkoutModalOpen: false,
+  checkoutIntent: "upgrade",
   checkoutOnSuccess: null,
   blockedFeature: null,
 
@@ -60,6 +73,9 @@ export const usePlanStore = create<PlanState>((set, get) => ({
         trialEndsAt: data.trialEndsAt ?? null,
         plan: data.plan ?? "free",
         planName: data.planName ?? "ANSH HR Free Edition",
+        isProActive: Boolean(data.isProActive),
+        seatsCount: data.seatsCount ?? data.maxUsers ?? 3,
+        maxUsers: data.maxUsers ?? 3,
       });
     } catch (err) {
       console.error("Failed to load plan status:", err);
@@ -78,9 +94,10 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     set({ modalOpen: false, blockedFeature: null });
   },
 
-  openCheckoutModal: (onSuccess) => {
+  openCheckoutModal: (onSuccess, intent = "upgrade") => {
     set({
       checkoutModalOpen: true,
+      checkoutIntent: intent,
       checkoutOnSuccess: onSuccess ?? null,
       modalOpen: false,
       blockedFeature: null,
@@ -88,6 +105,10 @@ export const usePlanStore = create<PlanState>((set, get) => ({
   },
 
   closeCheckoutModal: () => {
-    set({ checkoutModalOpen: false, checkoutOnSuccess: null });
+    set({
+      checkoutModalOpen: false,
+      checkoutOnSuccess: null,
+      checkoutIntent: "upgrade",
+    });
   },
 }));

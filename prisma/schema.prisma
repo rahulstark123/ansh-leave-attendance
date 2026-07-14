@@ -97,6 +97,7 @@ model Workspace {
   planExpiresAt DateTime?
   trialEndsAt   DateTime?      // 14-day Pro trial for new workspaces
   maxUsers      Int            @default(5)
+  saathiCode    String?        @map("saathicode") // e.g. "SAATHI-00001" — referral from ANSH Saathi
   createdAt     DateTime       @default(now())
   subscriptions Subscription[]
   transactions  Transaction[]
@@ -113,6 +114,7 @@ model Subscription {
   billingCycle    String        // "monthly" | "yearly"
   amountPaisa     Int
   currency        String        @default("INR")
+  saathiCode      String?       @map("saathicode") // ANSH Saathi referral at time of this purchase
   razorpayOrderId String?
   startsAt        DateTime?
   expiresAt       DateTime?

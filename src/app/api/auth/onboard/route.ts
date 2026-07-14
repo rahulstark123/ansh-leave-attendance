@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       contactPhone,
       websiteUrl,
       initialBranch,
+      saathiCode,
     } = body;
 
     if (!name || !department || !role) {
@@ -45,7 +46,8 @@ export async function POST(req: Request) {
       newWid = existingEmployee.wid;
     } else {
       const workspace = await createWorkspaceWithTrial(
-        companyName || "New Workspace"
+        companyName || "New Workspace",
+        { saathiCode: typeof saathiCode === "string" ? saathiCode : null }
       );
       newWid = workspace.id;
     }

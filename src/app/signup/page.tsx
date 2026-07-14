@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [saathiCode, setSaathiCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,9 +23,20 @@ export default function SignupPage() {
   const [showGoogleConnecting, setShowGoogleConnecting] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  const persistSaathiCode = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    if (trimmed) {
+      sessionStorage.setItem("ansh_saathi_code", trimmed);
+    } else {
+      sessionStorage.removeItem("ansh_saathi_code");
+    }
+    return trimmed;
+  };
+
   const handleGoogleSignup = async () => {
     setErrorMsg("");
     setShowGoogleConnecting(true);
+    persistSaathiCode(saathiCode);
 
     try {
       const completePath = encodeURIComponent("/auth/complete?flow=signup");
@@ -94,6 +106,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      const normalizedSaathi = persistSaathiCode(saathiCode);
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
@@ -102,6 +115,7 @@ export default function SignupPage() {
             full_name: name.trim(),
             accepted_terms: true,
             accepted_privacy: true,
+            ...(normalizedSaathi ? { saathi_code: normalizedSaathi } : {}),
           },
         },
       });
@@ -272,6 +286,22 @@ export default function SignupPage() {
                       <Eye className="h-4.5 w-4.5" />
                     )}
                   </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Helped by ANSH Saathi{" "}
+                  <span className="normal-case tracking-normal font-semibold text-slate-300">(optional)</span>
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={saathiCode}
+                    onChange={(e) => setSaathiCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. SAATHI-00001"
+                    className="block w-full rounded-xl border border-slate-250 bg-white px-4 py-3.5 text-sm text-slate-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)] outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 uppercase"
+                  />
                 </div>
               </div>
 

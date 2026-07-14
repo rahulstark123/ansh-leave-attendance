@@ -96,10 +96,13 @@ export async function POST(req: Request) {
 
     const access = await getWorkspaceAccess(wid);
     const teamCount = await prisma.employee.count({ where: { wid } });
-    if (!access.hasProAccess && teamCount >= access.effectiveMaxUsers) {
+    if (teamCount >= access.effectiveMaxUsers) {
+      const message = access.hasProAccess
+        ? `Your Pro plan includes ${access.effectiveMaxUsers} seats and all are in use. Add more seats from Billing to invite additional teammates.`
+        : `Free plan allows up to ${FREE_MAX_USERS} team members. Upgrade to Pro to add more.`;
       return NextResponse.json(
         {
-          error: `Free plan allows up to ${FREE_MAX_USERS} team members. Upgrade to Pro to add more.`,
+          error: message,
           code: "TEAM_LIMIT_REACHED",
         },
         { status: 403 }

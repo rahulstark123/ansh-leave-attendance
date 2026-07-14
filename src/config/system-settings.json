@@ -82,15 +82,15 @@
   },
   "branches": [
     {
-      "id": "branch-hq-1783152801768",
+      "id": "branch-hq-1784060797318",
       "name": "Main HQ",
       "address": "Badshahpur, Gurgaon, Haryana - 122101",
       "allowWFH": true
     }
   ],
   "companyProfile": {
-    "name": "My companby",
-    "address": "Amgola, Muzaffarpur, Bihar - 842001",
+    "name": "ANSH MAIN HQ",
+    "address": "Badshahpur, Gurgaon, Haryana - 122101",
     "employeeCount": "1-10",
     "industry": "Software",
     "foundYear": "",

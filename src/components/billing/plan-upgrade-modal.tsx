@@ -51,6 +51,9 @@ export function PlanUpgradeModal() {
             </div>
             Unlock unlimited punch-ins, more teammates, shift
             rosters, custom leave rules, holiday calendars, and analytics.
+            <span className="block mt-1.5 text-[10px] text-slate-400">
+              India (INR) payments include 18% GST at checkout.
+            </span>
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row gap-2.5">

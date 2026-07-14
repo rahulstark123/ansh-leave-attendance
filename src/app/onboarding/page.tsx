@@ -76,6 +76,17 @@ export default function OnboardingPage() {
     checkAuth();
   }, [router]);
 
+  const resolveSaathiCode = (session: { user?: { user_metadata?: Record<string, unknown> } } | null) => {
+    const fromMeta = session?.user?.user_metadata?.saathi_code;
+    const fromSession =
+      typeof window !== "undefined" ? sessionStorage.getItem("ansh_saathi_code") : null;
+    const raw =
+      (typeof fromMeta === "string" && fromMeta.trim()) ||
+      (typeof fromSession === "string" && fromSession.trim()) ||
+      "";
+    return raw.toUpperCase() || null;
+  };
+
   // Company address pincode autofill
   useEffect(() => {
     if (companyPincode.length === 6 && /^\d+$/.test(companyPincode)) {
@@ -224,6 +235,7 @@ export default function OnboardingPage() {
           companyAddress: !isInvited ? companyAddress.trim() : null,
           employeeCount: !isInvited ? employeeCount : null,
           industry: !isInvited ? industry.trim() : null,
+          saathiCode: resolveSaathiCode(session),
           initialBranch: !isInvited
             ? {
                 name: "Main HQ",
@@ -244,6 +256,7 @@ export default function OnboardingPage() {
       // Store credentials and redirect
       sessionStorage.setItem("ansh_auth_session", "true");
       sessionStorage.setItem("ansh_auth_token", session.access_token);
+      sessionStorage.removeItem("ansh_saathi_code");
       
       router.push("/dashboard");
     } catch (err) {

@@ -6902,6 +6902,7 @@ export namespace Prisma {
     planExpiresAt: Date | null
     trialEndsAt: Date | null
     maxUsers: number | null
+    saathiCode: string | null
     createdAt: Date | null
   }
 
@@ -6912,6 +6913,7 @@ export namespace Prisma {
     planExpiresAt: Date | null
     trialEndsAt: Date | null
     maxUsers: number | null
+    saathiCode: string | null
     createdAt: Date | null
   }
 
@@ -6922,6 +6924,7 @@ export namespace Prisma {
     planExpiresAt: number
     trialEndsAt: number
     maxUsers: number
+    saathiCode: number
     createdAt: number
     _all: number
   }
@@ -6944,6 +6947,7 @@ export namespace Prisma {
     planExpiresAt?: true
     trialEndsAt?: true
     maxUsers?: true
+    saathiCode?: true
     createdAt?: true
   }
 
@@ -6954,6 +6958,7 @@ export namespace Prisma {
     planExpiresAt?: true
     trialEndsAt?: true
     maxUsers?: true
+    saathiCode?: true
     createdAt?: true
   }
 
@@ -6964,6 +6969,7 @@ export namespace Prisma {
     planExpiresAt?: true
     trialEndsAt?: true
     maxUsers?: true
+    saathiCode?: true
     createdAt?: true
     _all?: true
   }
@@ -7061,6 +7067,7 @@ export namespace Prisma {
     planExpiresAt: Date | null
     trialEndsAt: Date | null
     maxUsers: number
+    saathiCode: string | null
     createdAt: Date
     _count: WorkspaceCountAggregateOutputType | null
     _avg: WorkspaceAvgAggregateOutputType | null
@@ -7090,6 +7097,7 @@ export namespace Prisma {
     planExpiresAt?: boolean
     trialEndsAt?: boolean
     maxUsers?: boolean
+    saathiCode?: boolean
     createdAt?: boolean
     subscriptions?: boolean | Workspace$subscriptionsArgs<ExtArgs>
     transactions?: boolean | Workspace$transactionsArgs<ExtArgs>
@@ -7103,6 +7111,7 @@ export namespace Prisma {
     planExpiresAt?: boolean
     trialEndsAt?: boolean
     maxUsers?: boolean
+    saathiCode?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["workspace"]>
 
@@ -7113,6 +7122,7 @@ export namespace Prisma {
     planExpiresAt?: boolean
     trialEndsAt?: boolean
     maxUsers?: boolean
+    saathiCode?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["workspace"]>
 
@@ -7123,10 +7133,11 @@ export namespace Prisma {
     planExpiresAt?: boolean
     trialEndsAt?: boolean
     maxUsers?: boolean
+    saathiCode?: boolean
     createdAt?: boolean
   }
 
-  export type WorkspaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "plan" | "planExpiresAt" | "trialEndsAt" | "maxUsers" | "createdAt", ExtArgs["result"]["workspace"]>
+  export type WorkspaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "plan" | "planExpiresAt" | "trialEndsAt" | "maxUsers" | "saathiCode" | "createdAt", ExtArgs["result"]["workspace"]>
   export type WorkspaceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     subscriptions?: boolean | Workspace$subscriptionsArgs<ExtArgs>
     transactions?: boolean | Workspace$transactionsArgs<ExtArgs>
@@ -7148,6 +7159,7 @@ export namespace Prisma {
       planExpiresAt: Date | null
       trialEndsAt: Date | null
       maxUsers: number
+      saathiCode: string | null
       createdAt: Date
     }, ExtArgs["result"]["workspace"]>
     composites: {}
@@ -7580,6 +7592,7 @@ export namespace Prisma {
     readonly planExpiresAt: FieldRef<"Workspace", 'DateTime'>
     readonly trialEndsAt: FieldRef<"Workspace", 'DateTime'>
     readonly maxUsers: FieldRef<"Workspace", 'Int'>
+    readonly saathiCode: FieldRef<"Workspace", 'String'>
     readonly createdAt: FieldRef<"Workspace", 'DateTime'>
   }
     
@@ -8069,6 +8082,7 @@ export namespace Prisma {
     billingCycle: string | null
     amountPaisa: number | null
     currency: string | null
+    saathiCode: string | null
     razorpayOrderId: string | null
     startsAt: Date | null
     expiresAt: Date | null
@@ -8085,6 +8099,7 @@ export namespace Prisma {
     billingCycle: string | null
     amountPaisa: number | null
     currency: string | null
+    saathiCode: string | null
     razorpayOrderId: string | null
     startsAt: Date | null
     expiresAt: Date | null
@@ -8101,6 +8116,7 @@ export namespace Prisma {
     billingCycle: number
     amountPaisa: number
     currency: number
+    saathiCode: number
     razorpayOrderId: number
     startsAt: number
     expiresAt: number
@@ -8131,6 +8147,7 @@ export namespace Prisma {
     billingCycle?: true
     amountPaisa?: true
     currency?: true
+    saathiCode?: true
     razorpayOrderId?: true
     startsAt?: true
     expiresAt?: true
@@ -8147,6 +8164,7 @@ export namespace Prisma {
     billingCycle?: true
     amountPaisa?: true
     currency?: true
+    saathiCode?: true
     razorpayOrderId?: true
     startsAt?: true
     expiresAt?: true
@@ -8163,6 +8181,7 @@ export namespace Prisma {
     billingCycle?: true
     amountPaisa?: true
     currency?: true
+    saathiCode?: true
     razorpayOrderId?: true
     startsAt?: true
     expiresAt?: true
@@ -8266,6 +8285,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency: string
+    saathiCode: string | null
     razorpayOrderId: string | null
     startsAt: Date | null
     expiresAt: Date | null
@@ -8301,6 +8321,7 @@ export namespace Prisma {
     billingCycle?: boolean
     amountPaisa?: boolean
     currency?: boolean
+    saathiCode?: boolean
     razorpayOrderId?: boolean
     startsAt?: boolean
     expiresAt?: boolean
@@ -8320,6 +8341,7 @@ export namespace Prisma {
     billingCycle?: boolean
     amountPaisa?: boolean
     currency?: boolean
+    saathiCode?: boolean
     razorpayOrderId?: boolean
     startsAt?: boolean
     expiresAt?: boolean
@@ -8337,6 +8359,7 @@ export namespace Prisma {
     billingCycle?: boolean
     amountPaisa?: boolean
     currency?: boolean
+    saathiCode?: boolean
     razorpayOrderId?: boolean
     startsAt?: boolean
     expiresAt?: boolean
@@ -8354,13 +8377,14 @@ export namespace Prisma {
     billingCycle?: boolean
     amountPaisa?: boolean
     currency?: boolean
+    saathiCode?: boolean
     razorpayOrderId?: boolean
     startsAt?: boolean
     expiresAt?: boolean
     createdAt?: boolean
   }
 
-  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "workspaceId" | "employeeId" | "status" | "plan" | "seatsCount" | "billingCycle" | "amountPaisa" | "currency" | "razorpayOrderId" | "startsAt" | "expiresAt" | "createdAt", ExtArgs["result"]["subscription"]>
+  export type SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "workspaceId" | "employeeId" | "status" | "plan" | "seatsCount" | "billingCycle" | "amountPaisa" | "currency" | "saathiCode" | "razorpayOrderId" | "startsAt" | "expiresAt" | "createdAt", ExtArgs["result"]["subscription"]>
   export type SubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
     transactions?: boolean | Subscription$transactionsArgs<ExtArgs>
@@ -8389,6 +8413,7 @@ export namespace Prisma {
       billingCycle: string
       amountPaisa: number
       currency: string
+      saathiCode: string | null
       razorpayOrderId: string | null
       startsAt: Date | null
       expiresAt: Date | null
@@ -8827,6 +8852,7 @@ export namespace Prisma {
     readonly billingCycle: FieldRef<"Subscription", 'String'>
     readonly amountPaisa: FieldRef<"Subscription", 'Int'>
     readonly currency: FieldRef<"Subscription", 'String'>
+    readonly saathiCode: FieldRef<"Subscription", 'String'>
     readonly razorpayOrderId: FieldRef<"Subscription", 'String'>
     readonly startsAt: FieldRef<"Subscription", 'DateTime'>
     readonly expiresAt: FieldRef<"Subscription", 'DateTime'>
@@ -21567,6 +21593,7 @@ export namespace Prisma {
     category: number
     subject: number
     description: number
+    attachments: number
     status: number
     priority: number
     createdAt: number
@@ -21616,6 +21643,7 @@ export namespace Prisma {
     category?: true
     subject?: true
     description?: true
+    attachments?: true
     status?: true
     priority?: true
     createdAt?: true
@@ -21716,6 +21744,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments: string[]
     status: string
     priority: string
     createdAt: Date
@@ -21748,6 +21777,7 @@ export namespace Prisma {
     category?: boolean
     subject?: boolean
     description?: boolean
+    attachments?: boolean
     status?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -21764,6 +21794,7 @@ export namespace Prisma {
     category?: boolean
     subject?: boolean
     description?: boolean
+    attachments?: boolean
     status?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -21778,6 +21809,7 @@ export namespace Prisma {
     category?: boolean
     subject?: boolean
     description?: boolean
+    attachments?: boolean
     status?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -21792,6 +21824,7 @@ export namespace Prisma {
     category?: boolean
     subject?: boolean
     description?: boolean
+    attachments?: boolean
     status?: boolean
     priority?: boolean
     createdAt?: boolean
@@ -21799,7 +21832,7 @@ export namespace Prisma {
     wid?: boolean
   }
 
-  export type SupportTicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "category" | "subject" | "description" | "status" | "priority" | "createdAt" | "updatedAt" | "wid", ExtArgs["result"]["supportTicket"]>
+  export type SupportTicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "category" | "subject" | "description" | "attachments" | "status" | "priority" | "createdAt" | "updatedAt" | "wid", ExtArgs["result"]["supportTicket"]>
   export type SupportTicketInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
     replies?: boolean | SupportTicket$repliesArgs<ExtArgs>
@@ -21824,6 +21857,7 @@ export namespace Prisma {
       category: string
       subject: string
       description: string
+      attachments: string[]
       status: string
       priority: string
       createdAt: Date
@@ -22259,6 +22293,7 @@ export namespace Prisma {
     readonly category: FieldRef<"SupportTicket", 'String'>
     readonly subject: FieldRef<"SupportTicket", 'String'>
     readonly description: FieldRef<"SupportTicket", 'String'>
+    readonly attachments: FieldRef<"SupportTicket", 'String[]'>
     readonly status: FieldRef<"SupportTicket", 'String'>
     readonly priority: FieldRef<"SupportTicket", 'String'>
     readonly createdAt: FieldRef<"SupportTicket", 'DateTime'>
@@ -22734,6 +22769,7 @@ export namespace Prisma {
     id: number
     ticketId: number
     message: number
+    attachments: number
     isAdmin: number
     authorName: number
     createdAt: number
@@ -22763,6 +22799,7 @@ export namespace Prisma {
     id?: true
     ticketId?: true
     message?: true
+    attachments?: true
     isAdmin?: true
     authorName?: true
     createdAt?: true
@@ -22845,6 +22882,7 @@ export namespace Prisma {
     id: string
     ticketId: string
     message: string
+    attachments: string[]
     isAdmin: boolean
     authorName: string
     createdAt: Date
@@ -22871,6 +22909,7 @@ export namespace Prisma {
     id?: boolean
     ticketId?: boolean
     message?: boolean
+    attachments?: boolean
     isAdmin?: boolean
     authorName?: boolean
     createdAt?: boolean
@@ -22881,6 +22920,7 @@ export namespace Prisma {
     id?: boolean
     ticketId?: boolean
     message?: boolean
+    attachments?: boolean
     isAdmin?: boolean
     authorName?: boolean
     createdAt?: boolean
@@ -22891,6 +22931,7 @@ export namespace Prisma {
     id?: boolean
     ticketId?: boolean
     message?: boolean
+    attachments?: boolean
     isAdmin?: boolean
     authorName?: boolean
     createdAt?: boolean
@@ -22901,12 +22942,13 @@ export namespace Prisma {
     id?: boolean
     ticketId?: boolean
     message?: boolean
+    attachments?: boolean
     isAdmin?: boolean
     authorName?: boolean
     createdAt?: boolean
   }
 
-  export type SupportTicketReplyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ticketId" | "message" | "isAdmin" | "authorName" | "createdAt", ExtArgs["result"]["supportTicketReply"]>
+  export type SupportTicketReplyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ticketId" | "message" | "attachments" | "isAdmin" | "authorName" | "createdAt", ExtArgs["result"]["supportTicketReply"]>
   export type SupportTicketReplyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     ticket?: boolean | SupportTicketDefaultArgs<ExtArgs>
   }
@@ -22926,6 +22968,7 @@ export namespace Prisma {
       id: string
       ticketId: string
       message: string
+      attachments: string[]
       isAdmin: boolean
       authorName: string
       createdAt: Date
@@ -23356,6 +23399,7 @@ export namespace Prisma {
     readonly id: FieldRef<"SupportTicketReply", 'String'>
     readonly ticketId: FieldRef<"SupportTicketReply", 'String'>
     readonly message: FieldRef<"SupportTicketReply", 'String'>
+    readonly attachments: FieldRef<"SupportTicketReply", 'String[]'>
     readonly isAdmin: FieldRef<"SupportTicketReply", 'Boolean'>
     readonly authorName: FieldRef<"SupportTicketReply", 'String'>
     readonly createdAt: FieldRef<"SupportTicketReply", 'DateTime'>
@@ -24976,6 +25020,7 @@ export namespace Prisma {
     planExpiresAt: 'planExpiresAt',
     trialEndsAt: 'trialEndsAt',
     maxUsers: 'maxUsers',
+    saathiCode: 'saathiCode',
     createdAt: 'createdAt'
   };
 
@@ -24992,6 +25037,7 @@ export namespace Prisma {
     billingCycle: 'billingCycle',
     amountPaisa: 'amountPaisa',
     currency: 'currency',
+    saathiCode: 'saathiCode',
     razorpayOrderId: 'razorpayOrderId',
     startsAt: 'startsAt',
     expiresAt: 'expiresAt',
@@ -25160,6 +25206,7 @@ export namespace Prisma {
     category: 'category',
     subject: 'subject',
     description: 'description',
+    attachments: 'attachments',
     status: 'status',
     priority: 'priority',
     createdAt: 'createdAt',
@@ -25174,6 +25221,7 @@ export namespace Prisma {
     id: 'id',
     ticketId: 'ticketId',
     message: 'message',
+    attachments: 'attachments',
     isAdmin: 'isAdmin',
     authorName: 'authorName',
     createdAt: 'createdAt'
@@ -25729,6 +25777,7 @@ export namespace Prisma {
     planExpiresAt?: DateTimeNullableFilter<"Workspace"> | Date | string | null
     trialEndsAt?: DateTimeNullableFilter<"Workspace"> | Date | string | null
     maxUsers?: IntFilter<"Workspace"> | number
+    saathiCode?: StringNullableFilter<"Workspace"> | string | null
     createdAt?: DateTimeFilter<"Workspace"> | Date | string
     subscriptions?: SubscriptionListRelationFilter
     transactions?: TransactionListRelationFilter
@@ -25741,6 +25790,7 @@ export namespace Prisma {
     planExpiresAt?: SortOrderInput | SortOrder
     trialEndsAt?: SortOrderInput | SortOrder
     maxUsers?: SortOrder
+    saathiCode?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     subscriptions?: SubscriptionOrderByRelationAggregateInput
     transactions?: TransactionOrderByRelationAggregateInput
@@ -25756,6 +25806,7 @@ export namespace Prisma {
     planExpiresAt?: DateTimeNullableFilter<"Workspace"> | Date | string | null
     trialEndsAt?: DateTimeNullableFilter<"Workspace"> | Date | string | null
     maxUsers?: IntFilter<"Workspace"> | number
+    saathiCode?: StringNullableFilter<"Workspace"> | string | null
     createdAt?: DateTimeFilter<"Workspace"> | Date | string
     subscriptions?: SubscriptionListRelationFilter
     transactions?: TransactionListRelationFilter
@@ -25768,6 +25819,7 @@ export namespace Prisma {
     planExpiresAt?: SortOrderInput | SortOrder
     trialEndsAt?: SortOrderInput | SortOrder
     maxUsers?: SortOrder
+    saathiCode?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: WorkspaceCountOrderByAggregateInput
     _avg?: WorkspaceAvgOrderByAggregateInput
@@ -25786,6 +25838,7 @@ export namespace Prisma {
     planExpiresAt?: DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
     trialEndsAt?: DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
     maxUsers?: IntWithAggregatesFilter<"Workspace"> | number
+    saathiCode?: StringNullableWithAggregatesFilter<"Workspace"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Workspace"> | Date | string
   }
 
@@ -25802,6 +25855,7 @@ export namespace Prisma {
     billingCycle?: StringFilter<"Subscription"> | string
     amountPaisa?: IntFilter<"Subscription"> | number
     currency?: StringFilter<"Subscription"> | string
+    saathiCode?: StringNullableFilter<"Subscription"> | string | null
     razorpayOrderId?: StringNullableFilter<"Subscription"> | string | null
     startsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     expiresAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
@@ -25820,6 +25874,7 @@ export namespace Prisma {
     billingCycle?: SortOrder
     amountPaisa?: SortOrder
     currency?: SortOrder
+    saathiCode?: SortOrderInput | SortOrder
     razorpayOrderId?: SortOrderInput | SortOrder
     startsAt?: SortOrderInput | SortOrder
     expiresAt?: SortOrderInput | SortOrder
@@ -25841,6 +25896,7 @@ export namespace Prisma {
     billingCycle?: StringFilter<"Subscription"> | string
     amountPaisa?: IntFilter<"Subscription"> | number
     currency?: StringFilter<"Subscription"> | string
+    saathiCode?: StringNullableFilter<"Subscription"> | string | null
     razorpayOrderId?: StringNullableFilter<"Subscription"> | string | null
     startsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     expiresAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
@@ -25859,6 +25915,7 @@ export namespace Prisma {
     billingCycle?: SortOrder
     amountPaisa?: SortOrder
     currency?: SortOrder
+    saathiCode?: SortOrderInput | SortOrder
     razorpayOrderId?: SortOrderInput | SortOrder
     startsAt?: SortOrderInput | SortOrder
     expiresAt?: SortOrderInput | SortOrder
@@ -25883,6 +25940,7 @@ export namespace Prisma {
     billingCycle?: StringWithAggregatesFilter<"Subscription"> | string
     amountPaisa?: IntWithAggregatesFilter<"Subscription"> | number
     currency?: StringWithAggregatesFilter<"Subscription"> | string
+    saathiCode?: StringNullableWithAggregatesFilter<"Subscription"> | string | null
     razorpayOrderId?: StringNullableWithAggregatesFilter<"Subscription"> | string | null
     startsAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
     expiresAt?: DateTimeNullableWithAggregatesFilter<"Subscription"> | Date | string | null
@@ -26689,6 +26747,7 @@ export namespace Prisma {
     category?: StringFilter<"SupportTicket"> | string
     subject?: StringFilter<"SupportTicket"> | string
     description?: StringFilter<"SupportTicket"> | string
+    attachments?: StringNullableListFilter<"SupportTicket">
     status?: StringFilter<"SupportTicket"> | string
     priority?: StringFilter<"SupportTicket"> | string
     createdAt?: DateTimeFilter<"SupportTicket"> | Date | string
@@ -26704,6 +26763,7 @@ export namespace Prisma {
     category?: SortOrder
     subject?: SortOrder
     description?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -26722,6 +26782,7 @@ export namespace Prisma {
     category?: StringFilter<"SupportTicket"> | string
     subject?: StringFilter<"SupportTicket"> | string
     description?: StringFilter<"SupportTicket"> | string
+    attachments?: StringNullableListFilter<"SupportTicket">
     status?: StringFilter<"SupportTicket"> | string
     priority?: StringFilter<"SupportTicket"> | string
     createdAt?: DateTimeFilter<"SupportTicket"> | Date | string
@@ -26737,6 +26798,7 @@ export namespace Prisma {
     category?: SortOrder
     subject?: SortOrder
     description?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -26758,6 +26820,7 @@ export namespace Prisma {
     category?: StringWithAggregatesFilter<"SupportTicket"> | string
     subject?: StringWithAggregatesFilter<"SupportTicket"> | string
     description?: StringWithAggregatesFilter<"SupportTicket"> | string
+    attachments?: StringNullableListFilter<"SupportTicket">
     status?: StringWithAggregatesFilter<"SupportTicket"> | string
     priority?: StringWithAggregatesFilter<"SupportTicket"> | string
     createdAt?: DateTimeWithAggregatesFilter<"SupportTicket"> | Date | string
@@ -26772,6 +26835,7 @@ export namespace Prisma {
     id?: StringFilter<"SupportTicketReply"> | string
     ticketId?: StringFilter<"SupportTicketReply"> | string
     message?: StringFilter<"SupportTicketReply"> | string
+    attachments?: StringNullableListFilter<"SupportTicketReply">
     isAdmin?: BoolFilter<"SupportTicketReply"> | boolean
     authorName?: StringFilter<"SupportTicketReply"> | string
     createdAt?: DateTimeFilter<"SupportTicketReply"> | Date | string
@@ -26782,6 +26846,7 @@ export namespace Prisma {
     id?: SortOrder
     ticketId?: SortOrder
     message?: SortOrder
+    attachments?: SortOrder
     isAdmin?: SortOrder
     authorName?: SortOrder
     createdAt?: SortOrder
@@ -26795,6 +26860,7 @@ export namespace Prisma {
     NOT?: SupportTicketReplyWhereInput | SupportTicketReplyWhereInput[]
     ticketId?: StringFilter<"SupportTicketReply"> | string
     message?: StringFilter<"SupportTicketReply"> | string
+    attachments?: StringNullableListFilter<"SupportTicketReply">
     isAdmin?: BoolFilter<"SupportTicketReply"> | boolean
     authorName?: StringFilter<"SupportTicketReply"> | string
     createdAt?: DateTimeFilter<"SupportTicketReply"> | Date | string
@@ -26805,6 +26871,7 @@ export namespace Prisma {
     id?: SortOrder
     ticketId?: SortOrder
     message?: SortOrder
+    attachments?: SortOrder
     isAdmin?: SortOrder
     authorName?: SortOrder
     createdAt?: SortOrder
@@ -26820,6 +26887,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"SupportTicketReply"> | string
     ticketId?: StringWithAggregatesFilter<"SupportTicketReply"> | string
     message?: StringWithAggregatesFilter<"SupportTicketReply"> | string
+    attachments?: StringNullableListFilter<"SupportTicketReply">
     isAdmin?: BoolWithAggregatesFilter<"SupportTicketReply"> | boolean
     authorName?: StringWithAggregatesFilter<"SupportTicketReply"> | string
     createdAt?: DateTimeWithAggregatesFilter<"SupportTicketReply"> | Date | string
@@ -27439,6 +27507,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     subscriptions?: SubscriptionCreateNestedManyWithoutWorkspaceInput
     transactions?: TransactionCreateNestedManyWithoutWorkspaceInput
@@ -27451,6 +27520,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     subscriptions?: SubscriptionUncheckedCreateNestedManyWithoutWorkspaceInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -27462,6 +27532,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subscriptions?: SubscriptionUpdateManyWithoutWorkspaceNestedInput
     transactions?: TransactionUpdateManyWithoutWorkspaceNestedInput
@@ -27474,6 +27545,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subscriptions?: SubscriptionUncheckedUpdateManyWithoutWorkspaceNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -27486,6 +27558,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
   }
 
@@ -27495,6 +27568,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -27505,6 +27579,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -27517,6 +27592,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -27535,6 +27611,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -27551,6 +27628,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -27569,6 +27647,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -27586,6 +27665,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -27601,6 +27681,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -27617,6 +27698,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -28466,6 +28548,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -28481,6 +28564,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -28494,6 +28578,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28509,6 +28594,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28523,6 +28609,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -28535,6 +28622,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28548,6 +28636,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28558,6 +28647,7 @@ export namespace Prisma {
   export type SupportTicketReplyCreateInput = {
     id?: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -28568,6 +28658,7 @@ export namespace Prisma {
     id?: string
     ticketId: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -28576,6 +28667,7 @@ export namespace Prisma {
   export type SupportTicketReplyUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28586,6 +28678,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     ticketId?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28595,6 +28688,7 @@ export namespace Prisma {
     id?: string
     ticketId: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -28603,6 +28697,7 @@ export namespace Prisma {
   export type SupportTicketReplyUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28612,6 +28707,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     ticketId?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29299,6 +29395,7 @@ export namespace Prisma {
     planExpiresAt?: SortOrder
     trialEndsAt?: SortOrder
     maxUsers?: SortOrder
+    saathiCode?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -29314,6 +29411,7 @@ export namespace Prisma {
     planExpiresAt?: SortOrder
     trialEndsAt?: SortOrder
     maxUsers?: SortOrder
+    saathiCode?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -29324,6 +29422,7 @@ export namespace Prisma {
     planExpiresAt?: SortOrder
     trialEndsAt?: SortOrder
     maxUsers?: SortOrder
+    saathiCode?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -29377,6 +29476,7 @@ export namespace Prisma {
     billingCycle?: SortOrder
     amountPaisa?: SortOrder
     currency?: SortOrder
+    saathiCode?: SortOrder
     razorpayOrderId?: SortOrder
     startsAt?: SortOrder
     expiresAt?: SortOrder
@@ -29399,6 +29499,7 @@ export namespace Prisma {
     billingCycle?: SortOrder
     amountPaisa?: SortOrder
     currency?: SortOrder
+    saathiCode?: SortOrder
     razorpayOrderId?: SortOrder
     startsAt?: SortOrder
     expiresAt?: SortOrder
@@ -29415,6 +29516,7 @@ export namespace Prisma {
     billingCycle?: SortOrder
     amountPaisa?: SortOrder
     currency?: SortOrder
+    saathiCode?: SortOrder
     razorpayOrderId?: SortOrder
     startsAt?: SortOrder
     expiresAt?: SortOrder
@@ -29928,6 +30030,7 @@ export namespace Prisma {
     category?: SortOrder
     subject?: SortOrder
     description?: SortOrder
+    attachments?: SortOrder
     status?: SortOrder
     priority?: SortOrder
     createdAt?: SortOrder
@@ -29978,6 +30081,7 @@ export namespace Prisma {
     id?: SortOrder
     ticketId?: SortOrder
     message?: SortOrder
+    attachments?: SortOrder
     isAdmin?: SortOrder
     authorName?: SortOrder
     createdAt?: SortOrder
@@ -30904,6 +31008,10 @@ export namespace Prisma {
     update?: XOR<XOR<EmployeeUpdateToOneWithWhereWithoutReceivedMessagesInput, EmployeeUpdateWithoutReceivedMessagesInput>, EmployeeUncheckedUpdateWithoutReceivedMessagesInput>
   }
 
+  export type SupportTicketCreateattachmentsInput = {
+    set: string[]
+  }
+
   export type EmployeeCreateNestedOneWithoutSupportTicketsInput = {
     create?: XOR<EmployeeCreateWithoutSupportTicketsInput, EmployeeUncheckedCreateWithoutSupportTicketsInput>
     connectOrCreate?: EmployeeCreateOrConnectWithoutSupportTicketsInput
@@ -30922,6 +31030,11 @@ export namespace Prisma {
     connectOrCreate?: SupportTicketReplyCreateOrConnectWithoutTicketInput | SupportTicketReplyCreateOrConnectWithoutTicketInput[]
     createMany?: SupportTicketReplyCreateManyTicketInputEnvelope
     connect?: SupportTicketReplyWhereUniqueInput | SupportTicketReplyWhereUniqueInput[]
+  }
+
+  export type SupportTicketUpdateattachmentsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type EmployeeUpdateOneRequiredWithoutSupportTicketsNestedInput = {
@@ -30960,10 +31073,19 @@ export namespace Prisma {
     deleteMany?: SupportTicketReplyScalarWhereInput | SupportTicketReplyScalarWhereInput[]
   }
 
+  export type SupportTicketReplyCreateattachmentsInput = {
+    set: string[]
+  }
+
   export type SupportTicketCreateNestedOneWithoutRepliesInput = {
     create?: XOR<SupportTicketCreateWithoutRepliesInput, SupportTicketUncheckedCreateWithoutRepliesInput>
     connectOrCreate?: SupportTicketCreateOrConnectWithoutRepliesInput
     connect?: SupportTicketWhereUniqueInput
+  }
+
+  export type SupportTicketReplyUpdateattachmentsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type SupportTicketUpdateOneRequiredWithoutRepliesNestedInput = {
@@ -31477,6 +31599,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -31490,6 +31613,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -31766,6 +31890,7 @@ export namespace Prisma {
     category?: StringFilter<"SupportTicket"> | string
     subject?: StringFilter<"SupportTicket"> | string
     description?: StringFilter<"SupportTicket"> | string
+    attachments?: StringNullableListFilter<"SupportTicket">
     status?: StringFilter<"SupportTicket"> | string
     priority?: StringFilter<"SupportTicket"> | string
     createdAt?: DateTimeFilter<"SupportTicket"> | Date | string
@@ -32182,6 +32307,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -32198,6 +32324,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -32280,6 +32407,7 @@ export namespace Prisma {
     billingCycle?: StringFilter<"Subscription"> | string
     amountPaisa?: IntFilter<"Subscription"> | number
     currency?: StringFilter<"Subscription"> | string
+    saathiCode?: StringNullableFilter<"Subscription"> | string | null
     razorpayOrderId?: StringNullableFilter<"Subscription"> | string | null
     startsAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
     expiresAt?: DateTimeNullableFilter<"Subscription"> | Date | string | null
@@ -32325,6 +32453,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutWorkspaceInput
   }
@@ -32336,6 +32465,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   }
@@ -32398,6 +32528,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutWorkspaceNestedInput
   }
@@ -32409,6 +32540,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   }
@@ -32435,6 +32567,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     subscriptions?: SubscriptionCreateNestedManyWithoutWorkspaceInput
   }
@@ -32446,6 +32579,7 @@ export namespace Prisma {
     planExpiresAt?: Date | string | null
     trialEndsAt?: Date | string | null
     maxUsers?: number
+    saathiCode?: string | null
     createdAt?: Date | string
     subscriptions?: SubscriptionUncheckedCreateNestedManyWithoutWorkspaceInput
   }
@@ -32464,6 +32598,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -32481,6 +32616,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -32509,6 +32645,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subscriptions?: SubscriptionUpdateManyWithoutWorkspaceNestedInput
   }
@@ -32520,6 +32657,7 @@ export namespace Prisma {
     planExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     maxUsers?: IntFieldUpdateOperationsInput | number
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subscriptions?: SubscriptionUncheckedUpdateManyWithoutWorkspaceNestedInput
   }
@@ -32544,6 +32682,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -32561,6 +32700,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -34069,6 +34209,7 @@ export namespace Prisma {
   export type SupportTicketReplyCreateWithoutTicketInput = {
     id?: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -34077,6 +34218,7 @@ export namespace Prisma {
   export type SupportTicketReplyUncheckedCreateWithoutTicketInput = {
     id?: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -34218,6 +34360,7 @@ export namespace Prisma {
     id?: StringFilter<"SupportTicketReply"> | string
     ticketId?: StringFilter<"SupportTicketReply"> | string
     message?: StringFilter<"SupportTicketReply"> | string
+    attachments?: StringNullableListFilter<"SupportTicketReply">
     isAdmin?: BoolFilter<"SupportTicketReply"> | boolean
     authorName?: StringFilter<"SupportTicketReply"> | string
     createdAt?: DateTimeFilter<"SupportTicketReply"> | Date | string
@@ -34228,6 +34371,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -34242,6 +34386,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -34270,6 +34415,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34284,6 +34430,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34382,6 +34529,7 @@ export namespace Prisma {
     category: string
     subject: string
     description: string
+    attachments?: SupportTicketCreateattachmentsInput | string[]
     status: string
     priority: string
     createdAt?: Date | string
@@ -34656,6 +34804,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34669,6 +34818,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34682,6 +34832,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     subject?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketUpdateattachmentsInput | string[]
     status?: StringFieldUpdateOperationsInput | string
     priority?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34698,6 +34849,7 @@ export namespace Prisma {
     billingCycle: string
     amountPaisa: number
     currency?: string
+    saathiCode?: string | null
     razorpayOrderId?: string | null
     startsAt?: Date | string | null
     expiresAt?: Date | string | null
@@ -34726,6 +34878,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -34742,6 +34895,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -34758,6 +34912,7 @@ export namespace Prisma {
     billingCycle?: StringFieldUpdateOperationsInput | string
     amountPaisa?: IntFieldUpdateOperationsInput | number
     currency?: StringFieldUpdateOperationsInput | string
+    saathiCode?: NullableStringFieldUpdateOperationsInput | string | null
     razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     startsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -34918,6 +35073,7 @@ export namespace Prisma {
   export type SupportTicketReplyCreateManyTicketInput = {
     id?: string
     message: string
+    attachments?: SupportTicketReplyCreateattachmentsInput | string[]
     isAdmin?: boolean
     authorName: string
     createdAt?: Date | string
@@ -34926,6 +35082,7 @@ export namespace Prisma {
   export type SupportTicketReplyUpdateWithoutTicketInput = {
     id?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34934,6 +35091,7 @@ export namespace Prisma {
   export type SupportTicketReplyUncheckedUpdateWithoutTicketInput = {
     id?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34942,6 +35100,7 @@ export namespace Prisma {
   export type SupportTicketReplyUncheckedUpdateManyWithoutTicketInput = {
     id?: StringFieldUpdateOperationsInput | string
     message?: StringFieldUpdateOperationsInput | string
+    attachments?: SupportTicketReplyUpdateattachmentsInput | string[]
     isAdmin?: BoolFieldUpdateOperationsInput | boolean
     authorName?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

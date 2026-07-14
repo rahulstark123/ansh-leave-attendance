@@ -97,6 +97,7 @@ model Workspace {
   planExpiresAt DateTime?
   trialEndsAt   DateTime? // 14-day Pro trial for new workspaces
   maxUsers      Int            @default(5)
+  saathiCode    String?        @map("saathicode") // e.g. "SAATHI-00001" — referral from ANSH Saathi
   createdAt     DateTime       @default(now())
   subscriptions Subscription[]
   transactions  Transaction[]
@@ -113,6 +114,7 @@ model Subscription {
   billingCycle    String // "monthly" | "yearly"
   amountPaisa     Int
   currency        String        @default("INR")
+  saathiCode      String?       @map("saathicode") // ANSH Saathi referral at time of this purchase
   razorpayOrderId String?
   startsAt        DateTime?
   expiresAt       DateTime?
@@ -279,6 +281,7 @@ model SupportTicket {
   category    String // "Leave Issue" | "Attendance Correction" | "IT Support" | "Profile Update" | "Other"
   subject     String
   description String
+  attachments String[]             @default([])
   status      String // "Open" | "In_Progress" | "Resolved"
   priority    String // "Low" | "Medium" | "High"
   createdAt   DateTime             @default(now())
@@ -288,13 +291,14 @@ model SupportTicket {
 }
 
 model SupportTicketReply {
-  id         String        @id @default(cuid())
-  ticketId   String
-  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  message    String
-  isAdmin    Boolean       @default(false)
-  authorName String
-  createdAt  DateTime      @default(now())
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message     String
+  attachments String[]      @default([])
+  isAdmin     Boolean       @default(false)
+  authorName  String
+  createdAt   DateTime      @default(now())
 
   @@index([ticketId])
 }

@@ -3,6 +3,7 @@ import { getAuthEmployee } from "@/lib/auth-helper";
 import { getEmployeeWorkspaceId } from "@/lib/billing/auth";
 import {
   ensureWorkspaceBilling,
+  getCurrentProSubscription,
   getScheduledProSubscription,
 } from "@/lib/billing/workspace-billing";
 import { formatMajorAmount } from "@/lib/billing/charge-region";
@@ -22,14 +23,7 @@ export async function GET(req: Request) {
     const workspace = await ensureWorkspaceBilling(workspaceId);
 
     const scheduledSubscription = await getScheduledProSubscription(workspaceId);
-    const activeSubscription = await prisma.subscription.findFirst({
-      where: {
-        workspaceId,
-        status: "ACTIVE",
-        plan: "pro",
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const activeSubscription = await getCurrentProSubscription(workspaceId);
     const billingSubscription = activeSubscription ?? scheduledSubscription;
 
     const transactions = await prisma.transaction.findMany({
@@ -44,26 +38,36 @@ export async function GET(req: Request) {
 
     const punchesUsedThisMonth = await getWorkspacePunchCountThisMonth(workspaceId);
 
+    const freshWorkspace =
+      (await prisma.workspace.findUnique({ where: { id: workspaceId } })) ??
+      workspace;
+
     const access = resolveWorkspaceAccess({
-      plan: workspace.plan,
-      planExpiresAt: workspace.planExpiresAt,
-      trialEndsAt: workspace.trialEndsAt,
-      maxUsers: workspace.maxUsers,
+      plan: freshWorkspace.plan,
+      planExpiresAt: freshWorkspace.planExpiresAt,
+      trialEndsAt: freshWorkspace.trialEndsAt,
+      maxUsers: freshWorkspace.maxUsers,
     });
 
     const billingCycle = billingSubscription?.billingCycle || null;
     const monthlyPrice =
       billingSubscription && billingSubscription.billingCycle === "yearly"
-        ? Math.round(billingSubscription.amountPaisa / 12 / (billingSubscription.currency === "INR" ? 100 : 100))
+        ? Math.round(billingSubscription.amountPaisa / 12 / 100)
         : billingSubscription
           ? billingSubscription.amountPaisa / 100
           : 0;
 
+    const now = new Date();
+    const hasFutureRenewal = Boolean(
+      scheduledSubscription?.startsAt && scheduledSubscription.startsAt > now
+    );
+
     return NextResponse.json({
       workspaceId,
-      plan: workspace.plan,
+      plan: freshWorkspace.plan,
       planName: access.planName,
       maxUsers: access.effectiveMaxUsers,
+      seatsCount: billingSubscription?.seatsCount ?? access.effectiveMaxUsers,
       planExpiresAt: access.planExpiresAt,
       trialEndsAt: access.trialEndsAt,
       isTrialActive: access.isTrialActive,
@@ -71,12 +75,15 @@ export async function GET(req: Request) {
       hasProAccess: access.hasProAccess,
       trialDaysRemaining: access.trialDaysRemaining,
       hasScheduledPro: Boolean(scheduledSubscription),
+      hasFutureRenewal,
       scheduledProStartsAt: scheduledSubscription?.startsAt?.toISOString() ?? null,
       scheduledBillingCycle: scheduledSubscription?.billingCycle ?? null,
       billingCycle,
+      subscriptionStartsAt: billingSubscription?.startsAt?.toISOString() ?? null,
       price: access.isProActive || scheduledSubscription ? monthlyPrice : 0,
       currency: billingSubscription?.currency || "INR",
       employeeCount,
+      saathiCode: freshWorkspace.saathiCode ?? null,
       punchesUsedThisMonth,
       punchesLimit: access.hasProAccess ? null : FREE_MAX_PUNCHES_PER_MONTH,
       canManageBilling:

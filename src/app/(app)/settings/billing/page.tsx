@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlanStore } from "@/stores/plan-store";
+import { GST_RATE } from "@/lib/billing/plans";
 
 interface BillingInvoice {
   id: string;
@@ -34,6 +35,7 @@ interface BillingStatus {
   plan: string;
   planName: string;
   maxUsers: number;
+  seatsCount?: number;
   planExpiresAt: string | null;
   trialEndsAt: string | null;
   isTrialActive: boolean;
@@ -55,6 +57,7 @@ interface FxPricing {
   monthlyPriceMajor: number;
   yearlyMonthlyEquivalentMajor: number;
   yearlyTotalMajor: number;
+  gstRate?: number;
   disclaimer: string;
 }
 
@@ -196,15 +199,58 @@ export default function BillingSettingPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const status = statusRes.ok ? await statusRes.json() : null;
-      if (status?.hasScheduledPro) {
+      if (status?.hasFutureRenewal || status?.hasScheduledPro) {
         setSuccessMsg(
-          `Payment successful! Pro will start on ${formatRenewalDate(status.scheduledProStartsAt)} when your trial ends.`
+          `Payment successful! Your new Pro plan will start on ${formatRenewalDate(status.scheduledProStartsAt)}.`
         );
       } else {
         setSuccessMsg("Payment successful! Your workspace is now on Pro.");
       }
       setTimeout(() => setSuccessMsg(""), 5000);
-    });
+    }, "upgrade");
+  };
+
+  const startAddSeatsCheckout = () => {
+    setErrorMsg("");
+
+    if (!canManageBilling) {
+      setErrorMsg(
+        "Only Admin, HR Manager, or Owner can add seats. Ask your workspace admin."
+      );
+      return;
+    }
+
+    openCheckoutModal(async () => {
+      await Promise.all([initialize(), loadBilling(), fetchPlan()]);
+      setSuccessMsg("Seats added successfully. Your plan seat limit has been updated.");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    }, "add_seats");
+  };
+
+  const startRenewCheckout = () => {
+    setErrorMsg("");
+
+    if (!canManageBilling) {
+      setErrorMsg(
+        "Only Admin, HR Manager, or Owner can renew the plan."
+      );
+      return;
+    }
+
+    openCheckoutModal(async () => {
+      await Promise.all([initialize(), loadBilling(), fetchPlan()]);
+      const token = sessionStorage.getItem("ansh_auth_token");
+      const statusRes = await fetch("/api/billing/status", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const status = statusRes.ok ? await statusRes.json() : null;
+      setSuccessMsg(
+        `Renewal confirmed. Your next Pro period starts on ${formatRenewalDate(
+          status?.scheduledProStartsAt ?? planExpiresAt
+        )}.`
+      );
+      setTimeout(() => setSuccessMsg(""), 6000);
+    }, "upgrade");
   };
 
   const handlePlanChange = async (target: "Free" | "Pro") => {
@@ -232,13 +278,26 @@ export default function BillingSettingPage() {
   const utilizationPercentage = Math.round((activeEmployeeCount / maxUsers) * 100);
   const hasProExperience = hasPaidPro || isTrialActive;
   const showUpgradeOption = !hasPaidPro && !hasScheduledPro;
+  const showAddSeatsOption = hasPaidPro;
   const displayCurrency = fx?.chargeCurrency || currency;
+  const showGst = displayCurrency === "INR";
+  const gstPct = Math.round((fx?.gstRate ?? GST_RATE) * 100);
   const monthlyListPrice = fx?.monthlyPriceMajor ?? (displayCurrency === "USD" ? 2 : 199);
   const yearlyListPrice = fx?.yearlyMonthlyEquivalentMajor ?? (displayCurrency === "USD" ? 1.62 : 161);
   const yearlyTotalPrice = fx?.yearlyTotalMajor ?? (displayCurrency === "USD" ? 19.44 : 1931);
   const priceSymbol = displayCurrency === "USD" ? "$" : "₹";
   const listPrice = (yearly: boolean) =>
     formatPrice(yearly ? yearlyListPrice : monthlyListPrice, displayCurrency);
+  const withGstLabel = showGst ? ` + ${gstPct}% GST` : "";
+  const monthlyWithGst = showGst
+    ? Math.round(monthlyListPrice * (1 + (fx?.gstRate ?? GST_RATE)))
+    : monthlyListPrice;
+  const yearlyMonthlyWithGst = showGst
+    ? Math.round(yearlyListPrice * (1 + (fx?.gstRate ?? GST_RATE)))
+    : yearlyListPrice;
+  const yearlyTotalWithGst = showGst
+    ? Math.round(yearlyTotalPrice * (1 + (fx?.gstRate ?? GST_RATE)))
+    : yearlyTotalPrice;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -256,6 +315,27 @@ export default function BillingSettingPage() {
               <ArrowUpRight className="h-4 w-4" />
               {isTrialActive ? "Subscribe to Pro" : "Upgrade to Pro"}
             </Button>
+          ) : showAddSeatsOption ? (
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0 gap-2 rounded-xl"
+                onClick={startRenewCheckout}
+                disabled={!canManageBilling || hasScheduledPro}
+              >
+                Renew plan
+              </Button>
+              <Button
+                type="button"
+                className="btn-primary shrink-0 gap-2 border-0"
+                onClick={startAddSeatsCheckout}
+                disabled={!canManageBilling}
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Add seats
+              </Button>
+            </div>
           ) : undefined
         }
         action={{
@@ -380,8 +460,23 @@ export default function BillingSettingPage() {
                   />
                 </div>
                 <p className="text-[10px] text-slate-400 leading-relaxed">
-                  Your plan supports up to {maxUsers} registered employee directory records. Check available plans above to change seat limits.
+                  Your plan includes {maxUsers} seat{maxUsers === 1 ? "" : "s"}
+                  {hasPaidPro
+                    ? " based on what you purchased. Need more teammates? Add seats anytime — only the remaining days in your billing period are charged."
+                    : ". Check available plans above to change seat limits."}
                 </p>
+                {showAddSeatsOption && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 h-9 rounded-xl text-xs font-bold"
+                    onClick={startAddSeatsCheckout}
+                    disabled={!canManageBilling}
+                  >
+                    Add more seats
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -485,12 +580,23 @@ export default function BillingSettingPage() {
                     Trial
                   </div>
                 ) : null}
-                <div className="flex justify-between items-center text-xs">
+                <div className="flex justify-between items-center text-xs gap-2">
                   <span className="font-extrabold text-slate-800 dark:text-white">Pro Edition</span>
-                  <span className="font-black text-slate-900 dark:text-white">{priceSymbol}{monthlyListPrice}<span className="text-[10px] font-semibold text-slate-400">/user/mo</span></span>
+                  <span className="font-black text-slate-900 dark:text-white text-right">
+                    {priceSymbol}{monthlyListPrice}
+                    <span className="text-[10px] font-semibold text-slate-400">/user/mo</span>
+                    {showGst && (
+                      <span className="block text-[9px] font-semibold text-slate-400 mt-0.5">
+                        + {gstPct}% GST
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <p className="text-[10px] text-slate-400">
                   Advanced HR operations with configurable policies, approvals, and analytics for growing teams.
+                  {showGst
+                    ? ` India pricing includes ${gstPct}% GST at checkout (≈ ${priceSymbol}${monthlyWithGst}/user/mo incl. GST).`
+                    : ""}
                 </p>
               </div>
             </CardContent>
@@ -692,11 +798,19 @@ export default function BillingSettingPage() {
                   </p>
                   <p className="text-[10px] text-slate-450 dark:text-slate-400 mt-1">
                     {isYearly
-                      ? `${listPrice(true)}/user/mo billed yearly (${formatPrice(yearlyTotalPrice, displayCurrency)}/user/year)`
-                      : `${listPrice(false)}/user/month`}
+                      ? `${listPrice(true)}/user/mo billed yearly (${formatPrice(yearlyTotalPrice, displayCurrency)}/user/year)${withGstLabel}`
+                      : `${listPrice(false)}/user/month${withGstLabel}`}
                   </p>
+                  {showGst && (
+                    <p className="text-[10px] font-semibold text-primary/90 mt-1">
+                      {isYearly
+                        ? `Incl. ${gstPct}% GST ≈ ${formatPrice(yearlyMonthlyWithGst, displayCurrency)}/user/mo (${formatPrice(yearlyTotalWithGst, displayCurrency)}/user/year)`
+                        : `Incl. ${gstPct}% GST ≈ ${formatPrice(monthlyWithGst, displayCurrency)}/user/month at checkout`}
+                    </p>
+                  )}
                   <p className="text-[9px] text-slate-400 mt-0.5">
                     {isYearly ? "Switch to monthly anytime." : "Switch to yearly to save 19%."}
+                    {showGst ? " GST applies on INR payments for India." : ""}
                   </p>
                 </div>
 

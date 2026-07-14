@@ -1,4 +1,4 @@
-import { FREE_MAX_USERS, PRO_MAX_USERS, planDisplayName } from "./plans";
+import { FREE_MAX_USERS, TRIAL_MAX_USERS, planDisplayName } from "./plans";
 
 export interface WorkspaceBillingState {
   plan: string;
@@ -38,6 +38,14 @@ export function resolveWorkspaceAccess(
     trialDaysRemaining = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
   }
 
+  // Paid Pro uses purchased seats stored on workspace.maxUsers.
+  // Trial (before purchase) uses the trial ceiling when maxUsers is still unset/low.
+  const effectiveMaxUsers = !hasProAccess
+    ? FREE_MAX_USERS
+    : proActive
+      ? Math.max(workspace.maxUsers || FREE_MAX_USERS, 1)
+      : Math.max(workspace.maxUsers || TRIAL_MAX_USERS, FREE_MAX_USERS);
+
   return {
     plan: workspace.plan,
     planName: trialActive
@@ -48,7 +56,7 @@ export function resolveWorkspaceAccess(
     isProActive: proActive,
     trialEndsAt: workspace.trialEndsAt?.toISOString() ?? null,
     planExpiresAt: workspace.planExpiresAt?.toISOString() ?? null,
-    effectiveMaxUsers: hasProAccess ? PRO_MAX_USERS : FREE_MAX_USERS,
+    effectiveMaxUsers,
     trialDaysRemaining,
   };
 }
